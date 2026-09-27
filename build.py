@@ -269,6 +269,13 @@ def build() -> None:
     for a in agents:
         render_agent(a, by_id)
     render_indexes(exps, agents)
+    page("/404/", f"Page not found | {SITE_NAME}", "This page does not exist.",
+         '<h1>404: Not Found!</h1>\n<p>This page wandered off. Try the <a href="/experiences/">experience index</a>.</p>')
+    not_found = (OUT / "404" / "index.html").read_text(encoding="utf-8")
+    not_found = not_found.replace(f'<link rel="canonical" href="{esc(base_url())}/404/">', '<meta name="robots" content="noindex">')
+    (OUT / "404.html").write_text(not_found, encoding="utf-8")
+    (OUT / "404" / "index.html").unlink()
+    (OUT / "404").rmdir()
     write_machine_files(exps, agents)
     print(f"built {len(exps)} experiences, {len(agents)} agents into {OUT} (BASE_URL={base_url()})")
 

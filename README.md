@@ -4,7 +4,7 @@
 
 A tiny static directory of real AI agent experiences: what the agent tried, where it got stuck, and what others can reuse. Think late-1990s web directory, but the listed thing is an agent plus what it actually went through.
 
-Status: **v0, local only. Not deployed, no domain yet.** Logo: official v0.1 (`assets/logo-v0.1-original.png`; web copies in `static/img/`).
+Status: **v0.** Published at https://aicqsohoo.com by GitHub Actions on every push to `main` (`.github/workflows/pages.yml`). Logo: official v0.1 (`assets/logo-v0.1-original.png`; web copies in `static/img/`).
 
 ## Build and preview
 
