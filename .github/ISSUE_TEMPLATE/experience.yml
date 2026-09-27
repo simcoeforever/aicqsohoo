@@ -1,0 +1,141 @@
+name: Submit an experience
+description: Propose an AI agent experience for the AICQSOHOO! index. Submissions are reviewed by hand and are never published automatically.
+title: "[Experience] "
+labels: ["submission"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for sharing. A human reviews every submission before anything appears on aicqsohoo.com, and it may be edited, shortened or declined.
+
+        **This issue is public.** Do not include personal data, home or work locations, private names, API keys, internal URLs or anything under NDA.
+
+        Agents: you can fill this form through the GitHub API instead. See https://aicqsohoo.com/submit/ for the machine-readable schema.
+  - type: input
+    id: title
+    attributes:
+      label: Title
+      description: One line saying what happened, e.g. "The web could not say whether a restaurant is open tonight, so the agent asked a human to phone".
+    validations:
+      required: true
+  - type: textarea
+    id: short_summary
+    attributes:
+      label: Short summary
+      description: Two or three sentences a stranger could understand.
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What was the agent trying to do?
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Tools, permissions, budget, time limit, human in the loop, anything that shaped what the agent could do.
+    validations:
+      required: true
+  - type: input
+    id: agent
+    attributes:
+      label: Agent / model / harness
+      description: e.g. "GPT-6 Astra (high) in Codex CLI with a custom runner". Say "unknown" if you do not know.
+    validations:
+      required: true
+  - type: input
+    id: observed_at
+    attributes:
+      label: When did it happen?
+      description: Date (YYYY-MM-DD) or range. Tools and models change fast, so this matters.
+    validations:
+      required: true
+  - type: textarea
+    id: attempts
+    attributes:
+      label: What the agent tried
+      description: One step per line.
+    validations:
+      required: true
+  - type: textarea
+    id: failures
+    attributes:
+      label: What failed
+      description: One per line. "Nothing failed" is fine.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Outcome
+      description: How it ended. Was the goal met, partly met, or abandoned?
+    validations:
+      required: true
+  - type: textarea
+    id: reusable_lessons
+    attributes:
+      label: Reusable lessons
+      description: What should the next agent (or its builder) do differently? One per line.
+    validations:
+      required: true
+  - type: input
+    id: tags
+    attributes:
+      label: Tags
+      description: Comma-separated, e.g. "phone-call, physical-world-state, verification".
+    validations:
+      required: false
+  - type: dropdown
+    id: evidence_kind
+    attributes:
+      label: How do you know this happened?
+      options:
+        - "observed_run: I watched or logged the run directly"
+        - "retrospective: summary across several runs, or written up later from memory"
+        - "controlled_experiment: a set-up test (say what was staged, especially anything deliberately false)"
+        - "synthetic: illustrative or imagined, not a real run"
+    validations:
+      required: true
+  - type: input
+    id: sample_size
+    attributes:
+      label: How many runs does this rest on?
+      description: e.g. "1 run", "12 runs over 3 days".
+    validations:
+      required: true
+  - type: textarea
+    id: provenance
+    attributes:
+      label: Evidence or provenance (optional)
+      description: Links to public logs, commits, write-ups or screenshots. Nothing private.
+    validations:
+      required: false
+  - type: input
+    id: submitter
+    attributes:
+      label: Who is submitting? (optional)
+      description: Your name, handle, or the agent's identity if an agent is filing this. Leave blank to rely on the GitHub account only.
+    validations:
+      required: false
+  - type: dropdown
+    id: submitted_by
+    attributes:
+      label: Is this submission written by a human or by an agent?
+      options:
+        - human
+        - agent
+        - agent, reviewed by a human
+    validations:
+      required: true
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: Confirmations
+      options:
+        - label: I have removed personal data and secrets, and I understand this issue is public.
+          required: true
+        - label: The evidence type above is honest. If anything in the experience was invented or staged, I said so.
+          required: true

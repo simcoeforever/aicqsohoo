@@ -35,7 +35,109 @@ EVIDENCE_KIND_LABELS = {
     "observed_run": "Observed run (logged by the humans running the experiment)",
     "controlled_deception": "Controlled deception experiment (the human side lied on purpose)",
     "retrospective": "Retrospective summary across several runs",
+    "controlled_experiment": "Controlled experiment (a set-up test)",
+    "synthetic": "Synthetic or illustrative (not a real run)",
 }
+REPO = "simcoeforever/aicqsohoo"
+ISSUE_FORM_URL = f"https://github.com/{REPO}/issues/new?template=experience.yml"
+SUBMISSION_REQUIRED = [
+    "title", "short_summary", "problem", "environment", "agent", "observed_at", "attempts",
+    "failures", "outcome", "reusable_lessons", "evidence_kind", "sample_size", "submitted_by",
+]
+
+
+def submission_schema() -> dict:
+    text = {"type": "string", "minLength": 1}
+    lines = {"type": "array", "items": text, "minItems": 1}
+    return {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": base_url() + "/submission-schema.json",
+        "title": "AICQSOHOO! experience submission",
+        "description": (
+            "Proposed experience for the AICQSOHOO! index. Submissions are reviewed by a human and "
+            "are never published automatically. Send it as a GitHub issue on " + REPO + " whose body "
+            "contains this object in a fenced json code block."
+        ),
+        "type": "object",
+        "required": SUBMISSION_REQUIRED,
+        "additionalProperties": False,
+        "properties": {
+            "title": text,
+            "short_summary": text,
+            "problem": text,
+            "environment": text,
+            "agent": {**text, "description": "Agent, model and harness, or 'unknown'."},
+            "observed_at": {**text, "description": "Date (YYYY-MM-DD) or date range."},
+            "attempts": lines,
+            "failures": {"type": "array", "items": text},
+            "outcome": text,
+            "reusable_lessons": lines,
+            "tags": {"type": "array", "items": text},
+            "evidence_kind": {"enum": ["observed_run", "retrospective", "controlled_experiment", "synthetic"]},
+            "sample_size": {**text, "description": "e.g. '1 run'."},
+            "provenance": {"type": "array", "items": {"type": "string", "format": "uri"},
+                           "description": "Public links only."},
+            "submitter": {**text, "description": "Optional name, handle or agent identity."},
+            "submitted_by": {"enum": ["human", "agent", "agent_reviewed_by_human"]},
+        },
+    }
+
+
+def render_submit() -> None:
+    fields = "".join(f"<li><code>{esc(f)}</code></li>" for f in SUBMISSION_REQUIRED)
+    body = f"""<h1>Submit an Experience <span class="new">NEW!</span></h1>
+<p>Has your agent (or an agent you watched) hit a wall, found a way round it, or failed in an instructive way?
+Propose it for the index.</p>
+<p class="search-box"><b><a href="{esc(ISSUE_FORM_URL)}">&raquo; Submit an experience on GitHub</a></b><br>
+<small>Needs a free GitHub account. The form opens a public issue.</small></p>
+<h2>What happens next</h2>
+<ul>
+<li>A human reads every submission. Nothing is published automatically.</li>
+<li>Accepted submissions are edited into the same format as the other pages and credited as you ask.</li>
+<li>Submissions may be declined, for example if they cannot be checked at all, contain personal data, or read like advertising.</li>
+<li>Invented or staged experiences are welcome only if they say so. They are labelled on the page.</li>
+</ul>
+<h2>Please do not include</h2>
+<p>Personal data, home or work locations, private names, API keys, internal URLs, or anything under NDA. The issue is public.</p>
+<h2>For agents</h2>
+<p>There is no submission API on this site. An agent that can use the GitHub API can open an issue on
+<code>{esc(REPO)}</code> with a title starting <code>[Experience]</code> and a body containing one fenced
+<code>json</code> block that matches <a href="/submission-schema.json">submission-schema.json</a>.
+Required fields:</p>
+<ul>{fields}</ul>
+<p>Set <code>submitted_by</code> honestly. Agent-written submissions are fine and are reviewed the same way.</p>"""
+    page("/submit/", f"Submit an Experience | {SITE_NAME}",
+         "Propose an AI agent experience for the AICQSOHOO! index. Reviewed by a human, never auto-published.", body)
+
+
+def write_llms_txt(exps: list[dict]) -> None:
+    b = base_url()
+    items = "".join(f"- [{e['title']}]({b}{exp_path(e)}): {e['short_summary']}\n" for e in exps)
+    text = f"""# {SITE_NAME}
+
+> A small, human-curated directory of real AI agent experiences: what an agent tried, where it got stuck, what worked, and lessons other agents can reuse. Each page states its evidence type and how many runs it rests on.
+
+This file is a convenience pointer for machine readers. The HTML pages and the JSON files below are the source of truth.
+
+## Main pages
+
+- [Experience index]({b}/experiences/): all experiences with short summaries
+- [Agent profiles]({b}/agents/): the agents the experiences come from
+- [About]({b}/about/): what the site is and is not
+- [Submit an experience]({b}/submit/): how people and agents can propose new experiences (human-reviewed)
+
+## Machine-readable
+
+- [experiences.json]({b}/experiences.json): every experience with all fields
+- [agents.json]({b}/agents.json): agent profiles
+- [submission-schema.json]({b}/submission-schema.json): JSON Schema for proposed experiences
+- [sitemap.xml]({b}/sitemap.xml)
+
+## Experiences
+
+{items}"""
+    (OUT / "llms.txt").write_text(text, encoding="utf-8")
+
 
 esc = html.escape
 
@@ -191,6 +293,7 @@ def render_indexes(exps: list[dict], agents: list[dict]) -> None:
     home = f"""<div class="search-box">
 <p><b>Stuck on something?</b> Somebody's AI may have hit the same wall already. Browse the directory below.
 <small>(No search box yet. It is 1998 in here.)</small></p>
+<p>Got one of your own? <a href="/submit/">Submit an experience</a> <span class="new">NEW!</span></p>
 </div>
 <h2>What's New! <span class="new">NEW!</span></h2>
 <ul class="directory">
@@ -239,12 +342,14 @@ def write_machine_files(exps: list[dict], agents: list[dict]) -> None:
     (OUT / "agents.json").write_text(
         json.dumps([machine_record(a, AGENT_FIELDS) for a in agents], ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8")
-    paths = ["/", "/about/", "/experiences/", "/agents/"] + [exp_path(e) for e in exps] + [agent_path(a) for a in agents]
+    paths = ["/", "/about/", "/submit/", "/experiences/", "/agents/"] + [exp_path(e) for e in exps] + [agent_path(a) for a in agents]
     urls = "".join(f"  <url><loc>{esc(base_url() + p)}</loc><lastmod>{PUBLISHED}</lastmod></url>\n" for p in paths)
     (OUT / "sitemap.xml").write_text(
         '<?xml version="1.0" encoding="UTF-8"?>\n'
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + urls + "</urlset>\n",
         encoding="utf-8")
+    (OUT / "submission-schema.json").write_text(
+        json.dumps(submission_schema(), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     (OUT / "robots.txt").write_text(f"User-agent: *\nAllow: /\n\nSitemap: {base_url()}/sitemap.xml\n", encoding="utf-8")
 
 
@@ -269,6 +374,8 @@ def build() -> None:
     for a in agents:
         render_agent(a, by_id)
     render_indexes(exps, agents)
+    render_submit()
+    write_llms_txt(exps)
     page("/404/", f"Page not found | {SITE_NAME}", "This page does not exist.",
          '<h1>404: Not Found!</h1>\n<p>This page wandered off. Try the <a href="/experiences/">experience index</a>.</p>')
     not_found = (OUT / "404" / "index.html").read_text(encoding="utf-8")

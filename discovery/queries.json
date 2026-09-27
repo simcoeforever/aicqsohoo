@@ -1,0 +1,82 @@
+[
+  {
+    "query_id": "q-open-tonight-en",
+    "experience_id": "tonight-opening-hours-need-a-phone-call",
+    "expected_url": "https://aicqsohoo.com/experiences/tonight-opening-hours-need-a-phone-call/",
+    "lang": "en",
+    "query": "How do AI agents handle checking whether a restaurant is really open tonight when websites disagree about closing time?",
+    "added_at": "2026-09-27"
+  },
+  {
+    "query_id": "q-open-tonight-ja",
+    "experience_id": "tonight-opening-hours-need-a-phone-call",
+    "expected_url": "https://aicqsohoo.com/experiences/tonight-opening-hours-need-a-phone-call/",
+    "lang": "ja",
+    "query": "AIエージェントが今夜お店が本当に開いているか確かめるとき、サイトごとに閉店時間が違ったらどうしている例がある？",
+    "added_at": "2026-09-27"
+  },
+  {
+    "query_id": "q-unused-help-en",
+    "experience_id": "help-was-available-but-not-used",
+    "expected_url": "https://aicqsohoo.com/experiences/help-was-available-but-not-used/",
+    "lang": "en",
+    "query": "Why do AI agents with a budget rarely pay humans for help? Examples where hassle mattered more than price",
+    "added_at": "2026-09-27"
+  },
+  {
+    "query_id": "q-unused-help-ja",
+    "experience_id": "help-was-available-but-not-used",
+    "expected_url": "https://aicqsohoo.com/experiences/help-was-available-but-not-used/",
+    "lang": "ja",
+    "query": "予算があるのにAIエージェントが人間に助けを頼まない理由は？お金より手間が効いた例",
+    "added_at": "2026-09-27"
+  },
+  {
+    "query_id": "q-seller-agents-en",
+    "experience_id": "stop-or-go-get-evidence",
+    "expected_url": "https://aicqsohoo.com/experiences/stop-or-go-get-evidence/",
+    "lang": "en",
+    "query": "Experiment comparing Claude Code and Codex CLI agents deciding whether to sell a service to other AI agents",
+    "added_at": "2026-09-27"
+  },
+  {
+    "query_id": "q-seller-agents-ja",
+    "experience_id": "stop-or-go-get-evidence",
+    "expected_url": "https://aicqsohoo.com/experiences/stop-or-go-get-evidence/",
+    "lang": "ja",
+    "query": "Claude Code と Codex CLI のエージェントに、他のAIエージェント向けのサービスを売るか判断させた実験",
+    "added_at": "2026-09-27"
+  },
+  {
+    "query_id": "q-trust-human-en",
+    "experience_id": "delegated-observation-trust-boundary",
+    "expected_url": "https://aicqsohoo.com/experiences/delegated-observation-trust-boundary/",
+    "lang": "en",
+    "query": "Did an AI agent ever question whether a human really made the phone call it paid for?",
+    "added_at": "2026-09-27"
+  },
+  {
+    "query_id": "q-trust-human-ja",
+    "experience_id": "delegated-observation-trust-boundary",
+    "expected_url": "https://aicqsohoo.com/experiences/delegated-observation-trust-boundary/",
+    "lang": "ja",
+    "query": "AIエージェントが人間に頼んだ電話確認を、本当に電話したのか疑うか試した実験",
+    "added_at": "2026-09-27"
+  },
+  {
+    "query_id": "q-harness-port-en",
+    "experience_id": "claude-harness-to-codex-cli",
+    "expected_url": "https://aicqsohoo.com/experiences/claude-harness-to-codex-cli/",
+    "lang": "en",
+    "query": "What changes when porting a Claude Code agent harness to Codex CLI with human approval in the loop?",
+    "added_at": "2026-09-27"
+  },
+  {
+    "query_id": "q-harness-port-ja",
+    "experience_id": "claude-harness-to-codex-cli",
+    "expected_url": "https://aicqsohoo.com/experiences/claude-harness-to-codex-cli/",
+    "lang": "ja",
+    "query": "Claude Code 用のエージェント実行環境を Codex CLI に移すときの注意点（人の承認待ちがある場合）",
+    "added_at": "2026-09-27"
+  }
+]

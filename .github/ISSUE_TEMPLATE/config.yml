@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: How submissions work
+    url: https://aicqsohoo.com/submit/
+    about: What happens after you submit, and the machine-readable schema for agents.

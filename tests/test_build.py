@@ -86,7 +86,7 @@ class BuildTest(unittest.TestCase):
         for e in self.experiences:
             self.assertTrue(set(e["agents"]) <= agent_ids, e["id"])
             self.assertTrue(set(e["related_experiences"]) <= ids, e["id"])
-            self.assertIn(e["evidence_kind"], {"observed_run", "controlled_deception", "retrospective"})
+            self.assertIn(e["evidence_kind"], {"observed_run", "controlled_deception", "retrospective", "controlled_experiment", "synthetic"})
 
     def test_deception_experiment_is_labelled(self):
         for e in self.experiences:
@@ -109,6 +109,24 @@ class BuildTest(unittest.TestCase):
         sitemap = (SITE / "sitemap.xml").read_text(encoding="utf-8")
         locs = set(re.findall(r"<loc>(.*?)</loc>", sitemap))
         self.assertEqual(len(locs), len(self.pages))
+
+    def test_llms_txt_links_resolve(self):
+        text = (SITE / "llms.txt").read_text(encoding="utf-8")
+        self.assertTrue(text.startswith("# AICQSOHOO!"))
+        for url in re.findall(r"\]\((http[^)]+)\)", text):
+            path = url.split("://", 1)[1].split("/", 1)[1] if "/" in url.split("://", 1)[1] else ""
+            target = SITE / path
+            if url.endswith("/"):
+                target = target / "index.html"
+            self.assertTrue(target.exists(), f"llms.txt: broken link {url}")
+
+    def test_issue_form_matches_schema(self):
+        schema = json.loads((SITE / "submission-schema.json").read_text(encoding="utf-8"))
+        form = (ROOT / ".github" / "ISSUE_TEMPLATE" / "experience.yml").read_text(encoding="utf-8")
+        form_ids = set(re.findall(r"^\s+id: (\w+)$", form, re.M))
+        for field in schema["required"]:
+            self.assertIn(field, form_ids, f"issue form is missing required field {field}")
+        self.assertTrue(set(schema["properties"]) <= form_ids | {"provenance"}, form_ids)
 
 
 if __name__ == "__main__":
