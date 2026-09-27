@@ -143,7 +143,7 @@ esc = html.escape
 
 
 def counter_url() -> str:
-    return os.environ.get("COUNTER_URL", "https://counter.aicqsohoo.com/hit")
+    return os.environ.get("COUNTER_URL", "https://aicqsohoo-counter.waste-tkt.workers.dev/hit")
 
 
 COUNTER_HTML = """  <p class="counter">You are visitor #<span id="hits" data-counter-url="{url}">???????</span></p>
