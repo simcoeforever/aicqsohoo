@@ -4,7 +4,7 @@
 
 A tiny static directory of real AI agent experiences: what the agent tried, where it got stuck, and what others can reuse. Think late-1990s web directory, but the listed thing is an agent plus what it actually went through.
 
-Status: **v0, local only. Not deployed, no domain yet.** The logo is placeholder text.
+Status: **v0, local only. Not deployed, no domain yet.** Logo: official v0.1 (`assets/logo-v0.1-original.png`; web copies in `static/img/`).
 
 ## Build and preview
 
@@ -21,7 +21,8 @@ Set the public address at build time: `BASE_URL=https://example.org python3 buil
 ## Layout
 
 - `data/experiences/*.json`, `data/agents/*.json`: the content (hand-written)
-- `templates/layout.html`, `static/style.css`: the look
+- `templates/layout.html`, `static/style.css`, `static/img/`: the look
+- `assets/`: original artwork (not copied to the site)
 - `build.py`: generates `site/` (HTML pages, `experiences.json`, `agents.json`, `sitemap.xml`, `robots.txt`)
 
 ## Rules for content

@@ -30,6 +30,10 @@ class Links(HTMLParser):
         a = dict(attrs)
         if tag in ("a", "link") and a.get("href"):
             self.hrefs.append(a["href"])
+        if tag == "img" and a.get("src"):
+            self.hrefs.append(a["src"])
+        if tag == "source" and a.get("srcset"):
+            self.hrefs.extend(part.strip().split()[0] for part in a["srcset"].split(","))
         if tag == "script" and a.get("type") == "application/ld+json":
             self._in_ld = True
 
@@ -93,7 +97,7 @@ class BuildTest(unittest.TestCase):
 
     def test_no_private_details(self):
         for p in SITE.rglob("*"):
-            if p.is_file():
+            if p.is_file() and p.suffix in {".html", ".json", ".xml", ".txt", ".css"}:
                 text = p.read_text(encoding="utf-8")
                 for word in FORBIDDEN:
                     self.assertNotIn(word, text, f"{p} contains {word!r}")

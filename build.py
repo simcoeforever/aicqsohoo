@@ -263,6 +263,7 @@ def build() -> None:
         shutil.rmtree(OUT)
     OUT.mkdir()
     shutil.copy(ROOT / "static" / "style.css", OUT / "style.css")
+    shutil.copytree(ROOT / "static" / "img", OUT / "img")
     for e in exps:
         render_experience(e, by_id, agents_by_id)
     for a in agents:

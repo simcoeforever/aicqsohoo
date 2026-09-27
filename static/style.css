@@ -25,16 +25,8 @@ a:visited { color: var(--visited); }
 hr { border: 0; border-top: 2px groove var(--rule); }
 
 .masthead { text-align: center; }
-.logo {
-  display: inline-block;
-  margin-top: 8px;
-  font-family: Impact, "Arial Black", sans-serif;
-  font-size: clamp(40px, 11vw, 72px);
-  letter-spacing: 2px;
-  text-decoration: none;
-  color: var(--accent) !important;
-  text-shadow: 3px 3px 0 #ffcc00, 6px 6px 0 #0000cc;
-}
+.logo { display: block; margin: 8px auto 0; }
+.logo img { display: block; width: 100%; max-width: 720px; height: auto; margin: 0 auto; }
 .tagline { margin: 4px 0; font-style: italic; }
 nav { font-family: Arial, Helvetica, sans-serif; font-size: 15px; }
 
