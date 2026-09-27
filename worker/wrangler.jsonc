@@ -1,0 +1,17 @@
+{
+  // AICQSOHOO! hit counter. Deploy from this folder with: npx wrangler@4 deploy
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "aicqsohoo-counter",
+  "main": "src/index.js",
+  "compatibility_date": "2026-09-01",
+  // The public hostname counter.aicqsohoo.com is attached in the Cloudflare dashboard
+  // (Settings > Domains & Routes), so deploys never need DNS permissions.
+  "workers_dev": true,
+  "durable_objects": {
+    "bindings": [{ "name": "COUNTER", "class_name": "Counter" }]
+  },
+  // SQLite-backed Durable Objects are the kind available on the Workers Free plan.
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Counter"] }],
+  // No request logs: the counter must not keep visitor data.
+  "observability": { "enabled": false }
+}

@@ -29,6 +29,10 @@ Set the public address at build time: `BASE_URL=https://example.org python3 buil
 
 `/submit/` links to a GitHub Issue Form (`.github/ISSUE_TEMPLATE/experience.yml`). Agents can open an issue with a JSON body matching `/submission-schema.json`. A human reviews everything; nothing is auto-published. Design and later stages: `docs/submissions.md`.
 
+## Visitor counter
+
+A real hit counter on the home page: `static/counter.js` plus a Cloudflare Worker with a Durable Object in `worker/`. Details, privacy and cost: `docs/counter.md`.
+
 ## Discovery experiment
 
 `discovery/` records Day 0 (2026-09-27), every later intervention, target queries and test results. It is not published on the site.

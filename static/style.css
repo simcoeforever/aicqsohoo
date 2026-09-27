@@ -67,3 +67,12 @@ h2 {
 .search-box { background: var(--panel); border: 1px solid var(--rule); padding: 8px; }
 footer { text-align: center; font-size: 14px; }
 .counter { font-family: "Courier New", monospace; }
+#hits {
+  display: inline-block;
+  padding: 1px 4px;
+  background: #000000;
+  color: #33ff33;
+  font-weight: bold;
+  letter-spacing: 3px;
+  border: 2px inset #c0c0c0;
+}

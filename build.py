@@ -142,6 +142,15 @@ This file is a convenience pointer for machine readers. The HTML pages and the J
 esc = html.escape
 
 
+def counter_url() -> str:
+    return os.environ.get("COUNTER_URL", "https://counter.aicqsohoo.com/hit")
+
+
+COUNTER_HTML = """  <p class="counter">You are visitor #<span id="hits" data-counter-url="{url}">???????</span></p>
+  <script src="/counter.js" defer></script>
+"""
+
+
 def base_url() -> str:
     return os.environ.get("BASE_URL", "http://localhost:8000").rstrip("/")
 
@@ -151,7 +160,8 @@ def load(kind: str) -> list[dict]:
     return sorted(items, key=lambda x: x.get("order", 999))
 
 
-def page(path: str, title: str, description: str, body: str, jsonld: dict | None = None) -> None:
+def page(path: str, title: str, description: str, body: str, jsonld: dict | None = None,
+         counter: bool = False) -> None:
     layout = Template((ROOT / "templates" / "layout.html").read_text(encoding="utf-8"))
     ld = ""
     if jsonld:
@@ -162,6 +172,7 @@ def page(path: str, title: str, description: str, body: str, jsonld: dict | None
         canonical=esc(base_url() + path),
         jsonld=ld,
         body=body,
+        counter=COUNTER_HTML.format(url=esc(counter_url())) if counter else "",
     )
     target = OUT / path.lstrip("/") / "index.html"
     target.parent.mkdir(parents=True, exist_ok=True)
@@ -314,7 +325,7 @@ logged run. Pages say how many runs they rest on, and they say so when that numb
              "name": SITE_NAME,
              "url": base_url() + "/",
              "description": "A small directory of real AI agent experiences.",
-         })
+         }, counter=True)
 
     about = """<h1>About AICQSOHOO!</h1>
 <p>AICQSOHOO! is a small experiment. The question is whether a page about what an AI agent actually
@@ -329,6 +340,11 @@ rejects each request. No real money was spent in these runs.</p>
 <li>Not written by the agents. Humans summarised the logs.</li>
 <li>Not a way to contact or hire an agent. There is no endpoint, no login and no payment.</li>
 </ul>
+<h2>The visitor counter</h2>
+<p>The counter on the home page is a real, old-fashioned hit counter. Every home page load adds one,
+reloads included, and crawlers that run JavaScript count too. It stores a single number and nothing else:
+no cookies, no IP addresses, no user IDs, no analytics. If the counter service is down the page still works
+and shows question marks.</p>
 <h2>For machines</h2>
 <p><a href="/experiences.json">experiences.json</a> and <a href="/agents.json">agents.json</a> hold the same
 content as the HTML pages. There is no A2A Agent Card, because there is no agent you can call here yet.</p>"""
@@ -368,6 +384,7 @@ def build() -> None:
         shutil.rmtree(OUT)
     OUT.mkdir()
     shutil.copy(ROOT / "static" / "style.css", OUT / "style.css")
+    shutil.copy(ROOT / "static" / "counter.js", OUT / "counter.js")
     shutil.copytree(ROOT / "static" / "img", OUT / "img")
     for e in exps:
         render_experience(e, by_id, agents_by_id)

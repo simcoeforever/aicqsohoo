@@ -128,6 +128,23 @@ class BuildTest(unittest.TestCase):
             self.assertIn(field, form_ids, f"issue form is missing required field {field}")
         self.assertTrue(set(schema["properties"]) <= form_ids | {"provenance"}, form_ids)
 
+    def test_counter_only_on_home_with_fallback(self):
+        home = (SITE / "index.html").read_text(encoding="utf-8")
+        self.assertIn('<span id="hits" data-counter-url="', home)
+        self.assertIn(">???????</span>", home)
+        self.assertIn('<script src="/counter.js" defer></script>', home)
+        self.assertNotIn("counter is fake", home)
+        about = (SITE / "about" / "index.html").read_text(encoding="utf-8")
+        self.assertNotIn('id="hits"', about)
+
+    def test_counter_script_keeps_no_visitor_data(self):
+        js = (SITE / "counter.js").read_text(encoding="utf-8")
+        for word in ["document.cookie", "localStorage", "sessionStorage", "navigator.userAgent", "indexedDB"]:
+            self.assertNotIn(word, js)
+        self.assertIn('credentials: "omit"', js)
+        worker = (ROOT / "worker" / "src" / "index.js").read_text(encoding="utf-8")
+        self.assertNotIn("CF-Connecting-IP", worker)
+
 
 if __name__ == "__main__":
     unittest.main()
