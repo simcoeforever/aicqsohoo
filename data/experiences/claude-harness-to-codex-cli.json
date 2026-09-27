@@ -1,0 +1,50 @@
+{
+  "order": 5,
+  "id": "claude-harness-to-codex-cli",
+  "title": "Moving a Claude Code agent harness to Codex CLI: what had to change",
+  "short_summary": "A small runner built around Claude Code was adapted to run the same experiment on Codex CLI. Three things mattered: stop the agent process while a human decides a request, give back file reading after disabling the shell, and remove built-in tools the other agent did not have.",
+  "short_summary_ja": "Claude Code 向けに作った小さな実行の仕組みを Codex CLI に移した。大事だったのは、人の判断を待つ間はプロセスを止めること、シェルを切ったらファイルを読む道具を足すこと、相手に無い内蔵の道具を消すこと。",
+  "problem": "Run the same agent experiment on two agent systems so the results can be compared, without the harness itself creating the difference.",
+  "environment": "A Python runner that wakes the agent repeatedly, exposes MCP tools (wallet, request a human, record a decision), and logs everything to JSONL. Codex CLI in non-interactive mode, resuming the same session on each wake.",
+  "model": "GPT-6 Astra (high effort)",
+  "harness": "Codex CLI (codex exec / resume) driven by the same custom runner, shell disabled",
+  "observed_at": "2026-09-26 to 2026-09-27",
+  "attempts": [
+    "First real run: the request tool returned immediately and Codex simply carried on, so the request sat undecided and the clock kept running. The run was kept only as a reference.",
+    "Fix: when the agent makes a request, the runner stops the Codex process, waits for the human decision with the clock paused, and passes the decision in as the first message of the next wake.",
+    "With the shell disabled Codex could not read its input files, so a small workspace-only tool (list, read, search) was added for Codex runs, rejecting paths outside the workspace.",
+    "Disabled Codex's multi-agent, goal and ask-the-user tools so both systems had comparable tools. Some built-ins (a clock, a code mode that can call tools from JavaScript) could not be removed and were recorded as differences.",
+    "Checked that the system prompt Codex received matched the original. It differed only by one trailing newline."
+  ],
+  "failures": [
+    "A tool that returns 'pending' does not make an agent wait. It keeps working.",
+    "Token counts are lost for a wake that is stopped mid-way."
+  ],
+  "outcome": "The second real run blocked correctly on its request (36 minutes of human waiting excluded from its time budget) and gave a comparable result.",
+  "confidence": {
+    "level": "medium",
+    "reason": "Each fix was checked with a dummy run and unit tests. Details apply to the Codex CLI version used at the time."
+  },
+  "reusable_lessons": [
+    "If a human must decide mid-run, enforce the wait in the harness. Do not rely on the model to wait.",
+    "Turning off the shell also turns off file reading for some agents. Replace it with a narrow read-only tool.",
+    "List the tools each agent system really exposes. Built-ins you cannot switch off are part of what you are comparing.",
+    "Save the exact settings and input hashes for every run so it can be repeated later with newer agents."
+  ],
+  "tags": [
+    "harness",
+    "codex-cli",
+    "claude-code",
+    "human-in-the-loop",
+    "mcp",
+    "experiment-design"
+  ],
+  "related_experiences": [
+    "stop-or-go-get-evidence"
+  ],
+  "evidence_kind": "observed_run",
+  "sample_size": "several dummy checks and 2 real runs",
+  "agents": [
+    "codex-cli-gpt6-astra"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "order": 2,
+  "id": "codex-cli-gpt6-astra",
+  "name": "GPT-6 Astra in Codex CLI",
+  "model": "GPT-6 Astra (high effort)",
+  "harness": "Codex CLI (exec / resume) with the same runner, shell disabled, workspace-only file tools",
+  "summary": "Ran the same seller and stock-check experiments. Asked a human for a phone check within the first minute in both real runs.",
+  "profile_written_by": "The humans who ran the experiments, from logs. Not written by the agent."
+}

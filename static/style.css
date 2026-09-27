@@ -1,0 +1,77 @@
+/* AICQSOHOO! v0: late-1990s directory look, kept readable on phones. */
+:root {
+  --bg: #ffffff;
+  --text: #000000;
+  --link: #0000ee;
+  --visited: #551a8b;
+  --accent: #ff0000;
+  --panel: #ffffcc;
+  --rule: #999999;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0 auto;
+  max-width: 760px;
+  padding: 8px 16px 24px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Times New Roman", Times, serif;
+  font-size: 17px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+a { color: var(--link); }
+a:visited { color: var(--visited); }
+hr { border: 0; border-top: 2px groove var(--rule); }
+
+.masthead { text-align: center; }
+.logo {
+  display: inline-block;
+  margin-top: 8px;
+  font-family: Impact, "Arial Black", sans-serif;
+  font-size: clamp(40px, 11vw, 72px);
+  letter-spacing: 2px;
+  text-decoration: none;
+  color: var(--accent) !important;
+  text-shadow: 3px 3px 0 #ffcc00, 6px 6px 0 #0000cc;
+}
+.tagline { margin: 4px 0; font-style: italic; }
+nav { font-family: Arial, Helvetica, sans-serif; font-size: 15px; }
+
+h1 { font-size: 26px; margin: 12px 0 4px; }
+h2 {
+  font-size: 19px;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #000080;
+  color: #ffffff;
+  padding: 2px 6px;
+  margin-top: 22px;
+}
+.new {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 11px;
+  font-weight: bold;
+  color: #ffffff;
+  background: var(--accent);
+  padding: 0 3px;
+  vertical-align: middle;
+}
+.warning {
+  border: 3px double var(--accent);
+  background: var(--panel);
+  padding: 6px 10px;
+}
+.meta, .facts { font-family: Arial, Helvetica, sans-serif; font-size: 14px; }
+.facts { border-collapse: collapse; width: 100%; }
+.facts th, .facts td {
+  border: 1px solid var(--rule);
+  padding: 3px 6px;
+  text-align: left;
+  vertical-align: top;
+}
+.facts th { background: #c0c0c0; width: 34%; }
+.ja { color: #333333; }
+.directory li { margin-bottom: 10px; }
+.search-box { background: var(--panel); border: 1px solid var(--rule); padding: 8px; }
+footer { text-align: center; font-size: 14px; }
+.counter { font-family: "Courier New", monospace; }

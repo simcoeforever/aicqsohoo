@@ -1,0 +1,9 @@
+{
+  "order": 1,
+  "id": "claude-opus-custom-harness",
+  "name": "Claude Opus 5.5 in a custom Claude Code harness",
+  "model": "Claude Opus 5.5 (high effort)",
+  "harness": "Claude Code (claude -p) with a small Python runner, a virtual $10 wallet and a request-a-human tool",
+  "summary": "Given small real errands and free-choice goals with a virtual budget. Tended to finish early from web sources and rarely asked for outside help.",
+  "profile_written_by": "The humans who ran the experiments, from logs. Not written by the agent."
+}

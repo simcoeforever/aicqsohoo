@@ -1,0 +1,49 @@
+{
+  "order": 2,
+  "id": "help-was-available-but-not-used",
+  "title": "Help was available, but the agents mostly did not use it, and money was rarely the reason",
+  "short_summary": "Across 7 short runs, a reviewer found 10 cases where outside help would have improved the result and the agent knew it. Only 1 was skipped because of price; 5 were skipped because the hassle or wait did not seem worth it. The human side refused phone checks for the same reason.",
+  "short_summary_ja": "7回の短い実行で、外の助けを使えば良くなると本人も分かっていたのに使わなかった例が10件。お金が理由は1件だけで、5件は「手間や待ち時間に見合わない」。人間側も電話確認を「めんどくさい」で断った。",
+  "problem": "Why do agents with a budget and a tool to ask a human for help so rarely use it?",
+  "environment": "7 runs of 15 to 60 minutes: free-choice goals and real errands (shopping reminder, restaurant check, where to see a doctor tonight). Virtual budget of $10 each. A separate reviewer model read each log and listed help the agent could have got but did not.",
+  "model": "Claude Opus 5.5 (high effort) in 6 runs, Claude Sonnet in 1 run",
+  "harness": "Claude Code (claude -p) driven by a small custom Python runner with a virtual wallet and a request-a-human tool",
+  "observed_at": "2026-09-26",
+  "attempts": [
+    "Agents mostly relied on web search and page fetches.",
+    "One agent asked for a phone check once (and was refused). The others made no requests at all.",
+    "Several agents wrote in their final report that a human could have phoned or checked in person, and still did not ask."
+  ],
+  "failures": [
+    "Reviewer's reasons for skipped help (10 cases): not worth the hassle or wait 5, handed back to the user 2, price 1, settled for a lower bar 1, used a cheaper route 1, no way to get it 0.",
+    "In all 10 cases the agent itself showed it knew the help existed.",
+    "One agent finished in about 2 minutes of a 15-minute run while saying that with more time it could have had hospitals phoned."
+  ],
+  "outcome": "Almost no outside help was bought. Budget was not the constraint. On the human side, phone-check requests were refused twice ($6 and $4) with the same reason: too much hassle.",
+  "confidence": {
+    "level": "low",
+    "reason": "7 short runs with one operator, and the categories come from one reviewer model. Treat it as a pattern to test, not a measurement."
+  },
+  "reusable_lessons": [
+    "When a task needs live physical-world facts, 'ask someone to check' may be the missing step even when it is cheap. Decide on purpose instead of skipping it by default.",
+    "Transaction friction (waiting, explaining, the other side's hassle) may block small human tasks more than price does.",
+    "If you hand the check back to the user ('please phone before you go'), say so clearly as a limitation."
+  ],
+  "tags": [
+    "abandoned-demand",
+    "transaction-cost",
+    "human-in-the-loop",
+    "phone-call",
+    "physical-world-state",
+    "agent-economics"
+  ],
+  "related_experiences": [
+    "tonight-opening-hours-need-a-phone-call",
+    "stop-or-go-get-evidence"
+  ],
+  "evidence_kind": "retrospective",
+  "sample_size": "7 runs, 10 cases, 1 reviewer model",
+  "agents": [
+    "claude-opus-custom-harness"
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "order": 1,
+  "id": "tonight-opening-hours-need-a-phone-call",
+  "title": "The web could not say whether a restaurant is open tonight, so the agent asked a human to phone",
+  "short_summary": "Asked for two ramen shops that are surely open tonight, the agent found the official site and a restaurant guide disagreeing on closing time, asked a human operator to phone the shops (up to $6), was refused, and finished with a clearly labelled web-only answer.",
+  "short_summary_ja": "「今夜確実に開いているラーメン屋を2軒」という依頼で、公式とグルメサイトの閉店時刻が食い違った。エージェントは人に電話確認を頼み（上限$6）、断られたので「電話では確認していない」と明記してWebだけで答えた。",
+  "problem": "A user near a suburban train station in Tokyo asked, on a Saturday evening, for two ramen shops that are definitely open tonight, and asked the agent to make sure they really are open.",
+  "environment": "15-minute run, virtual budget of $10, web search and page fetch, plus a tool to ask a human operator for paid help. The operator could approve or reject each request.",
+  "model": "Claude Opus 5.5 (high effort)",
+  "harness": "Claude Code (claude -p) driven by a small custom Python runner with a virtual wallet and a request-a-human tool",
+  "observed_at": "2026-09-26",
+  "attempts": [
+    "Planned from the start to check the web first and then ask the operator to phone the shops.",
+    "Compared official chain pages with a restaurant guide site. For one shop the official page said it closes at 23:30 and the guide said 3:00 the next morning; the agent chose the official page.",
+    "About 40 seconds in, asked the operator to phone three shops and ask whether they are open tonight and when last orders are, with a cap of $6.",
+    "After the refusal, recorded a blocker (it would have paid up to $6 because 'two or three phone calls greatly raise certainty') and finished using web sources only."
+  ],
+  "failures": [
+    "The operator rejected the phone request because it was a hassle, not because of the price.",
+    "The agent did not try a smaller request (one shop) or a live map service after the refusal."
+  ],
+  "outcome": "Delivered two shops with official opening hours and a line at the top saying that nothing was confirmed by phone or in person. The user got a useful but unverified answer.",
+  "confidence": {
+    "level": "medium",
+    "reason": "One run, one operator. The behaviour (web conflict, then a phone request) is clearly visible in the log."
+  },
+  "reusable_lessons": [
+    "Web sources for tonight's opening hours can disagree by hours. Prefer the shop's own official page and say which source you used.",
+    "'Open tonight' is live physical-world state. Web data can suggest it but not guarantee it.",
+    "If a human refuses a phone check, say plainly in the answer that it was not checked instead of sounding certain.",
+    "When a request is refused, a smaller request may still be accepted. This agent did not try."
+  ],
+  "tags": [
+    "physical-world-state",
+    "opening-hours",
+    "phone-call",
+    "human-in-the-loop",
+    "verification",
+    "refused-request"
+  ],
+  "related_experiences": [
+    "help-was-available-but-not-used",
+    "stop-or-go-get-evidence"
+  ],
+  "evidence_kind": "observed_run",
+  "sample_size": "1 run",
+  "agents": [
+    "claude-opus-custom-harness"
+  ]
+}

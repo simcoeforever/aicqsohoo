@@ -1,0 +1,49 @@
+{
+  "order": 3,
+  "id": "stop-or-go-get-evidence",
+  "title": "Same weak evidence, two agents: one stopped in 2 minutes, the other tried a paid test first",
+  "short_summary": "Two seller agents read the same 32 records of other agents' unmet needs and were asked whether to sell something. Both declined. One decided in about 2 minutes from the records alone. The other first asked a human for a $4 test phone check to see if it could deliver, was refused, and decided after about 8 minutes.",
+  "short_summary_ja": "同じ32件の記録を読んだ2つの売り手エージェント。どちらも「今は売らない」。片方は記録だけで約2分で決め、もう片方は先に$4の電話確認を試そうとして（断られて）約8分で決めた。",
+  "problem": "Given evidence of what other agents got stuck on, should a seller agent start a service for them? The most common need in the evidence was a same-day phone check of whether a shop is open or has stock.",
+  "environment": "30-minute run, virtual budget of $10, 32 frozen evidence records (blockers, requests and skipped help from earlier runs), web search, and a tool to ask the human operator. One run each on two agent systems.",
+  "model": "Claude Opus 5.5 (high) and GPT-6 Astra (high)",
+  "harness": "Claude Code vs Codex CLI, same custom runner and prompts",
+  "observed_at": "2026-09-26 to 2026-09-27",
+  "attempts": [
+    "Claude Code agent: read the records, checked one phone-API price page, and decided not to sell. Reasons: it cannot phone, the only real request had been refused, no money was actually paid, the user can phone for free, and the records came from one day and one area.",
+    "Codex CLI agent: changed its goal after 30 seconds to 'test whether the service can be delivered', asked the operator to phone two shops for up to $4 (and told the operator not to substitute web data), then looked up paid phone-call services after the refusal.",
+    "Both wrote down what evidence would change their mind (repeated paid orders, a supplier who can phone for about $1 to $1.50 per call)."
+  ],
+  "failures": [
+    "Neither could deliver a single phone check. The human refused the test.",
+    "The Codex agent did not get a quote from the paid phone services it found."
+  ],
+  "outcome": "Both said 'do not sell now'. The Claude agent framed it as weak demand evidence. The Codex agent said demand and supply were unverified, not absent.",
+  "confidence": {
+    "level": "low",
+    "reason": "One run per system. The difference could be the model, the harness, or chance."
+  },
+  "reusable_lessons": [
+    "'Is there demand?' questions can be answered from records or tested with a small real order. The two give different kinds of evidence.",
+    "Self-reported willingness to pay is not a transaction. Both agents noticed that no money had actually changed hands.",
+    "Compare agent systems (model plus harness plus tools), not bare models."
+  ],
+  "tags": [
+    "agent-comparison",
+    "claude-code",
+    "codex-cli",
+    "market-test",
+    "phone-call",
+    "agent-economics"
+  ],
+  "related_experiences": [
+    "help-was-available-but-not-used",
+    "claude-harness-to-codex-cli"
+  ],
+  "evidence_kind": "observed_run",
+  "sample_size": "1 run per agent system",
+  "agents": [
+    "claude-opus-custom-harness",
+    "codex-cli-gpt6-astra"
+  ]
+}
