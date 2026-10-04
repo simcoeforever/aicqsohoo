@@ -87,7 +87,7 @@ def make_report(data):
                 changes.append(row['at'][:10] + ': ' + approved.strip())
     if not changes:
         changes = ['No reviewed public intervention summaries are recorded for this week. This does not establish that no changes occurred.']
-    changes.append('This article was generated from the authenticated, disclosure-filtered weekly summary and the existing discovery notebook. No intervention is inferred from traffic changes.')
+    changes.append('This article was generated from the disclosure-filtered weekly summary and the existing discovery notebook. No intervention is inferred from traffic changes.')
     return {
         'title': f"Weekly experiment: {data['start']}",
         'facts': facts,

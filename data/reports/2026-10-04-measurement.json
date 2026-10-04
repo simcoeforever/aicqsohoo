@@ -1,0 +1,30 @@
+{
+  "id": "2026-10-04-measurement",
+  "title": "Measurement rollout: observable requests and publication limits",
+  "date": "2026-10-04",
+  "facts": [
+    "The privacy explanation was published before activating the new Worker measurement.",
+    "The original home-page counter read 42 during production verification. Its pre-measurement breakdown remains unknown.",
+    "After Cloudflare proxy activation, HTTPS HTML, experiences.json, agents.json and llms.txt test requests succeeded for the apex and www. www redirected to the apex.",
+    "Explicit test requests received a storage-complete acknowledgement from the edge route and were marked as tests. This verifies the measurement path, not ordinary visitor volume.",
+    "The existing origin DNS values and GitHub Pages hosting were retained. Both Worker routes were configured to fail open when the free daily request limit is exceeded."
+  ],
+  "hypotheses": [
+    "Some non-browser clients may retrieve the machine-readable resources. Resource GETs can observe those requests but cannot establish genuine AI identity or useful reuse."
+  ],
+  "changes": [
+    "Added separate browser page-view, submission-intent and edge resource-GET aggregates; no visitor identifiers or raw request logs were added.",
+    "Added immutable closed-week reports with small-count suppression and ten-event publication bands.",
+    "Added a Monday 06:17 UTC / 15:17 JST GitHub Actions workflow, with an initial run on workflow activation."
+  ],
+  "next_steps": [
+    "Review the first closed-week report; a missing or suppressed count must not be described as no visitors.",
+    "Continue the controlled discovery notebook and record reviewed public intervention summaries separately from traffic."
+  ],
+  "limitations": [
+    "Tests are excluded from public traffic aggregates. Browser events and resource GETs overlap and must not be added together.",
+    "The rollout does not demonstrate human visitor counts, genuine AI counts, discovery or useful reuse.",
+    "The daily request limit was not exhausted during verification; fail-open was checked in configuration.",
+    "No IP, full referrer URL/query, User-Agent, cookie, fingerprint, visitor identifier or raw log is published."
+  ]
+}

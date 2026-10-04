@@ -13,7 +13,12 @@ async function check(path, options={}) {
   let forwarded;
   const result=await proxySite(request,env,ctx,async r=>{forwarded=r;return response;});
   await Promise.all(tasks);
-  assert.equal(result,response); assert.equal(forwarded,request); assert.equal(bypass,true);
+  if(path.includes('measurement=test') && (response.ok || response.status===304) && options.method!=='HEAD' && env.EDGE_ENABLED==='true') {
+    assert.equal(result.headers.get('X-AICQSOHOO-Test-Measurement'),events.length?'recorded':'not-recorded');
+    assert.equal(result.headers.get('Cache-Control'),'no-store');
+    assert.equal(await result.text(),'unchanged origin content');
+  } else assert.equal(result,response);
+  assert.equal(forwarded,request); assert.equal(bypass,true);
   return events;
 }
 test('edge sees JS-free HTML/JSON/llms GETs and strips query/referrer URL/UA',async()=>{

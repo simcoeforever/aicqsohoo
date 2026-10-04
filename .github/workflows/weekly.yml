@@ -1,12 +1,15 @@
-name: Weekly experiment article (opt-in)
+name: Weekly experiment article
 
 on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/weekly.yml']
   schedule:
     - cron: '17 6 * * 1' # Monday 06:17 UTC; GitHub may delay scheduled runs.
   workflow_dispatch:
 
-# Adding this file does not enable operation. Approval is required before setting
-# ENABLE_WEEKLY_REPORTS=true, adding a secret or extending repository permissions.
+# Production activation approved after the disclosure, Free limits and proxy checks.
+# Set ENABLE_WEEKLY_REPORTS=false to pause without changing the workflow.
 permissions:
   contents: read
 
@@ -16,7 +19,7 @@ concurrency:
 
 jobs:
   report:
-    if: github.ref == 'refs/heads/main' && vars.ENABLE_WEEKLY_REPORTS == 'true'
+    if: github.ref == 'refs/heads/main' && (vars.ENABLE_WEEKLY_REPORTS || 'true') == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -35,9 +38,9 @@ jobs:
           node-version: '24'
       - name: Generate a disclosure-safe closed-week article
         env:
-          SUMMARY_URL: ${{ vars.SUMMARY_URL }}
+          SUMMARY_URL: ${{ vars.SUMMARY_URL || 'https://aicqsohoo-counter.waste-tkt.workers.dev/summary' }}
           REPORT_TOKEN: ${{ secrets.REPORT_TOKEN }}
-          SUMMARY_AUTH: ${{ vars.SUMMARY_AUTH || 'private' }}
+          SUMMARY_AUTH: ${{ vars.SUMMARY_AUTH || 'public' }}
         run: python weekly_report.py
       - name: Test
         run: |
@@ -55,7 +58,7 @@ jobs:
       - name: Build
         env:
           BASE_URL: https://aicqsohoo.com
-          METRICS_ENABLED: ${{ vars.METRICS_ENABLED }}
+          METRICS_ENABLED: ${{ vars.METRICS_ENABLED || 'true' }}
         run: python build.py
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

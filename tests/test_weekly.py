@@ -46,7 +46,8 @@ class WeeklyTest(unittest.TestCase):
         for kind in ['experiences', 'agents']:
             expected.update(f'/{kind}/{p.stem}/' for p in (ROOT/'data'/kind).glob('*.json'))
         self.assertEqual(allowed, expected)
-        self.assertEqual(config['vars']['METRICS_ENABLED'], 'false')
+        for flag in ('METRICS_ENABLED', 'EDGE_ENABLED', 'PUBLIC_SUMMARY'):
+            self.assertIn(config['vars'][flag], {'true', 'false'})
         self.assertFalse(config['observability']['enabled'])
 
     def test_opt_in_build_and_allowed_pages(self):

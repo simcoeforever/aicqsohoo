@@ -24,7 +24,16 @@ export async function proxySite(request, env, ctx, forward = fetch) {
     if (!event) event = {page, source: 'unknown', event: 'page_view', test: url.searchParams.get('measurement') === 'test'};
     event.event = 'resource_get';
     await env.COUNTER.get(env.COUNTER.idFromName('site')).record(event);
-  }).catch(() => {}); // A metric failure must not replace a valid origin response.
+    return true;
+  }).catch(() => false); // A metric failure must not replace a valid origin response.
   ctx.waitUntil(task);
+  // Explicit tests can verify the production RPC without exposing counts or logs.
+  if (new URL(request.url).searchParams.get('measurement') === 'test') {
+    const recorded = await task;
+    const result = new Response(response.body, response);
+    result.headers.set('X-AICQSOHOO-Test-Measurement', recorded ? 'recorded' : 'not-recorded');
+    result.headers.set('Cache-Control', 'no-store');
+    return result;
+  }
   return response;
 }

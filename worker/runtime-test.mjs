@@ -51,6 +51,7 @@ try {
   assert.equal(publicSummary.started,null); assert.equal(publicSummary.coverage,'not_verified');
   for (const resource of ['/','/experiences.json','/llms.txt']) {
     const response=await mf.dispatchFetch('https://aicqsohoo.com'+resource+'?measurement=test&private=not-stored');
+    assert.equal(response.headers.get('X-AICQSOHOO-Test-Measurement'),'recorded');
     assert.equal(response.status,200); assert.equal(await response.text(),'mocked GitHub Pages origin');
   }
   assert.equal((await (await call('/hit')).json()).count,42);

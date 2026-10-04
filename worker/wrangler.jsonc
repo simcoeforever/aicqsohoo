@@ -7,6 +7,10 @@
   // The site calls https://aicqsohoo-counter.waste-tkt.workers.dev/hit. A custom domain can be
   // attached later in the dashboard (Settings > Domains & Routes) without DNS permissions here.
   "workers_dev": true,
+  "routes": [
+    { "pattern": "https://aicqsohoo.com/*", "zone_name": "aicqsohoo.com" },
+    { "pattern": "https://www.aicqsohoo.com/*", "zone_name": "aicqsohoo.com" }
+  ],
   "vars": {
     "METRICS_ENABLED": "true",
     "EDGE_ENABLED": "true",
