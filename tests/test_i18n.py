@@ -54,7 +54,7 @@ class BilingualTest(unittest.TestCase):
             en=(ROOT/'site'/path.strip('/')/'index.html').read_text(encoding='utf-8')
             ja=(ROOT/'site'/'ja'/path.strip('/')/'index.html').read_text(encoding='utf-8')
             self.assertIn('<html lang="en">',en);self.assertIn('<html lang="ja">',ja)
-            self.assertIn(f'href="/ja{path}"',en);self.assertIn(f'href="{path}"',ja)
+            self.assertIn(f'href="/ja{path}?lang=ja"',en);self.assertIn(f'href="{path}?lang=en"',ja)
             self.assertIn(f'rel="canonical" href="https://aicqsohoo.com/ja{path}"',ja)
             self.assertIn('hreflang="ja"',en);self.assertIn('hreflang="en"',ja)
             metric='/experiment/' if path.startswith('/experiment/') else path

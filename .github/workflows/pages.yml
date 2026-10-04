@@ -30,7 +30,7 @@ jobs:
         with:
           node-version: "24"
       - name: Test Worker and browser measurement
-        run: node --test worker/tests/*.test.mjs tests/browser.test.mjs
+        run: node --test worker/tests/*.test.mjs tests/*.test.mjs
       - name: Verify local workerd runtime (no deployment)
         working-directory: worker
         env:

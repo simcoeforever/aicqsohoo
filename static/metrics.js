@@ -1,5 +1,6 @@
 // Referrer domain is derived locally. No full URL, query, ID or UA is sent.
 (function () {
+  if (document.documentElement?.dataset?.languageRedirect === 'pending') return;
   var config = document.getElementById('measurement');
   if (!config || !window.fetch) return;
   var page = config.getAttribute('data-page');

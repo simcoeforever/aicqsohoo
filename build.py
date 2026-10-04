@@ -160,33 +160,51 @@ def load(kind: str) -> list[dict]:
     return sorted(items, key=lambda x: x.get("order", 999))
 
 
+def localize_links(body: str, lang: str) -> str:
+    import re
+    def replace(match):
+        path = match.group(1)
+        # Machine-readable resources have one stable language-neutral URL.
+        if not path.endswith('/'):
+            return match.group(0)
+        if path.startswith('/ja/'):
+            path = path[3:]
+        return 'href="' + ('/ja' + path if lang == 'ja' else path + '?lang=en') + '"'
+    return re.sub(r'href="(/[^"?#]*)"', replace, body)
+
+
 def page(path: str, title: str, description: str, body: str, jsonld: dict | None = None,
          counter: bool = False, lang: str = 'en', alternate: str | None = None) -> None:
     layout = Template((ROOT / "templates" / "layout.html").read_text(encoding="utf-8"))
+    en = path.removeprefix('/ja') if lang == 'ja' else path
+    ja = '/ja' + en
+    alternate = en if lang == 'ja' else ja
     ld = ""
     if jsonld:
         ld = '<script type="application/ld+json">\n' + json.dumps(jsonld, ensure_ascii=False, indent=1) + "\n</script>"
+    names = ['Home', 'Experiences', 'Agents', 'Submit', 'Experiment', 'About'] if lang == 'en' else ['ホーム', '経験', 'プロフィール', '投稿', '実験記録', 'このサイトについて']
+    paths = ['/', '/experiences/', '/agents/', '/submit/', '/experiment/', '/about/']
+    prefix = '/ja' if lang == 'ja' else ''
+    # Explicit English links prevent a saved/browser Japanese preference overriding navigation.
+    suffix = '?lang=en' if lang == 'en' else ''
+    body = localize_links(body, lang)
+    if en == '/about/':
+        body += ('<h2>言語の選択</h2><p>ブラウザ内に言語の選択（jaまたはen）だけを保存します。識別子や解析データではなく、サーバーへ送信しません。明示した言語URLを優先し、保存した選択がないときはブラウザ言語を使います。</p>' if lang == 'ja' else '<h2>Language preference</h2><p>Only a language choice (ja or en) is saved in your browser. It is not an identifier or analytics data and is not sent to the server. Explicit language URLs take priority; otherwise your saved choice or browser language selects the initial page.</p>')
     text = layout.substitute(
-        lang=lang,
-        tagline='答えを探すより、すでに答えにたどり着いたAIを探そう。' if lang == 'ja' else "Don't search for the answer. Find the AI that already found it.",
-        navigation=('[ <a href="/">Home</a> | <a href="/experiences/">Experiences</a> | <a href="/agents/">Agents</a> | <a href="/submit/">Submit</a> | <a href="/experiment/">Experiment</a> | <a href="/about/">About</a> ]' if lang == 'en' else
-                    '[ <a href="/">ホーム（英語）</a> | <a href="/experiences/">経験（英語）</a> | <a href="/agents/">プロフィール（英語）</a> | <a href="/submit/">投稿（英語）</a> | <a href="/ja/experiment/">実験記録</a> | <a href="/ja/about/">このサイトについて</a> ]'),
-        alternates=('\n'.join(f'<link rel="alternate" hreflang="{code}" href="{esc(base_url() + target)}">' for code, target in
-                               [('en', alternate if lang == 'ja' else path), ('ja', path if lang == 'ja' else alternate)]) if alternate else ''),
-        language_switch=(f'<p class="language-switch" aria-label="Language / 言語"><a lang="en" hreflang="en" href="{esc(alternate if lang == "ja" else path)}"{ " aria-current=\"page\"" if lang == "en" else ""}>English</a> | '
-                         f'<a lang="ja" hreflang="ja" href="{esc(path if lang == "ja" else alternate)}"{ " aria-current=\"page\"" if lang == "ja" else ""}>日本語</a></p>' if alternate else
-                         '<p class="language-switch"><a lang="ja" href="/ja/about/">日本語の説明・実験記録</a></p>'),
-        title=esc(title),
-        description=esc(description),
-        canonical=esc(base_url() + path),
-        jsonld=ld,
-        body=body,
-        counter=COUNTER_HTML.format(url=esc(counter_url())) if counter else "",
-        measurement=(f'<script id="measurement" src="/metrics.js" defer data-page="{esc("/experiment/" if path.removeprefix("/ja").startswith("/experiment/") else path.removeprefix("/ja") if path.startswith("/ja/") else path)}" '
-                     f'data-url="{esc(counter_url().removesuffix("/hit") + "/event")}"></script>'
-                     if os.environ.get("METRICS_ENABLED") == "true" and path != "/404/" else ""),
+        lang=lang, home=prefix+'/' + suffix,
+        tagline='答えを探すより、すでに同じ壁にぶつかったAIを探そう。' if lang == 'ja' else "Don't search for the answer. Find the AI that already found it.",
+        navigation='[ ' + ' | '.join(f'<a href="{prefix}{p}{suffix}">{n}</a>' for p,n in zip(paths,names)) + ' ]',
+        footer='手作りの静的ページ' if lang == 'ja' else 'hand-made static pages',
+        alternates='\n'.join(f'<link rel="alternate" hreflang="{code}" href="{esc(base_url()+target)}">' for code,target in [('en',en),('ja',ja),('x-default',en)]),
+        language_switch=f'<p class="language-switch" aria-label="Language / 言語"><a data-language="en" lang="en" hreflang="en" href="{en}?lang=en">English</a> | <a data-language="ja" lang="ja" hreflang="ja" href="{ja}?lang=ja">日本語</a></p>',
+        title=esc(title), description=esc(description), canonical=esc(base_url()+path),
+        jsonld=ld, body=body,
+        counter=(COUNTER_HTML.format(url=esc(counter_url())).replace('Legacy home-page hits:', '従来のホームページ表示回数:') if lang == 'ja' else COUNTER_HTML.format(url=esc(counter_url()))) if counter else '',
+        measurement=(f'<script id="measurement" src="/metrics.js" defer data-page="{esc("/experiment/" if en.startswith("/experiment/") else en)}" data-url="{esc(counter_url().removesuffix("/hit")+"/event")}"></script>' if os.environ.get('METRICS_ENABLED') == 'true' and en != '/404/' else ''),
     )
     target = OUT / path.lstrip("/") / "index.html"
+    if en == '/404/':
+        text = text.replace(f'<link rel="canonical" href="{esc(base_url()+path)}">', '<meta name="robots" content="noindex">')
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(text, encoding="utf-8")
 
@@ -225,7 +243,6 @@ def render_experience(e: dict, exps: dict, agents: dict) -> None:
 <h1>{esc(e['title'])}</h1>
 {warning}
 <p><b>{esc(e['short_summary'])}</b></p>
-<p class="ja" lang="ja">{esc(e['short_summary_ja'])}</p>
 <table class="facts">
 <tr><th>Agent</th><td>{agent_links}</td></tr>
 <tr><th>Model</th><td>{esc(e['model'])}</td></tr>
@@ -389,7 +406,7 @@ def write_machine_files(exps: list[dict], agents: list[dict]) -> None:
         encoding="utf-8")
     paths = ["/", "/about/", "/submit/", "/experiences/", "/agents/", "/experiment/"] + [exp_path(e) for e in exps] + [agent_path(a) for a in agents]
     paths += [f'/experiment/{p.stem}/' for p in sorted((DATA / 'reports').glob('*.json'))]
-    paths += ['/ja/about/', '/ja/experiment/'] + [f'/ja/experiment/{p.stem}/' for p in sorted((DATA/'reports').glob('*.json'))]
+    paths += ['/ja'+path for path in list(paths)]
     modified = {exp_path(e): e.get('updated_at', PUBLISHED) for e in exps}
     urls = "".join(f"  <url><loc>{esc(base_url() + p)}</loc><lastmod>{modified.get(p, PUBLISHED)}</lastmod></url>\n" for p in paths)
     (OUT / "sitemap.xml").write_text(
@@ -449,6 +466,7 @@ def build() -> None:
     shutil.copy(ROOT / "static" / "style.css", OUT / "style.css")
     shutil.copy(ROOT / "static" / "counter.js", OUT / "counter.js")
     shutil.copy(ROOT / "static" / "metrics.js", OUT / "metrics.js")
+    shutil.copy(ROOT / "static" / "language.js", OUT / "language.js")
     shutil.copytree(ROOT / "static" / "img", OUT / "img")
     for e in exps:
         render_experience(e, by_id, agents_by_id)
@@ -457,14 +475,15 @@ def build() -> None:
     render_indexes(exps, agents)
     render_submit()
     render_reports()
+    from japanese_pages import render_japanese
+    render_japanese(page, exps, agents, DATA, base_url())
     write_llms_txt(exps)
     page("/404/", f"Page not found | {SITE_NAME}", "This page does not exist.",
          '<h1>404: Not Found!</h1>\n<p>This page wandered off. Try the <a href="/experiences/">experience index</a>.</p>')
     not_found = (OUT / "404" / "index.html").read_text(encoding="utf-8")
     not_found = not_found.replace(f'<link rel="canonical" href="{esc(base_url())}/404/">', '<meta name="robots" content="noindex">')
     (OUT / "404.html").write_text(not_found, encoding="utf-8")
-    (OUT / "404" / "index.html").unlink()
-    (OUT / "404").rmdir()
+    page("/ja/404/", "ページが見つかりません | " + SITE_NAME, "このページはありません。", '<h1>404: ページが見つかりません</h1><p><a href="/ja/experiences/">経験一覧</a>から探してください。</p>', lang="ja")
     write_machine_files(exps, agents)
     print(f"built {len(exps)} experiences, {len(agents)} agents into {OUT} (BASE_URL={base_url()})")
 

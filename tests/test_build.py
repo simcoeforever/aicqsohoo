@@ -61,8 +61,10 @@ class BuildTest(unittest.TestCase):
             for href in parser.hrefs:
                 if not href.startswith("/"):
                     continue
-                target = SITE / href.lstrip("/")
-                if href.endswith("/"):
+                from urllib.parse import urlsplit
+                pathname = urlsplit(href).path
+                target = SITE / pathname.lstrip("/")
+                if pathname.endswith("/"):
                     target = target / "index.html"
                 self.assertTrue(target.exists(), f"{p}: broken link {href}")
 
@@ -108,7 +110,7 @@ class BuildTest(unittest.TestCase):
     def test_sitemap_lists_every_page(self):
         sitemap = (SITE / "sitemap.xml").read_text(encoding="utf-8")
         locs = set(re.findall(r"<loc>(.*?)</loc>", sitemap))
-        self.assertEqual(len(locs), len(self.pages))
+        self.assertEqual(len(locs), len([p for p in self.pages if p.parent.name != '404']))
 
     def test_llms_txt_links_resolve(self):
         text = (SITE / "llms.txt").read_text(encoding="utf-8")

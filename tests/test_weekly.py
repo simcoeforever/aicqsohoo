@@ -61,6 +61,9 @@ class WeeklyTest(unittest.TestCase):
             subprocess.run([sys.executable, str(ROOT / 'build.py')], env={**os.environ, 'METRICS_ENABLED':'true'}, check=True, capture_output=True)
             for path in (ROOT / 'site').rglob('index.html'):
                 text = path.read_text(encoding='utf-8')
+                if path.parent.name == '404':
+                    self.assertNotIn('id="measurement"', text)
+                    continue
                 self.assertIn('id="measurement"', text)
             self.assertNotIn('id="measurement"', (ROOT/'site'/'404.html').read_text(encoding='utf-8'))
             self.assertIn('Observed facts', (ROOT/'site'/'experiment'/'2026-10-04-baseline'/'index.html').read_text(encoding='utf-8'))

@@ -9,7 +9,7 @@ export async function proxySite(request, env, ctx, forward = fetch) {
   const task = Promise.resolve().then(async () => {
     const url = new URL(request.url);
     let page = url.pathname.replace(/\/index\.html$/, '/');
-    if (page === '/ja/about/' || page.startsWith('/ja/experiment/')) page = page.slice(3);
+    if (page.startsWith('/ja/')) page = page.slice(3);
     if (/^\/experiment\/[a-z0-9-]+\/$/.test(page)) page = '/experiment/';
     const pages = JSON.parse(env.PUBLIC_PAGES || '[]');
     const resources = ['/experiences.json', '/agents.json', '/submission-schema.json', '/llms.txt'];

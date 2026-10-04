@@ -45,7 +45,7 @@ jobs:
       - name: Test
         run: |
           python -m unittest discover tests
-          node --test worker/tests/*.test.mjs tests/browser.test.mjs
+          node --test worker/tests/*.test.mjs tests/*.test.mjs
       - name: Archive public article
         run: |
           git config user.name 'github-actions[bot]'
