@@ -10,10 +10,13 @@ request limit. The observed account limits (100,000 requests/day and 200,000 log
 events/day) match Workers Free; no billing subscription was changed. Application
 request logs remain disabled.
 
-Important deployment detail: Wrangler can recreate configured routes and reset
-request_limit_fail_open to false. After every Worker deployment, restore and read
-back fail-open for both routes before considering deployment complete. The weekly
-site workflow does not deploy the Worker or change these routes.
+Important deployment detail: Wrangler recreates source-configured routes and resets
+request_limit_fail_open to false. Therefore the two existing HTTPS apex/www routes
+are managed separately through the Cloudflare API/dashboard and are omitted from
+wrangler.jsonc. With no routes to publish, the pinned Wrangler leaves existing
+routes untouched. Read back both routes after deployments. Do not add a routes
+array without also preserving fail-open. The weekly site workflow does not deploy
+the Worker directly; existing external build integrations may react to repo commits.
 
 Browser collection, edge resource collection and the disclosure-filtered public
 summary are enabled in source. The weekly workflow uses public summary mode with

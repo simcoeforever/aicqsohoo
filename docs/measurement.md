@@ -132,8 +132,11 @@ A per-command win32/x64 override, with no global configuration or lockfile chang
 fixed it. Wrangler local dry-run and a real-workerd test passed (SQLite/RPC, counter
 concurrency, alarm scheduling, input limits, authentication and summary). Expiry
 alarm execution is tested via the SQLite shim, not by waiting 90 days in workerd.
-Live origin routing/TLS/DNS, real account permissions, secret setup, branch
-protection and full scheduled production deployment remain unverified.
+The preparation-stage checks above were followed by the approved production
+rollout. Current verified state, external-build precautions and operational steps
+are recorded in [production.md](production.md). The weekly job's generation,
+commit and Pages deployment succeeded in production; future cron delivery remains
+subject to GitHub scheduling delays. No report secret was created.
 
 Official references checked:
 - https://developers.cloudflare.com/durable-objects/platform/pricing/

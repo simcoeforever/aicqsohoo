@@ -49,6 +49,7 @@ class WeeklyTest(unittest.TestCase):
         for flag in ('METRICS_ENABLED', 'EDGE_ENABLED', 'PUBLIC_SUMMARY'):
             self.assertIn(config['vars'][flag], {'true', 'false'})
         self.assertFalse(config['observability']['enabled'])
+        self.assertNotIn('routes', config, 'Bulk Route replacement resets fail-open; manage routes separately')
 
     def test_opt_in_build_and_allowed_pages(self):
         try:

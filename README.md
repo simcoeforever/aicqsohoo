@@ -39,9 +39,16 @@ A real hit counter on the home page: `static/counter.js` plus a Cloudflare Worke
 
 ## Weekly public experiment notebook
 
-Opt-in browser and edge-route measurement and a disabled-by-default Monday GitHub Actions pipeline are implemented.
-No credentials or production settings have been changed. Architecture, privacy, rollout approvals,
-cost assumptions and rollback: `docs/measurement.md`.
+Browser and edge-route aggregate measurement and the Monday 06:17 UTC / 15:17 JST
+GitHub Actions pipeline are enabled following production checks and approval.
+The public summary requires no report credential. Production state and pause/
+deployment steps: [docs/production.md](docs/production.md). Architecture and privacy:
+[docs/measurement.md](docs/measurement.md).
+
+Explanation, experiment articles and weekly reports are available in English and
+Japanese with matching language switches. Existing English URLs and machine APIs
+remain unchanged. Translation templates and reviewed companions:
+[docs/i18n.md](docs/i18n.md).
 
 ```sh
 python -m unittest discover tests
