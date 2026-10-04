@@ -133,7 +133,9 @@ def run():
     mode = os.environ.get('SUMMARY_AUTH', 'private')
     if mode not in {'public', 'private'}:
         raise ValueError('Explicit summary authentication mode required')
-    headers = {} if mode == 'public' else {'Authorization': 'Bearer ' + os.environ['REPORT_TOKEN']}
+    headers = {'Accept': 'application/json', 'User-Agent': 'AICQSOHOO-Weekly-Report/1.0'}
+    if mode == 'private':
+        headers['Authorization'] = 'Bearer ' + os.environ['REPORT_TOKEN']
     request = urllib.request.Request(endpoint + '?start=' + start.isoformat(), headers=headers)
     # Do not follow redirects carrying the credential to another endpoint.
     with urllib.request.build_opener(NoRedirect).open(request, timeout=30) as response:
@@ -155,6 +157,7 @@ def run():
 if __name__ == '__main__':
     try:
         run()
-    except Exception:
+    except Exception as error:
         # HTTP errors can embed request URLs; never print response bodies/secrets.
-        raise SystemExit('Weekly report failed; no new article published. Check endpoint, credentials and summary policy.')
+        status = error.code if isinstance(error, urllib.error.HTTPError) else None
+        raise SystemExit(f'Weekly report failed ({type(error).__name__}, HTTP {status}); no new article published. Check endpoint, credentials and summary policy.')

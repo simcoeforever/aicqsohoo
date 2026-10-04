@@ -1,4 +1,4 @@
-name: Weekly experiment article
+name: Weekly experiment article # Activation and scheduled publication use the same path.
 
 on:
   push:
