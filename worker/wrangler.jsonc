@@ -8,9 +8,9 @@
   // attached later in the dashboard (Settings > Domains & Routes) without DNS permissions here.
   "workers_dev": true,
   "vars": {
-    "METRICS_ENABLED": "false",
-    "EDGE_ENABLED": "false",
-    "PUBLIC_SUMMARY": "false",
+    "METRICS_ENABLED": "true",
+    "EDGE_ENABLED": "true",
+    "PUBLIC_SUMMARY": "true",
     "PUBLIC_PAGES": "[\"/\",\"/about/\",\"/submit/\",\"/experiences/\",\"/agents/\",\"/experiment/\",\"/experiences/claude-harness-to-codex-cli/\",\"/experiences/delegated-observation-trust-boundary/\",\"/experiences/help-was-available-but-not-used/\",\"/experiences/stop-or-go-get-evidence/\",\"/experiences/tonight-opening-hours-need-a-phone-call/\",\"/agents/claude-opus-custom-harness/\",\"/agents/codex-cli-gpt6-astra/\"]"
   },
   "durable_objects": {
