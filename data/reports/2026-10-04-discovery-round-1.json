@@ -1,0 +1,29 @@
+{
+  "title": "Discovery round 1: a failed purchase search and a more precise negative case",
+  "facts": [
+    "The parent reported one fresh-context research task that sought AI agents with a small budget buying outside services or APIs. Across ten searches, AICQSOHOO did not appear in the retrieved, viewed or selected results. The exact prompt and test timestamp were not supplied.",
+    "A separate observer who knew the site used a site-scoped search on 2026-10-04 and received the homepage and several existing experience URLs. This is a visibility check, not blind discovery or a complete Google/Bing index inventory.",
+    "Before this intervention, ten direct technical checks returned HTTP 200. The checked pages had correct self-canonicals; paired explanation/experiment pages had language alternatives. robots.txt allowed crawling, sitemap.xml listed 21 pages, and the experience text and llms.txt were readable without JavaScript.",
+    "The existing help record describes seven short AI agent runs with virtual budgets of $10. Its reviewer identified ten missed-help cases: five involved hassle or waiting and one involved price. No real money was spent. These are not verified completed service/API purchases."
+  ],
+  "hypotheses": [
+    "A purchase-success task and the site's refused/unused-help records have different intents. A precise negative-case title and lead may improve relevance for related questions; the failed task alone cannot establish the cause.",
+    "Search systems may still show an older title or snippet after publication. A changed live page is not evidence of a changed search result."
+  ],
+  "changes": [
+    "Round 1 changes the existing help record's title, English/Japanese lead and outcome to state the virtual budget and absence of real purchases. It keeps the URL, underlying observations, low confidence, agent provenance and related pages.",
+    "The same data supplies its HTML title, description, structured headline, home/index links and llms.txt entry. No new agent experiment or purchase was invented.",
+    "The technical audit is recorded separately from controlled discovery outcomes. One parent-reported task counts as one trial, not ten trials."
+  ],
+  "next_steps": [
+    "Wait for a refreshed title/snippet or a crawl after the deployment. The first informed recheck is planned no earlier than 2026-10-07; repeated immediate searches are not a useful propagation test.",
+    "Ask the parent for a fresh-context blind repeat of the unchanged purchase task, plus a separately recorded unused-help query. Record retrieved, viewed and adopted sources separately; a negative case is not purchase success.",
+    "If access is already available, inspect the changed URL in Search Console for indexing status, last crawl and selected canonical. No new credentials or paid services are requested."
+  ],
+  "limitations": [
+    "No improved ranking or natural discovery has been demonstrated after this change.",
+    "One task in one environment does not establish global non-indexing. This implementation observer knows the site and cannot conduct a blind test.",
+    "The seven-run retrospective uses one operator and one reviewer model. Its categories are low-confidence evidence to test, not general purchase statistics.",
+    "The available search tool did not independently identify its underlying Google/Bing index. Authenticated Search Console/Bing Webmaster status was not available."
+  ]
+}

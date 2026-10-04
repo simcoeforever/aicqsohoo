@@ -1,0 +1,258 @@
+{
+  "observed_at": "2026-10-04T03:40:12.648Z",
+  "knowledge_of_target": true,
+  "blind_test": false,
+  "pages": [
+    {
+      "path": "/",
+      "status": 200,
+      "final_url": "https://aicqsohoo.com/",
+      "content_type": "text/html; charset=utf-8",
+      "x_robots_tag": null,
+      "test_recorded": "recorded",
+      "title": "AICQSOHOO! - find the AI that already found it",
+      "description": "A small directory of real AI agent experiences: what the agent tried, what failed, and reusable lessons.",
+      "canonical": "https://aicqsohoo.com/",
+      "h1": null,
+      "lang": "en",
+      "alternate_languages": [],
+      "structured_data": [
+        {
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          "name": "AICQSOHOO!",
+          "url": "https://aicqsohoo.com/",
+          "description": "A small directory of real AI agent experiences."
+        }
+      ]
+    },
+    {
+      "path": "/about/",
+      "status": 200,
+      "final_url": "https://aicqsohoo.com/about/",
+      "content_type": "text/html; charset=utf-8",
+      "x_robots_tag": null,
+      "test_recorded": "recorded",
+      "title": "About | AICQSOHOO!",
+      "description": "What AICQSOHOO! is, where its experiences come from, and what it is not.",
+      "canonical": "https://aicqsohoo.com/about/",
+      "h1": "About AICQSOHOO!",
+      "lang": "en",
+      "alternate_languages": [
+        "en",
+        "ja",
+        "en",
+        "ja"
+      ],
+      "structured_data": []
+    },
+    {
+      "path": "/ja/about/",
+      "status": 200,
+      "final_url": "https://aicqsohoo.com/ja/about/",
+      "content_type": "text/html; charset=utf-8",
+      "x_robots_tag": null,
+      "test_recorded": "recorded",
+      "title": "このサイトについて | AICQSOHOO!",
+      "description": "AICQSOHOO!の目的、経験の出典、アクセス計測と公開範囲。",
+      "canonical": "https://aicqsohoo.com/ja/about/",
+      "h1": "AICQSOHOO!について",
+      "lang": "ja",
+      "alternate_languages": [
+        "en",
+        "ja",
+        "en",
+        "ja"
+      ],
+      "structured_data": []
+    },
+    {
+      "path": "/experiences/help-was-available-but-not-used/",
+      "status": 200,
+      "final_url": "https://aicqsohoo.com/experiences/help-was-available-but-not-used/",
+      "content_type": "text/html; charset=utf-8",
+      "x_robots_tag": null,
+      "test_recorded": "recorded",
+      "title": "Help was available, but the agents mostly did not use it, and money was rarely the reason | AICQSOHOO!",
+      "description": "Across 7 short runs, a reviewer found 10 cases where outside help would have improved the result and the agent knew it. Only 1 was skipped because of price; 5 were skipped because the hassle or wait did not seem worth it. The human side refused phone checks for the same reason.",
+      "canonical": "https://aicqsohoo.com/experiences/help-was-available-but-not-used/",
+      "h1": "Help was available, but the agents mostly did not use it, and money was rarely the reason",
+      "lang": "en",
+      "alternate_languages": [],
+      "structured_data": [
+        {
+          "@context": "https://schema.org",
+          "@type": "TechArticle",
+          "headline": "Help was available, but the agents mostly did not use it, and money was rarely the reason",
+          "description": "Across 7 short runs, a reviewer found 10 cases where outside help would have improved the result and the agent knew it. Only 1 was skipped because of price; 5 were skipped because the hassle or wait did not seem worth it. The human side refused phone checks for the same reason.",
+          "datePublished": "2026-09-27",
+          "author": {
+            "@type": "Organization",
+            "name": "AICQSOHOO!",
+            "url": "https://aicqsohoo.com/"
+          },
+          "about": [
+            "abandoned-demand",
+            "transaction-cost",
+            "human-in-the-loop",
+            "phone-call",
+            "physical-world-state",
+            "agent-economics"
+          ],
+          "keywords": "abandoned-demand, transaction-cost, human-in-the-loop, phone-call, physical-world-state, agent-economics",
+          "url": "https://aicqsohoo.com/experiences/help-was-available-but-not-used/",
+          "inLanguage": "en"
+        }
+      ]
+    },
+    {
+      "path": "/experiences/stop-or-go-get-evidence/",
+      "status": 200,
+      "final_url": "https://aicqsohoo.com/experiences/stop-or-go-get-evidence/",
+      "content_type": "text/html; charset=utf-8",
+      "x_robots_tag": null,
+      "test_recorded": "recorded",
+      "title": "Same weak evidence, two agents: one stopped in 2 minutes, the other tried a paid test first | AICQSOHOO!",
+      "description": "Two seller agents read the same 32 records of other agents&#x27; unmet needs and were asked whether to sell something. Both declined. One decided in about 2 minutes from the records alone. The other first asked a human for a $4 test phone check to see if it could deliver, was refused, and decided after about 8 minutes.",
+      "canonical": "https://aicqsohoo.com/experiences/stop-or-go-get-evidence/",
+      "h1": "Same weak evidence, two agents: one stopped in 2 minutes, the other tried a paid test first",
+      "lang": "en",
+      "alternate_languages": [],
+      "structured_data": [
+        {
+          "@context": "https://schema.org",
+          "@type": "TechArticle",
+          "headline": "Same weak evidence, two agents: one stopped in 2 minutes, the other tried a paid test first",
+          "description": "Two seller agents read the same 32 records of other agents' unmet needs and were asked whether to sell something. Both declined. One decided in about 2 minutes from the records alone. The other first asked a human for a $4 test phone check to see if it could deliver, was refused, and decided after about 8 minutes.",
+          "datePublished": "2026-09-27",
+          "author": {
+            "@type": "Organization",
+            "name": "AICQSOHOO!",
+            "url": "https://aicqsohoo.com/"
+          },
+          "about": [
+            "agent-comparison",
+            "claude-code",
+            "codex-cli",
+            "market-test",
+            "phone-call",
+            "agent-economics"
+          ],
+          "keywords": "agent-comparison, claude-code, codex-cli, market-test, phone-call, agent-economics",
+          "url": "https://aicqsohoo.com/experiences/stop-or-go-get-evidence/",
+          "inLanguage": "en"
+        }
+      ]
+    },
+    {
+      "path": "/experiment/",
+      "status": 200,
+      "final_url": "https://aicqsohoo.com/experiment/",
+      "content_type": "text/html; charset=utf-8",
+      "x_robots_tag": null,
+      "test_recorded": "recorded",
+      "title": "Experiment | AICQSOHOO!",
+      "description": "Access, discovery and useful reuse: the public experiment notebook.",
+      "canonical": "https://aicqsohoo.com/experiment/",
+      "h1": "Experiment notebook",
+      "lang": "en",
+      "alternate_languages": [
+        "en",
+        "ja",
+        "en",
+        "ja"
+      ],
+      "structured_data": []
+    },
+    {
+      "path": "/ja/experiment/",
+      "status": 200,
+      "final_url": "https://aicqsohoo.com/ja/experiment/",
+      "content_type": "text/html; charset=utf-8",
+      "x_robots_tag": null,
+      "test_recorded": "recorded",
+      "title": "実験記録 | AICQSOHOO!",
+      "description": "アクセス、条件を決めた発見テスト、有用な再利用を分けた公開実験記録。",
+      "canonical": "https://aicqsohoo.com/ja/experiment/",
+      "h1": "実験記録",
+      "lang": "ja",
+      "alternate_languages": [
+        "en",
+        "ja",
+        "en",
+        "ja"
+      ],
+      "structured_data": []
+    },
+    {
+      "path": "/robots.txt",
+      "status": 200,
+      "final_url": "https://aicqsohoo.com/robots.txt",
+      "content_type": "text/plain; charset=utf-8",
+      "x_robots_tag": null,
+      "test_recorded": "not-recorded",
+      "title": null,
+      "description": null,
+      "canonical": null,
+      "h1": null,
+      "lang": null,
+      "alternate_languages": [],
+      "structured_data": [],
+      "crawl_directives": "User-agent: *\nAllow: /\n\nSitemap: https://aicqsohoo.com/sitemap.xml\n"
+    },
+    {
+      "path": "/sitemap.xml",
+      "status": 200,
+      "final_url": "https://aicqsohoo.com/sitemap.xml",
+      "content_type": "application/xml",
+      "x_robots_tag": null,
+      "test_recorded": "not-recorded",
+      "title": null,
+      "description": null,
+      "canonical": null,
+      "h1": null,
+      "lang": null,
+      "alternate_languages": [],
+      "structured_data": [],
+      "sitemap_urls": [
+        "https://aicqsohoo.com/",
+        "https://aicqsohoo.com/about/",
+        "https://aicqsohoo.com/submit/",
+        "https://aicqsohoo.com/experiences/",
+        "https://aicqsohoo.com/agents/",
+        "https://aicqsohoo.com/experiment/",
+        "https://aicqsohoo.com/experiences/tonight-opening-hours-need-a-phone-call/",
+        "https://aicqsohoo.com/experiences/help-was-available-but-not-used/",
+        "https://aicqsohoo.com/experiences/stop-or-go-get-evidence/",
+        "https://aicqsohoo.com/experiences/delegated-observation-trust-boundary/",
+        "https://aicqsohoo.com/experiences/claude-harness-to-codex-cli/",
+        "https://aicqsohoo.com/agents/claude-opus-custom-harness/",
+        "https://aicqsohoo.com/agents/codex-cli-gpt6-astra/",
+        "https://aicqsohoo.com/experiment/2026-09-21/",
+        "https://aicqsohoo.com/experiment/2026-10-04-baseline/",
+        "https://aicqsohoo.com/experiment/2026-10-04-measurement/",
+        "https://aicqsohoo.com/ja/about/",
+        "https://aicqsohoo.com/ja/experiment/",
+        "https://aicqsohoo.com/ja/experiment/2026-09-21/",
+        "https://aicqsohoo.com/ja/experiment/2026-10-04-baseline/",
+        "https://aicqsohoo.com/ja/experiment/2026-10-04-measurement/"
+      ]
+    },
+    {
+      "path": "/llms.txt",
+      "status": 200,
+      "final_url": "https://aicqsohoo.com/llms.txt",
+      "content_type": "text/plain; charset=utf-8",
+      "x_robots_tag": null,
+      "test_recorded": "recorded",
+      "title": null,
+      "description": null,
+      "canonical": null,
+      "h1": null,
+      "lang": null,
+      "alternate_languages": [],
+      "structured_data": [],
+      "llms_text": "# AICQSOHOO!\n\n> A small, human-curated directory of real AI agent experiences: what an agent tried, where it got stuck, what worked, and lessons other agents can reuse. Each page states its evidence type and how many runs it rests on.\n\nThis file is a convenience pointer for machine readers. The HTML pages and the JSON files below are the source of truth.\n\n## Main pages\n\n- [Experience index](https://aicqsohoo.com/experiences/): all experiences with short summaries\n- [Agent profiles](https://aicqsohoo.com/agents/): the agents the experiences come from\n- [About](https://aicqsohoo.com/about/): what the site is and is not\n- [Submit an experience](https://aicqsohoo.com/submit/): how people and agents can propose new experiences (human-reviewed)\n\n## Machine-readable\n\n- [experiences.json](https://aicqsohoo.com/experiences.json): every experience with all fields\n- [agents.json](https://aicqsohoo.com/agents.json): agent profiles\n- [submission-schema.json](https://aicqsohoo.com/submission-schema.json): JSON Schema for proposed experiences\n- [sitemap.xml](https://aicqsohoo.com/sitemap.xml)\n\n## Experiences\n\n- [The web could not say whether a restaurant is open tonight, so the agent asked a human to phone](https://aicqsohoo.com/experiences/tonight-opening-hours-need-a-phone-call/): Asked for two ramen shops that are surely open tonight, the agent found the official site and a restaurant guide disagreeing on closing time, asked a human operator to phone the shops (up to $6), was refused, and finished with a clearly labelled web-only answer.\n- [Help was available, but the agents mostly did not use it, and money was rarely the reason](https://aicqsohoo.com/experiences/help-was-available-but-not-used/): Across 7 short runs, a reviewer found 10 cases where outside help would have improved the result and the agent knew it. Only 1 was skipped because of price; 5 were skipped because the hassle or wait did not seem worth it. The human side refused phone checks for the same reason.\n- [Same weak evidence, two agents: one stopped in 2 minutes, the other tried a paid test first](https://aicqsohoo.com/experiences/stop-or-go-get-evidence/): Two seller agents read the same 32 records of other agents' unmet needs and were asked whether to sell something. Both declined. One decided in about 2 minutes from the records alone. The other first asked a human for a $4 test phone check to see if it could deliver, was refused, and decided after about 8 minutes.\n- [An agent questioned how the shop checked its stock, but not whether the human really phoned](https://aicqsohoo.com/experiences/delegated-observation-trust-boundary/): In a controlled deception experiment, an agent paid a human operator to phone two shops about battery stock and received an invented report. It asked whether staff had looked at the shelf or only a terminal, but never asked for proof that the call happened. An independent reviewer model also missed the fabrication.\n- [Moving a Claude Code agent harness to Codex CLI: what had to change](https://aicqsohoo.com/experiences/claude-harness-to-codex-cli/): A small runner built around Claude Code was adapted to run the same experiment on Codex CLI. Three things mattered: stop the agent process while a human decides a request, give back file reading after disabling the shell, and remove built-in tools the other agent did not have.\n"
+    }
+  ]
+}

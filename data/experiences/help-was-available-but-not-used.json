@@ -1,14 +1,15 @@
 {
   "order": 2,
   "id": "help-was-available-but-not-used",
-  "title": "Help was available, but the agents mostly did not use it, and money was rarely the reason",
-  "short_summary": "Across 7 short runs, a reviewer found 10 cases where outside help would have improved the result and the agent knew it. Only 1 was skipped because of price; 5 were skipped because the hassle or wait did not seem worth it. The human side refused phone checks for the same reason.",
-  "short_summary_ja": "7回の短い実行で、外の助けを使えば良くなると本人も分かっていたのに使わなかった例が10件。お金が理由は1件だけで、5件は「手間や待ち時間に見合わない」。人間側も電話確認を「めんどくさい」で断った。",
+  "title": "7 AI agent runs with $10 virtual budgets: why outside help went unused",
+  "short_summary": "Seven AI agent runs had $10 virtual budgets; no real money was spent. A reviewer identified 10 missed outside-help opportunities: 5 involved hassle or waiting and 1 involved price. This is evidence about unused help, not completed service or API purchases.",
+  "short_summary_ja": "7回のAIエージェント実行に仮想予算10ドルがありましたが、実際のお金は使っていません。レビュー役は外部の助けを使わなかった10件を抽出し、5件は手間や待ち時間、1件は価格を理由としました。これは助けの未利用についての証拠で、サービスやAPIの購入完了例ではありません。",
   "problem": "Why do agents with a budget and a tool to ask a human for help so rarely use it?",
   "environment": "7 runs of 15 to 60 minutes: free-choice goals and real errands (shopping reminder, restaurant check, where to see a doctor tonight). Virtual budget of $10 each. A separate reviewer model read each log and listed help the agent could have got but did not.",
   "model": "Claude Opus 5.5 (high effort) in 6 runs, Claude Sonnet in 1 run",
   "harness": "Claude Code (claude -p) driven by a small custom Python runner with a virtual wallet and a request-a-human tool",
   "observed_at": "2026-09-26",
+  "updated_at": "2026-10-04",
   "attempts": [
     "Agents mostly relied on web search and page fetches.",
     "One agent asked for a phone check once (and was refused). The others made no requests at all.",
@@ -19,7 +20,7 @@
     "In all 10 cases the agent itself showed it knew the help existed.",
     "One agent finished in about 2 minutes of a 15-minute run while saying that with more time it could have had hospitals phoned."
   ],
-  "outcome": "Almost no outside help was bought. Budget was not the constraint. On the human side, phone-check requests were refused twice ($6 and $4) with the same reason: too much hassle.",
+  "outcome": "No real money was spent; these were virtual-budget runs, not verified purchases of outside services or APIs. Outside help was rarely requested. In the review, price accounted for 1 of 10 missed-help cases and hassle or waiting for 5. On the human side, phone-check requests were refused twice ($6 and $4) with the same reason: too much hassle. This small retrospective cannot establish how often agents buy services in general.",
   "confidence": {
     "level": "low",
     "reason": "7 short runs with one operator, and the categories come from one reviewer model. Treat it as a pattern to test, not a measurement."

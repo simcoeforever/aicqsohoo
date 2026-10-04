@@ -75,7 +75,7 @@ def make_report(data):
     tests = []
     for line in (ROOT / 'discovery' / 'tests.jsonl').read_text(encoding='utf-8').splitlines():
         row = json.loads(line)
-        if data['start'] <= row.get('tested_at', '')[:10] < data['end'] and type(row.get('discovered')) is bool and row.get('query_id') != 'site-check':
+        if data['start'] <= row.get('tested_at', '')[:10] < data['end'] and type(row.get('discovered')) is bool and row.get('query_id') != 'site-check' and row.get('observer_knows_target') is not True and row.get('blind_test') is not False:
             tests.append(row['discovered'])
     facts.append(f"Controlled discovery tests recorded: {len(tests)}; tests with a site citation/link: {sum(tests)}." if tests else
                  "No controlled discovery tests recorded for this week; discovery cannot be inferred from page views.")

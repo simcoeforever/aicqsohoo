@@ -258,6 +258,7 @@ def render_experience(e: dict, exps: dict, agents: dict) -> None:
         "headline": e["title"],
         "description": e["short_summary"],
         "datePublished": PUBLISHED,
+        "dateModified": e.get('updated_at', PUBLISHED),
         "author": {"@type": "Organization", "name": SITE_NAME, "url": base_url() + "/"},
         "about": e["tags"],
         "keywords": ", ".join(e["tags"]),
@@ -389,7 +390,8 @@ def write_machine_files(exps: list[dict], agents: list[dict]) -> None:
     paths = ["/", "/about/", "/submit/", "/experiences/", "/agents/", "/experiment/"] + [exp_path(e) for e in exps] + [agent_path(a) for a in agents]
     paths += [f'/experiment/{p.stem}/' for p in sorted((DATA / 'reports').glob('*.json'))]
     paths += ['/ja/about/', '/ja/experiment/'] + [f'/ja/experiment/{p.stem}/' for p in sorted((DATA/'reports').glob('*.json'))]
-    urls = "".join(f"  <url><loc>{esc(base_url() + p)}</loc><lastmod>{PUBLISHED}</lastmod></url>\n" for p in paths)
+    modified = {exp_path(e): e.get('updated_at', PUBLISHED) for e in exps}
+    urls = "".join(f"  <url><loc>{esc(base_url() + p)}</loc><lastmod>{modified.get(p, PUBLISHED)}</lastmod></url>\n" for p in paths)
     (OUT / "sitemap.xml").write_text(
         '<?xml version="1.0" encoding="UTF-8"?>\n'
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + urls + "</urlset>\n",

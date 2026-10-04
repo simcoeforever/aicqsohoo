@@ -1,0 +1,23 @@
+{
+  "observed_at": "2026-10-04T03:40:12Z",
+  "baseline_commit": "fdb02c7fedcef99b76b9442a57951054880e7e2e",
+  "observer_knows_target": true,
+  "blind_test": false,
+  "search_backend": "Available web search tool; underlying Google/Bing index not independently identified",
+  "site_scoped_query": "site:aicqsohoo.com \"budget\"",
+  "informed_topic_query": "AI agent small budget bought external services API experiment examples",
+  "informed_topic_observation": "The target was not returned; many results were irrelevant dictionary/shopping entries. This target-aware diagnostic is not a blind test or reliable evidence of global non-indexing.",
+  "returned_site_urls": ["https://aicqsohoo.com/", "https://aicqsohoo.com/about/", "https://aicqsohoo.com/experiences/help-was-available-but-not-used/", "https://aicqsohoo.com/experiences/stop-or-go-get-evidence/"],
+  "interpretation": "At least these URLs were returned by a site-scoped search. This is not blind discovery, a complete index inventory, a rank measurement, or Google/Bing Search Console evidence.",
+  "technical_baseline": {"checked_resources":10,"http_statuses":"all 200","robots_allows_crawl":true,"x_robots_noindex_seen":false,"sitemap_urls":21,"self_canonicals_correct":true,"paired_about_experiment_hreflang":true,"experience_structured_type":"TechArticle","text_without_javascript":true,"llms_available":true},
+  "content_observation": "The documented budgets are virtual and no real money was spent. Queries seeking completed purchases are a different intent from these refused or unused-help cases.",
+  "hypothesis": "A descriptive title and leading summary stating AI agents, the $10 virtual budget and non-purchase evidence may help relevant searches and prevent misleading purchase interpretation.",
+  "single_target": "https://aicqsohoo.com/experiences/help-was-available-but-not-used/",
+  "before_title": "Help was available, but the agents mostly did not use it, and money was rarely the reason",
+  "after_title": "7 AI agent runs with $10 virtual budgets: why outside help went unused",
+  "unchanged": "URL, original 7 runs/10 cases, low confidence, agent/model provenance, related pages and measurement category",
+  "search_console_access": "No connected Google Search Console or Bing Webmaster read tool available; no new permissions requested",
+  "follow_up_not_before": "2026-10-07",
+  "follow_up_condition": "Observe a refreshed title/snippet or Search Console last crawl after deployment; then ask parent for a fresh-context name/URL-free test. Do not repeatedly search immediately after publication.",
+  "ranking_or_discovery_improvement_proven": false
+}

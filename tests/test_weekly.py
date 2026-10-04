@@ -31,7 +31,12 @@ class WeeklyTest(unittest.TestCase):
                 weekly_report.validate_summary({**self.sample(), **patch}, '2026-09-28')
 
     def test_article_no_data_does_not_invent_zero_visitors_or_discovery(self):
-        report = weekly_report.make_report(self.sample())
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder); (root/'discovery').mkdir()
+            for name in ['tests.jsonl','interventions.jsonl']:
+                (root/'discovery'/name).write_text('',encoding='utf-8')
+            with patch.object(weekly_report,'ROOT',root):
+                report = weekly_report.make_report(self.sample())
         text = json.dumps(report)
         self.assertIn('not evidence of no visitors', text)
         self.assertIn('No controlled discovery tests recorded', text)
