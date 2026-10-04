@@ -10,7 +10,7 @@ const options = {
   compatibilityDate: '2026-09-01',
   durableObjects: {COUNTER: {className: 'Counter', useSQLite: true}},
   bindings: {METRICS_ENABLED:'true', PUBLIC_SUMMARY:'false', EDGE_ENABLED:'false',
-    PUBLIC_PAGES:'["/","/submit/"]', REPORT_TOKEN:'runtime-test-only'},
+    PUBLIC_PAGES:'["/","/submit/","/about/","/experiment/"]', REPORT_TOKEN:'runtime-test-only'},
   outboundService: request => {
     if (new URL(request.url).origin === 'https://aicqsohoo.com') return new Response('mocked GitHub Pages origin');
     throw new Error('External network forbidden in this runtime test');
@@ -49,7 +49,7 @@ try {
   assert.equal(publicResponse.status,200);
   const publicSummary=await publicResponse.json();
   assert.equal(publicSummary.started,null); assert.equal(publicSummary.coverage,'not_verified');
-  for (const resource of ['/','/experiences.json','/llms.txt']) {
+  for (const resource of ['/','/ja/about/','/ja/experiment/2026-10-04-measurement/','/experiences.json','/llms.txt']) {
     const response=await mf.dispatchFetch('https://aicqsohoo.com'+resource+'?measurement=test&private=not-stored');
     assert.equal(response.headers.get('X-AICQSOHOO-Test-Measurement'),'recorded');
     assert.equal(response.status,200); assert.equal(await response.text(),'mocked GitHub Pages origin');

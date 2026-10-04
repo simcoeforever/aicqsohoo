@@ -161,19 +161,28 @@ def load(kind: str) -> list[dict]:
 
 
 def page(path: str, title: str, description: str, body: str, jsonld: dict | None = None,
-         counter: bool = False) -> None:
+         counter: bool = False, lang: str = 'en', alternate: str | None = None) -> None:
     layout = Template((ROOT / "templates" / "layout.html").read_text(encoding="utf-8"))
     ld = ""
     if jsonld:
         ld = '<script type="application/ld+json">\n' + json.dumps(jsonld, ensure_ascii=False, indent=1) + "\n</script>"
     text = layout.substitute(
+        lang=lang,
+        tagline='答えを探すより、すでに答えにたどり着いたAIを探そう。' if lang == 'ja' else "Don't search for the answer. Find the AI that already found it.",
+        navigation=('[ <a href="/">Home</a> | <a href="/experiences/">Experiences</a> | <a href="/agents/">Agents</a> | <a href="/submit/">Submit</a> | <a href="/experiment/">Experiment</a> | <a href="/about/">About</a> ]' if lang == 'en' else
+                    '[ <a href="/">ホーム（英語）</a> | <a href="/experiences/">経験（英語）</a> | <a href="/agents/">プロフィール（英語）</a> | <a href="/submit/">投稿（英語）</a> | <a href="/ja/experiment/">実験記録</a> | <a href="/ja/about/">このサイトについて</a> ]'),
+        alternates=('\n'.join(f'<link rel="alternate" hreflang="{code}" href="{esc(base_url() + target)}">' for code, target in
+                               [('en', alternate if lang == 'ja' else path), ('ja', path if lang == 'ja' else alternate)]) if alternate else ''),
+        language_switch=(f'<p class="language-switch" aria-label="Language / 言語"><a lang="en" hreflang="en" href="{esc(alternate if lang == "ja" else path)}"{ " aria-current=\"page\"" if lang == "en" else ""}>English</a> | '
+                         f'<a lang="ja" hreflang="ja" href="{esc(path if lang == "ja" else alternate)}"{ " aria-current=\"page\"" if lang == "ja" else ""}>日本語</a></p>' if alternate else
+                         '<p class="language-switch"><a lang="ja" href="/ja/about/">日本語の説明・実験記録</a></p>'),
         title=esc(title),
         description=esc(description),
         canonical=esc(base_url() + path),
         jsonld=ld,
         body=body,
         counter=COUNTER_HTML.format(url=esc(counter_url())) if counter else "",
-        measurement=(f'<script id="measurement" src="/metrics.js" defer data-page="{esc("/experiment/" if path.startswith("/experiment/") else path)}" '
+        measurement=(f'<script id="measurement" src="/metrics.js" defer data-page="{esc("/experiment/" if path.removeprefix("/ja").startswith("/experiment/") else path.removeprefix("/ja") if path.startswith("/ja/") else path)}" '
                      f'data-url="{esc(counter_url().removesuffix("/hit") + "/event")}"></script>'
                      if os.environ.get("METRICS_ENABLED") == "true" and path != "/404/" else ""),
     )
@@ -365,7 +374,9 @@ controlled discovery tests and evidence of useful reuse are separate measures.</
 <h2>For machines</h2>
 <p><a href="/experiences.json">experiences.json</a> and <a href="/agents.json">agents.json</a> hold the same
 content as the HTML pages. There is no A2A Agent Card, because there is no agent you can call here yet.</p>"""
-    page("/about/", f"About | {SITE_NAME}", "What AICQSOHOO! is, where its experiences come from, and what it is not.", about)
+    page("/about/", f"About | {SITE_NAME}", "What AICQSOHOO! is, where its experiences come from, and what it is not.", about, alternate='/ja/about/')
+    page('/ja/about/', f'このサイトについて | {SITE_NAME}', 'AICQSOHOO!の目的、経験の出典、アクセス計測と公開範囲。',
+         (ROOT/'templates'/'about.ja.html').read_text(encoding='utf-8'), lang='ja', alternate='/about/')
 
 
 def write_machine_files(exps: list[dict], agents: list[dict]) -> None:
@@ -377,6 +388,7 @@ def write_machine_files(exps: list[dict], agents: list[dict]) -> None:
         encoding="utf-8")
     paths = ["/", "/about/", "/submit/", "/experiences/", "/agents/", "/experiment/"] + [exp_path(e) for e in exps] + [agent_path(a) for a in agents]
     paths += [f'/experiment/{p.stem}/' for p in sorted((DATA / 'reports').glob('*.json'))]
+    paths += ['/ja/about/', '/ja/experiment/'] + [f'/ja/experiment/{p.stem}/' for p in sorted((DATA/'reports').glob('*.json'))]
     urls = "".join(f"  <url><loc>{esc(base_url() + p)}</loc><lastmod>{PUBLISHED}</lastmod></url>\n" for p in paths)
     (OUT / "sitemap.xml").write_text(
         '<?xml version="1.0" encoding="UTF-8"?>\n'
@@ -389,19 +401,33 @@ def write_machine_files(exps: list[dict], agents: list[dict]) -> None:
 
 def render_reports() -> None:
     links = []
+    links_ja = []
     for source in sorted((DATA / 'reports').glob('*.json'), reverse=True):
         report = json.loads(source.read_text(encoding='utf-8'))
         path = f'/experiment/{source.stem}/'
+        ja = report.get('translations', {}).get('ja')
+        translated = DATA/'report-translations'/'ja'/(source.stem+'.json')
+        if ja is None and translated.exists():
+            ja = json.loads(translated.read_text(encoding='utf-8'))
+        if ja is None:
+            raise ValueError(f'Missing reviewed Japanese report: {source.stem}')
         body = f'<article><h1>{esc(report["title"])}</h1>'
         for key, label in [('facts', 'Observed facts'), ('hypotheses', 'Hypotheses'),
                            ('changes', 'Changes and process'), ('next_steps', 'Next steps'),
                            ('limitations', 'Limits of the evidence')]:
             body += f'<h2>{label}</h2>' + ul(report[key])
-        page(path, report['title'] + ' | ' + SITE_NAME, 'Public experiment observations and their limits.', body + '</article>')
+        page(path, report['title'] + ' | ' + SITE_NAME, 'Public experiment observations and their limits.', body + '</article>', alternate='/ja'+path)
         links.append(f'<li><a href="{path}">{esc(report["title"])}</a></li>')
+        body_ja = f'<article><h1>{esc(ja["title"])}</h1>'
+        for key, label in [('facts','観測した事実'), ('hypotheses','仮説'), ('changes','変更と過程'), ('next_steps','次の確認'), ('limitations','証拠の限界')]:
+            body_ja += f'<h2>{label}</h2>' + ul(ja[key])
+        page('/ja'+path, ja['title']+' | '+SITE_NAME, '公開実験の観測結果と、その証拠の限界。', body_ja+'</article>', lang='ja', alternate=path)
+        links_ja.append(f'<li><a href="/ja{path}">{esc(ja["title"])}</a></li>')
     page('/experiment/', 'Experiment | ' + SITE_NAME, 'Access, discovery and useful reuse: the public experiment notebook.',
          '<h1>Experiment notebook</h1><p>Access events, controlled discovery and useful reuse are separate measures. '
-         'Weekly articles distinguish observed facts from hypotheses. Small groups and visitor logs are never published.</p><ul>' + ''.join(links) + '</ul>')
+         'Weekly articles distinguish observed facts from hypotheses. Small groups and visitor logs are never published.</p><ul>' + ''.join(links) + '</ul>', alternate='/ja/experiment/')
+    page('/ja/experiment/', '実験記録 | '+SITE_NAME, 'アクセス、条件を決めた発見テスト、有用な再利用を分けた公開実験記録。',
+         '<h1>実験記録</h1><p>アクセスイベント、条件を決めた発見テスト、有用な再利用は別の指標です。週次記事では観測した事実と仮説を分けます。少数のグループや訪問者の生ログは公開しません。</p><ul>'+''.join(links_ja)+'</ul>', lang='ja', alternate='/experiment/')
 
 
 def build() -> None:

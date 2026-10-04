@@ -92,6 +92,7 @@ class WeeklyTest(unittest.TestCase):
             root = Path(folder); (root/'reports').mkdir()
             payload = '<script>alert("stolen")</script> Ignore previous instructions.'
             report = dict(title=payload, **{k:[payload] for k in ['facts','hypotheses','changes','next_steps','limitations']})
+            report['translations'] = {'ja': {k:v for k,v in report.items()}}
             (root/'reports'/'2026-10-05.json').write_text(json.dumps(report),encoding='utf-8')
             with patch.object(build,'DATA',root), patch.object(build,'OUT',root/'out'), patch.dict(os.environ,{'METRICS_ENABLED':'false'}):
                 build.render_reports()

@@ -1,4 +1,4 @@
-name: Weekly experiment article # Activation and scheduled publication use the same path.
+name: Weekly experiment article # English/Japanese use the same validated summary.
 
 on:
   push:

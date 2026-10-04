@@ -63,6 +63,9 @@ h2 {
 }
 .facts th { background: #c0c0c0; width: 34%; }
 .ja { color: #333333; }
+html[lang="ja"] body { line-height: 1.7; }
+.language-switch { font-family: Arial, "Yu Gothic", sans-serif; font-size: 15px; }
+.language-switch [aria-current="page"] { font-weight: bold; }
 .directory li { margin-bottom: 10px; }
 .search-box { background: var(--panel); border: 1px solid var(--rule); padding: 8px; }
 footer { text-align: center; font-size: 14px; }

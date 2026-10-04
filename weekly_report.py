@@ -11,6 +11,7 @@ import re
 import tempfile
 import urllib.request
 import urllib.parse
+from weekly_i18n import make_japanese_report
 
 ROOT = Path(__file__).resolve().parent
 
@@ -79,12 +80,14 @@ def make_report(data):
     facts.append(f"Controlled discovery tests recorded: {len(tests)}; tests with a site citation/link: {sum(tests)}." if tests else
                  "No controlled discovery tests recorded for this week; discovery cannot be inferred from page views.")
     changes = []
+    interventions = []
     for line in (ROOT / 'discovery' / 'interventions.jsonl').read_text(encoding='utf-8').splitlines():
         row = json.loads(line)
         if data['start'] <= row.get('at', '')[:10] < data['end']:
             approved = row.get('public_summary')
             if isinstance(approved, str) and approved.strip():
                 changes.append(row['at'][:10] + ': ' + approved.strip())
+                interventions.append(row)
     if not changes:
         changes = ['No reviewed public intervention summaries are recorded for this week. This does not establish that no changes occurred.']
     changes.append('This article was generated from the disclosure-filtered weekly summary and the existing discovery notebook. No intervention is inferred from traffic changes.')
@@ -98,6 +101,7 @@ def make_report(data):
         'limitations': ['Without the optional edge route, JavaScript-free HTML/JSON/llms.txt requests are unobserved. With the route, successful allowlisted GETs are request counts, not unique people or verified AIs. Failed/bypassed measurement and default github.io URLs remain unobserved.',
                         'Explicit measurement=test events are excluded. Unmarked operator tests cannot be recognized without identifiers.',
                         'Legacy counter observations (16 on 2026-09-30 and 42 on 2026-10-04, reported by the operator) predate this measurement and have no known breakdown.'],
+        'translations': {'ja': make_japanese_report(data, tests, interventions)},
     }
 
 

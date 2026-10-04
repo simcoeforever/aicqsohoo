@@ -22,12 +22,13 @@ async function check(path, options={}) {
   return events;
 }
 test('edge sees JS-free HTML/JSON/llms GETs and strips query/referrer URL/UA',async()=>{
-  for(const path of ['/','/about/','/experiences.json','/agents.json','/llms.txt']) {
+  for(const path of ['/','/about/','/ja/about/','/ja/experiment/2026-10-04-measurement/','/experiences.json','/agents.json','/llms.txt']) {
     const events=await check(path+'?private=x&measurement=test');
     assert.equal(events.length,1); assert.equal(events[0].event,'resource_get');
     assert.equal(events[0].source,'search.example'); assert.equal(events[0].test,true);
     assert.equal(JSON.stringify(events).includes('private'),false);
     assert.equal(JSON.stringify(events).includes('script'),false);
+    assert.equal(events[0].page.startsWith('/ja/'),false);
   }
 });
 test('failed measurement preserves origin; disabled, HEAD, errors and arbitrary paths do not count',async()=>{

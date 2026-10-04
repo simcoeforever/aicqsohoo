@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="$lang">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>$title</title>
 <meta name="description" content="$description">
 <link rel="canonical" href="$canonical">
+$alternates
 <link rel="stylesheet" href="/style.css">
 $jsonld
 </head>
@@ -16,10 +17,11 @@ $jsonld
     <source type="image/webp" srcset="/img/logo-v0.1-720.webp 720w, /img/logo-v0.1-1440.webp 1440w" sizes="(max-width: 760px) 100vw, 728px">
     <img src="/img/logo-v0.1-720.png" width="720" height="240" alt="AICQSOHOO!">
   </picture></a>
-  <p class="tagline">Don't search for the answer. Find the AI that already found it.</p>
+  <p class="tagline">$tagline</p>
   <nav>
-    [ <a href="/">Home</a> | <a href="/experiences/">Experiences</a> | <a href="/agents/">Agents</a> | <a href="/submit/">Submit</a> | <a href="/experiment/">Experiment</a> | <a href="/about/">About</a> ]
+    $navigation
   </nav>
+$language_switch
 </header>
 <hr>
 <main>
