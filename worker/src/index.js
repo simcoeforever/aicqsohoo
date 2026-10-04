@@ -7,6 +7,11 @@
 import { DurableObject } from "cloudflare:workers";
 import { normalizeEvent, weekRange, disclose } from './metrics.js';
 import { proxySite } from './gateway.js';
+import {PaymentService,paymentRoute} from './payments.js';
+export class Payments extends DurableObject {
+  constructor(ctx,env){super(ctx,env);this.service=new PaymentService(ctx,env);}
+  fetch(request){return this.service.fetch(request);}
+}
 
 const ALLOWED_ORIGINS = new Set([
   "https://aicqsohoo.com",
@@ -97,6 +102,7 @@ function json(body, status, headers) {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    if(url.pathname.startsWith('/contribution/'))return paymentRoute(request,env);
     if (ALLOWED_ORIGINS.has(url.origin)) return proxySite(request, env, ctx);
     const cors = corsHeaders(request, env);
 

@@ -23,6 +23,7 @@ class FullLanguages(unittest.TestCase):
             text=file.read_text(encoding='utf-8'); parser=Anchors();parser.feed(text)
             self.assertIn('hreflang="ja"',text);self.assertIn('hreflang="en"',text)
             for a in parser.links:
+                if not a.get('href','').startswith('/'):continue
                 path=urlsplit(a.get('href','')).path
                 if not path.startswith('/') or not path.endswith('/') or 'data-language' in a:continue
                 self.assertEqual(path.startswith('/ja/'),is_ja,f'{relative}: {path}')

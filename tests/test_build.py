@@ -61,6 +61,8 @@ class BuildTest(unittest.TestCase):
             for href in parser.hrefs:
                 if not href.startswith("/"):
                     continue
+                if href == '/contribution/info':
+                    continue  # Worker API, checked by real workerd tests rather than a static file.
                 from urllib.parse import urlsplit
                 pathname = urlsplit(href).path
                 target = SITE / pathname.lstrip("/")

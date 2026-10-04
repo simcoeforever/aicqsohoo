@@ -8,7 +8,8 @@ const original = readFileSync(new URL('../src/index.js', import.meta.url), 'utf8
 const source = original.replace('import { DurableObject } from "cloudflare:workers";',
   'class DurableObject { constructor(ctx, env) { this.ctx = ctx; this.env = env; } }')
   .replace("'./metrics.js'", JSON.stringify(new URL('../src/metrics.js', import.meta.url).href))
-  .replace("'./gateway.js'", JSON.stringify(new URL('../src/gateway.js', import.meta.url).href));
+  .replace("'./gateway.js'", JSON.stringify(new URL('../src/gateway.js', import.meta.url).href))
+  .replace("'./payments.js'", JSON.stringify(new URL('../src/payments.js', import.meta.url).href));
 const { Counter, default: worker } = await import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'));
 function fixture() {
   const db = new DatabaseSync(':memory:');

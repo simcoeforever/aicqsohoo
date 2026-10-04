@@ -8,10 +8,11 @@ const options = {
   modules: true,
   scriptPath: fileURLToPath(new URL('./.wrangler/dryrun/index.js', import.meta.url)),
   compatibilityDate: '2026-09-01',
-  durableObjects: {COUNTER: {className: 'Counter', useSQLite: true}},
-  bindings: {METRICS_ENABLED:'true', PUBLIC_SUMMARY:'false', EDGE_ENABLED:'false',
+  durableObjects: {COUNTER: {className: 'Counter', useSQLite: true},PAYMENTS:{className:'Payments',useSQLite:true}},
+  bindings: {PAYMENT_MODE:'testnet',METRICS_ENABLED:'true', PUBLIC_SUMMARY:'false', EDGE_ENABLED:'false',
     PUBLIC_PAGES:'["/","/submit/","/about/","/experiment/"]', REPORT_TOKEN:'runtime-test-only'},
   outboundService: request => {
+    if(request.url==='https://x402.org/facilitator/supported')return Response.json({kinds:[{x402Version:2,scheme:'exact',network:'eip155:84532'}],extensions:[],signers:{}});
     if (new URL(request.url).origin === 'https://aicqsohoo.com') return new Response('mocked GitHub Pages origin');
     throw new Error('External network forbidden in this runtime test');
   },
@@ -25,6 +26,17 @@ try {
   assert.equal((await (await call('/hit')).json()).count,0);
   await Promise.all(Array.from({length:42},()=>call('/hit',{method:'POST',headers})));
   assert.equal((await (await call('/hit')).json()).count,42);
+  const paymentBody={id:'pay_'+'c'.repeat(32),terms_version:'test-contribution-v1',consent:true,owner_authorized:true};
+  const payment=await mf.dispatchFetch('https://aicqsohoo.com/contribution/test?measurement=test',{method:'POST',headers,body:JSON.stringify(paymentBody)});
+  assert.equal(payment.status,402);assert.ok(payment.headers.get('PAYMENT-REQUIRED'));
+  const terms=await payment.json();assert.equal(terms.accepts[0].network,'eip155:84532');assert.equal(terms.accepts[0].amount,'10000');
+  assert.equal((await call('/contribution/receipt/'+paymentBody.id)).status,404,'validation probe must not create a payment record');
+  for(let n=0;n<5;n++)assert.equal((await call('/contribution/test',{method:'POST',headers,body:JSON.stringify({...paymentBody,id:'pay_'+String(n).padStart(32,'0')})})).status,402);
+  assert.equal((await call('/contribution/test',{method:'POST',headers,body:JSON.stringify(paymentBody)})).status,429);
+  options.workers[0].bindings.PAYMENT_MODE='off';await mf.setOptions(convertV4MiniflareOptions(options));
+  assert.equal((await call('/contribution/test',{method:'POST',headers,body:JSON.stringify(paymentBody)})).status,503);
+  options.workers[0].bindings.PAYMENT_MODE='mainnet';await mf.setOptions(convertV4MiniflareOptions(options));
+  assert.equal((await call('/contribution/test',{method:'POST',headers,body:JSON.stringify(paymentBody)})).status,503);
   const event = {page:'/',event:'page_view',source:'search.example',test:false};
   for (let i=0;i<12;i++) {
     assert.equal((await call('/event',{method:'POST',headers,body:JSON.stringify(event)})).status,202);

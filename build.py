@@ -182,13 +182,14 @@ def page(path: str, title: str, description: str, body: str, jsonld: dict | None
     ld = ""
     if jsonld:
         ld = '<script type="application/ld+json">\n' + json.dumps(jsonld, ensure_ascii=False, indent=1) + "\n</script>"
-    names = ['Home', 'Experiences', 'Agents', 'Submit', 'Experiment', 'About'] if lang == 'en' else ['ホーム', '経験', 'プロフィール', '投稿', '実験記録', 'このサイトについて']
-    paths = ['/', '/experiences/', '/agents/', '/submit/', '/experiment/', '/about/']
+    names = ['Home', 'Experiences', 'Agents', 'Submit', 'Experiment', 'Test contribution', 'About'] if lang == 'en' else ['ホーム', '経験', 'プロフィール', '投稿', '実験記録', 'テスト支援', 'このサイトについて']
+    paths = ['/', '/experiences/', '/agents/', '/submit/', '/experiment/', '/contribute/', '/about/']
     prefix = '/ja' if lang == 'ja' else ''
     # Explicit English links prevent a saved/browser Japanese preference overriding navigation.
     suffix = '?lang=en' if lang == 'en' else ''
     body = localize_links(body, lang)
     if en == '/about/':
+        body += ('<p><a href="/ja/contribute/">任意のテスト支援</a>は別の実験です。商品や閲覧権は提供せず、既存内容は無料です。決済ID・状態などはアクセス解析と分離して保存します。</p>' if lang == 'ja' else '<p><a href="/contribute/?lang=en">Voluntary test contributions</a> are a separate experiment. They buy no goods or access; all content stays free. Payment IDs and status are stored separately from access analytics.</p>')
         body += ('<h2>言語の選択</h2><p>ブラウザ内に言語の選択（jaまたはen）だけを保存します。識別子や解析データではなく、サーバーへ送信しません。明示した言語URLを優先し、保存した選択がないときはブラウザ言語を使います。</p>' if lang == 'ja' else '<h2>Language preference</h2><p>Only a language choice (ja or en) is saved in your browser. It is not an identifier or analytics data and is not sent to the server. Explicit language URLs take priority; otherwise your saved choice or browser language selects the initial page.</p>')
     text = layout.substitute(
         lang=lang, home=prefix+'/' + suffix,
@@ -368,7 +369,7 @@ rejects each request. No real money was spent in these runs.</p>
 <ul>
 <li>Not statistics. Most pages rest on one run. They say so.</li>
 <li>Not written by the agents. Humans summarised the logs.</li>
-<li>Not a way to contact or hire an agent. There is no endpoint, no login and no payment.</li>
+<li>Not a way to contact or hire an agent. There is no callable agent endpoint or login. A separate optional test-token contribution does not buy access or agent work.</li>
 </ul>
 <h2>The visitor counter</h2>
 <p>The legacy counter counts home-page JavaScript POSTs, including reloads. It does not count unique
@@ -404,7 +405,7 @@ def write_machine_files(exps: list[dict], agents: list[dict]) -> None:
     (OUT / "agents.json").write_text(
         json.dumps([machine_record(a, AGENT_FIELDS) for a in agents], ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8")
-    paths = ["/", "/about/", "/submit/", "/experiences/", "/agents/", "/experiment/"] + [exp_path(e) for e in exps] + [agent_path(a) for a in agents]
+    paths = ["/", "/about/", "/submit/", "/experiences/", "/agents/", "/experiment/", "/contribute/"] + [exp_path(e) for e in exps] + [agent_path(a) for a in agents]
     paths += [f'/experiment/{p.stem}/' for p in sorted((DATA / 'reports').glob('*.json'))]
     paths += ['/ja'+path for path in list(paths)]
     modified = {exp_path(e): e.get('updated_at', PUBLISHED) for e in exps}
@@ -467,6 +468,8 @@ def build() -> None:
     shutil.copy(ROOT / "static" / "counter.js", OUT / "counter.js")
     shutil.copy(ROOT / "static" / "metrics.js", OUT / "metrics.js")
     shutil.copy(ROOT / "static" / "language.js", OUT / "language.js")
+    shutil.copy(ROOT / "static" / "payment-client.js", OUT / "payment-client.js")
+    shutil.copy(ROOT / "static" / "payment-client.LICENSE.txt", OUT / "payment-client.LICENSE.txt")
     shutil.copytree(ROOT / "static" / "img", OUT / "img")
     for e in exps:
         render_experience(e, by_id, agents_by_id)
@@ -475,6 +478,8 @@ def build() -> None:
     render_indexes(exps, agents)
     render_submit()
     render_reports()
+    for lang in ['en','ja']:
+        page(('/ja' if lang=='ja' else '')+'/contribute/', '任意のテスト支援 | '+SITE_NAME if lang=='ja' else 'Voluntary test contribution | '+SITE_NAME, 'Base Sepolia x402 test, 0.01 test USDC; all content remains free.', (ROOT/'templates'/('contribute.'+lang+'.html')).read_text(encoding='utf-8'), lang=lang)
     from japanese_pages import render_japanese
     render_japanese(page, exps, agents, DATA, base_url())
     write_llms_txt(exps)

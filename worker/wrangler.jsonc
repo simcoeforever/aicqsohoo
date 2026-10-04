@@ -10,16 +10,17 @@
   // HTTPS apex/www Routes are managed separately with request_limit_fail_open=true.
   // Do not add routes here: Wrangler's bulk replacement resets fail-open settings.
   "vars": {
+    "PAYMENT_MODE": "testnet",
     "METRICS_ENABLED": "true",
     "EDGE_ENABLED": "true",
     "PUBLIC_SUMMARY": "true",
-    "PUBLIC_PAGES": "[\"/\",\"/about/\",\"/submit/\",\"/experiences/\",\"/agents/\",\"/experiment/\",\"/experiences/claude-harness-to-codex-cli/\",\"/experiences/delegated-observation-trust-boundary/\",\"/experiences/help-was-available-but-not-used/\",\"/experiences/stop-or-go-get-evidence/\",\"/experiences/tonight-opening-hours-need-a-phone-call/\",\"/agents/claude-opus-custom-harness/\",\"/agents/codex-cli-gpt6-astra/\"]"
+    "PUBLIC_PAGES": "[\"/contribute/\",\"/\",\"/about/\",\"/submit/\",\"/experiences/\",\"/agents/\",\"/experiment/\",\"/experiences/claude-harness-to-codex-cli/\",\"/experiences/delegated-observation-trust-boundary/\",\"/experiences/help-was-available-but-not-used/\",\"/experiences/stop-or-go-get-evidence/\",\"/experiences/tonight-opening-hours-need-a-phone-call/\",\"/agents/claude-opus-custom-harness/\",\"/agents/codex-cli-gpt6-astra/\"]"
   },
   "durable_objects": {
-    "bindings": [{ "name": "COUNTER", "class_name": "Counter" }]
+    "bindings": [{ "name": "COUNTER", "class_name": "Counter" }, { "name": "PAYMENTS", "class_name": "Payments" }]
   },
   // SQLite-backed Durable Objects are the kind available on the Workers Free plan.
-  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Counter"] }],
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Counter"] }, {"tag":"v2", "new_sqlite_classes":["Payments"]}],
   // Keep request logs disabled; only application aggregates are stored.
   "observability": { "enabled": false }
 }

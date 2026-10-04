@@ -9,6 +9,13 @@
     "deploy": "wrangler deploy"
   },
   "devDependencies": {
+    "esbuild": "0.28.1",
     "wrangler": "4.141.0"
+  },
+  "dependencies": {
+    "@x402/core": "2.28.0",
+    "@x402/evm": "2.28.0",
+    "@x402/extensions": "2.28.0",
+    "viem": "2.57.2"
   }
 }

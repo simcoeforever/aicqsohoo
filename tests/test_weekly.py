@@ -47,7 +47,7 @@ class WeeklyTest(unittest.TestCase):
     def test_worker_page_allowlist_covers_site_without_arbitrary_paths(self):
         config = json.loads(re.sub(r'^\s*//.*$', '', (ROOT / 'worker' / 'wrangler.jsonc').read_text(encoding='utf-8'), flags=re.M))
         allowed = set(json.loads(config['vars']['PUBLIC_PAGES']))
-        expected = {'/', '/about/', '/submit/', '/experiences/', '/agents/', '/experiment/'}
+        expected = {'/', '/about/', '/submit/', '/experiences/', '/agents/', '/experiment/', '/contribute/'}
         for kind in ['experiences', 'agents']:
             expected.update(f'/{kind}/{p.stem}/' for p in (ROOT/'data'/kind).glob('*.json'))
         self.assertEqual(allowed, expected)

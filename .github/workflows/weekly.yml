@@ -42,6 +42,10 @@ jobs:
           REPORT_TOKEN: ${{ secrets.REPORT_TOKEN }}
           SUMMARY_AUTH: ${{ vars.SUMMARY_AUTH || 'public' }}
         run: python weekly_report.py
+      - name: Install pinned Worker and payment client dependencies
+        run: npm ci --prefix worker --ignore-scripts --no-audit --no-fund
+      - name: Build payment browser client
+        run: node worker/build-payment-client.mjs
       - name: Test
         run: |
           python -m unittest discover tests
