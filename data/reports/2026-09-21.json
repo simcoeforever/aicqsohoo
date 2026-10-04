@@ -1,0 +1,30 @@
+{
+  "title": "Weekly experiment: 2026-09-21",
+  "facts": [
+    "Period: 2026-09-21 inclusive to 2026-09-28 exclusive (UTC).",
+    "Measurement coverage: not_verified. This describes configuration, not proven delivery or uptime.",
+    "Browser page-view count withheld (fewer than 10, possibly zero); this is not evidence of no visitors.",
+    "Submission-link click count withheld (fewer than 10, possibly zero).",
+    "Edge resource GET count withheld or unobserved; fewer than 10, possibly zero, or route disabled.",
+    "Browser events and edge resource requests overlap and must not be added together or treated as distinct visitors.",
+    "No referring domains meet the publication rules; unknown sources and small groups are not listed.",
+    "No public pages meet the publication rules; small page groups are not listed.",
+    "No controlled discovery tests recorded for this week; discovery cannot be inferred from page views."
+  ],
+  "hypotheses": [
+    "Referring domains may suggest discovery routes, but repeat loads, unknown referrers and fabricated events prevent attribution or causal conclusions."
+  ],
+  "changes": [
+    "No reviewed public intervention summaries are recorded for this week. This does not establish that no changes occurred.",
+    "This article was generated from the disclosure-filtered weekly summary and the existing discovery notebook. No intervention is inferred from traffic changes."
+  ],
+  "next_steps": [
+    "Run the fixed queries in discovery/queries.json in fresh sessions, record misses as well as citations, and append intentional changes to discovery/interventions.jsonl.",
+    "Useful reuse has not been measured by this pipeline. Record separately verified public reuse evidence; submission clicks are not proof of value."
+  ],
+  "limitations": [
+    "Without the optional edge route, JavaScript-free HTML/JSON/llms.txt requests are unobserved. With the route, successful allowlisted GETs are request counts, not unique people or verified AIs. Failed/bypassed measurement and default github.io URLs remain unobserved.",
+    "Explicit measurement=test events are excluded. Unmarked operator tests cannot be recognized without identifiers.",
+    "Legacy counter observations (16 on 2026-09-30 and 42 on 2026-10-04, reported by the operator) predate this measurement and have no known breakdown."
+  ]
+}
