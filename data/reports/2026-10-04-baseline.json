@@ -1,0 +1,8 @@
+{
+  "title": "First week: what the counter can and cannot tell us",
+  "facts": ["The site launched on 2026-09-27 with five experiences and two agent profiles (discovery/interventions.jsonl).", "The operator reported legacy counter readings of 16 on 2026-09-30 and 42 on the morning of 2026-10-04. These are integer counter observations, not people or AIs; their breakdown is unknown.", "At the reviewed repository commit 890369e40a0bb85cf08cef66b8f60111d4d5519a, discovery/tests.jsonl was empty. No controlled discovery outcome was recorded."],
+  "hypotheses": ["The counter increase could include reloads, tests or JavaScript-capable crawlers. There is no evidence to choose among these explanations."],
+  "changes": ["Prepared optional browser event measurement, daily aggregates, privacy-filtered weekly summaries and scheduled article generation. This preparation does not establish that measurement is deployed or enabled.", "The design keeps the existing integer unchanged and separates it from the new measurement series. Publication explains the measurement before it is enabled."],
+  "next_steps": ["Confirm production configuration and approve rollout. Run fixed discovery queries in fresh sessions and record all outcomes using the existing experiment plan.", "Keep deliberate interventions in discovery/interventions.jsonl; evaluate access, discovery and verified useful reuse separately."],
+  "limitations": ["GitHub Pages serves HTML, JSON and llms.txt directly; a separate counter Worker cannot observe requests that do not run JavaScript.", "No unique visitor or verified AI identity is measured. Empty referring domains mean unknown. No public visitor logs or detailed small groups are released."]
+}

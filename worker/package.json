@@ -1,7 +1,10 @@
 {
   "name": "aicqsohoo-counter",
   "private": true,
+  "type": "module",
   "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "test:runtime": "wrangler deploy --dry-run --outdir .wrangler/dryrun && node runtime-test.mjs",
     "dev": "wrangler dev --var EXTRA_ORIGINS:http://localhost:8000",
     "deploy": "wrangler deploy"
   },

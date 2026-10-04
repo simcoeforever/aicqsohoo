@@ -88,7 +88,7 @@ def render_submit() -> None:
     body = f"""<h1>Submit an Experience <span class="new">NEW!</span></h1>
 <p>Has your agent (or an agent you watched) hit a wall, found a way round it, or failed in an instructive way?
 Propose it for the index.</p>
-<p class="search-box"><b><a href="{esc(ISSUE_FORM_URL)}">&raquo; Submit an experience on GitHub</a></b><br>
+<p class="search-box"><b><a data-submission-intent href="{esc(ISSUE_FORM_URL)}">&raquo; Submit an experience on GitHub</a></b><br>
 <small>Needs a free GitHub account. The form opens a public issue.</small></p>
 <h2>What happens next</h2>
 <ul>
@@ -146,7 +146,7 @@ def counter_url() -> str:
     return os.environ.get("COUNTER_URL", "https://aicqsohoo-counter.waste-tkt.workers.dev/hit")
 
 
-COUNTER_HTML = """  <p class="counter">You are visitor #<span id="hits" data-counter-url="{url}">???????</span></p>
+COUNTER_HTML = """  <p class="counter">Legacy home-page hits: <span id="hits" data-counter-url="{url}">???????</span></p>
   <script src="/counter.js" defer></script>
 """
 
@@ -173,6 +173,9 @@ def page(path: str, title: str, description: str, body: str, jsonld: dict | None
         jsonld=ld,
         body=body,
         counter=COUNTER_HTML.format(url=esc(counter_url())) if counter else "",
+        measurement=(f'<script id="measurement" src="/metrics.js" defer data-page="{esc("/experiment/" if path.startswith("/experiment/") else path)}" '
+                     f'data-url="{esc(counter_url().removesuffix("/hit") + "/event")}"></script>'
+                     if os.environ.get("METRICS_ENABLED") == "true" and path != "/404/" else ""),
     )
     target = OUT / path.lstrip("/") / "index.html"
     target.parent.mkdir(parents=True, exist_ok=True)
@@ -341,10 +344,24 @@ rejects each request. No real money was spent in these runs.</p>
 <li>Not a way to contact or hire an agent. There is no endpoint, no login and no payment.</li>
 </ul>
 <h2>The visitor counter</h2>
-<p>The counter on the home page is a real, old-fashioned hit counter. Every home page load adds one,
-reloads included, and crawlers that run JavaScript count too. It stores a single number and nothing else:
-no cookies, no IP addresses, no user IDs, no analytics. If the counter service is down the page still works
-and shows question marks.</p>
+<p>The legacy counter counts home-page JavaScript POSTs, including reloads. It does not count unique
+people or AIs. Its historical breakdown is unknown. Measurement tests do not increment it.</p>
+<h2>Access measurement and public experiment notebook</h2>
+<p>When enabled, JavaScript sends the public page path, event type (page load or submission-link click),
+referring domain only, and an explicit test flag. The Worker stores UTC daily aggregate counts for up to
+90 days. Empty referrers are unknown; the browser's document.referrer is distinct from the Referer of a
+fetch to the Worker. No full URLs, query strings, IP addresses, cookies, user IDs, fingerprints or
+User-Agent strings are added to storage. Infrastructure providers still process requests under their own policies.</p>
+<p>Without the optional Cloudflare edge route, JavaScript-free HTML, JSON and llms.txt requests go
+directly to GitHub Pages and are unobserved. If the route is enabled, successful allowlisted GETs are
+aggregated separately, including requests without JavaScript. Requests that bypass the route, or whose
+measurement fails, remain unobserved. User-Agent declarations would not prove whether a visitor is human or AI.
+Requests may be repeated, blocked or fabricated; aggregate events are not unique visitors.</p>
+<p><a href="/experiment/">The experiment notebook</a> publishes weekly summaries and separates facts
+from hypotheses. Counts below 10 and detailed day/page/referrer combinations are withheld; released
+totals use 10-event ranges, with no cumulative totals. Browser events and edge GETs overlap and must
+not be added together. Access,
+controlled discovery tests and evidence of useful reuse are separate measures.</p>
 <h2>For machines</h2>
 <p><a href="/experiences.json">experiences.json</a> and <a href="/agents.json">agents.json</a> hold the same
 content as the HTML pages. There is no A2A Agent Card, because there is no agent you can call here yet.</p>"""
@@ -358,7 +375,8 @@ def write_machine_files(exps: list[dict], agents: list[dict]) -> None:
     (OUT / "agents.json").write_text(
         json.dumps([machine_record(a, AGENT_FIELDS) for a in agents], ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8")
-    paths = ["/", "/about/", "/submit/", "/experiences/", "/agents/"] + [exp_path(e) for e in exps] + [agent_path(a) for a in agents]
+    paths = ["/", "/about/", "/submit/", "/experiences/", "/agents/", "/experiment/"] + [exp_path(e) for e in exps] + [agent_path(a) for a in agents]
+    paths += [f'/experiment/{p.stem}/' for p in sorted((DATA / 'reports').glob('*.json'))]
     urls = "".join(f"  <url><loc>{esc(base_url() + p)}</loc><lastmod>{PUBLISHED}</lastmod></url>\n" for p in paths)
     (OUT / "sitemap.xml").write_text(
         '<?xml version="1.0" encoding="UTF-8"?>\n'
@@ -367,6 +385,23 @@ def write_machine_files(exps: list[dict], agents: list[dict]) -> None:
     (OUT / "submission-schema.json").write_text(
         json.dumps(submission_schema(), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     (OUT / "robots.txt").write_text(f"User-agent: *\nAllow: /\n\nSitemap: {base_url()}/sitemap.xml\n", encoding="utf-8")
+
+
+def render_reports() -> None:
+    links = []
+    for source in sorted((DATA / 'reports').glob('*.json'), reverse=True):
+        report = json.loads(source.read_text(encoding='utf-8'))
+        path = f'/experiment/{source.stem}/'
+        body = f'<article><h1>{esc(report["title"])}</h1>'
+        for key, label in [('facts', 'Observed facts'), ('hypotheses', 'Hypotheses'),
+                           ('changes', 'Changes and process'), ('next_steps', 'Next steps'),
+                           ('limitations', 'Limits of the evidence')]:
+            body += f'<h2>{label}</h2>' + ul(report[key])
+        page(path, report['title'] + ' | ' + SITE_NAME, 'Public experiment observations and their limits.', body + '</article>')
+        links.append(f'<li><a href="{path}">{esc(report["title"])}</a></li>')
+    page('/experiment/', 'Experiment | ' + SITE_NAME, 'Access, discovery and useful reuse: the public experiment notebook.',
+         '<h1>Experiment notebook</h1><p>Access events, controlled discovery and useful reuse are separate measures. '
+         'Weekly articles distinguish observed facts from hypotheses. Small groups and visitor logs are never published.</p><ul>' + ''.join(links) + '</ul>')
 
 
 def build() -> None:
@@ -385,6 +420,7 @@ def build() -> None:
     OUT.mkdir()
     shutil.copy(ROOT / "static" / "style.css", OUT / "style.css")
     shutil.copy(ROOT / "static" / "counter.js", OUT / "counter.js")
+    shutil.copy(ROOT / "static" / "metrics.js", OUT / "metrics.js")
     shutil.copytree(ROOT / "static" / "img", OUT / "img")
     for e in exps:
         render_experience(e, by_id, agents_by_id)
@@ -392,6 +428,7 @@ def build() -> None:
         render_agent(a, by_id)
     render_indexes(exps, agents)
     render_submit()
+    render_reports()
     write_llms_txt(exps)
     page("/404/", f"Page not found | {SITE_NAME}", "This page does not exist.",
          '<h1>404: Not Found!</h1>\n<p>This page wandered off. Try the <a href="/experiences/">experience index</a>.</p>')

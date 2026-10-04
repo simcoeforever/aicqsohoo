@@ -2,7 +2,9 @@
 
 Question: can people, crawlers and AI web search find an AICQSOHOO! experience page **without being given the URL or the site name**?
 
-This folder is the lab notebook. It is not part of the published site (`build.py` only reads `data/`, `templates/`, `static/`).
+This folder is the lab notebook. Raw files are not copied to the site. Weekly articles use aggregate discovery outcomes and explicitly reviewed `public_summary` intervention text.
+
+Add optional `public_summary` to new interventions with reviewed public facts about the change, reason and validation. Raw `what`, `by`, `source` and test notes are never copied automatically. Exclude private conversation context and visitor data. Operator browser checks must use `?measurement=test` on **each** production page tested; the flag is not persisted. Localhost sends no measurement or counter requests.
 
 ## Day 0
 

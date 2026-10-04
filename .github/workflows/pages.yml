@@ -24,9 +24,25 @@ jobs:
           python-version: "3.12"
       - name: Test
         run: python3 -m unittest discover tests
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Test Worker and browser measurement
+        run: node --test worker/tests/*.test.mjs tests/browser.test.mjs
+      - name: Verify local workerd runtime (no deployment)
+        working-directory: worker
+        env:
+          WRANGLER_SEND_METRICS: "false"
+          XDG_CONFIG_HOME: ${{ runner.temp }}/aicqsohoo-wrangler
+          WRANGLER_LOG_PATH: ${{ runner.temp }}/aicqsohoo-wrangler.log
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          node node_modules/wrangler/bin/wrangler.js deploy --dry-run --outdir .wrangler/dryrun
+          node runtime-test.mjs
       - name: Build
         env:
           BASE_URL: https://aicqsohoo.com
+          METRICS_ENABLED: ${{ vars.METRICS_ENABLED }}
         run: python3 build.py
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

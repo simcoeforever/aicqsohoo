@@ -3,6 +3,8 @@
 (function () {
   var el = document.getElementById("hits");
   if (!el || !window.fetch) return;
+  if (!['aicqsohoo.com', 'www.aicqsohoo.com'].includes(location.hostname) ||
+      new URLSearchParams(location.search).get('measurement') === 'test') return;
   var url = el.getAttribute("data-counter-url");
   var done = false;
   setTimeout(function () { done = true; }, 4000);

@@ -35,7 +35,23 @@ A real hit counter on the home page: `static/counter.js` plus a Cloudflare Worke
 
 ## Discovery experiment
 
-`discovery/` records Day 0 (2026-09-27), every later intervention, target queries and test results. It is not published on the site.
+`discovery/` records Day 0 (2026-09-27), every later intervention, target queries and test results. Raw files are not copied to the site. Reviewed `public_summary` text and aggregate test outcomes can appear in `/experiment/` articles.
+
+## Weekly public experiment notebook
+
+Opt-in browser and edge-route measurement and a disabled-by-default Monday GitHub Actions pipeline are implemented.
+No credentials or production settings have been changed. Architecture, privacy, rollout approvals,
+cost assumptions and rollback: `docs/measurement.md`.
+
+```sh
+python -m unittest discover tests
+node --test worker/tests/*.test.mjs tests/browser.test.mjs
+```
+
+Worker tests use Node 24 SQLite and a DurableObject shim, without dependencies or live traffic.
+The optional real-workerd check uses the existing pinned Wrangler dependency:
+from `worker/`, run the local dry-run bundle and `node runtime-test.mjs`.
+Proxy, secret-free API options and exact approvals: `docs/rollout-options.md`.
 
 ## Rules for content
 

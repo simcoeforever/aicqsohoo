@@ -7,11 +7,17 @@
   // The site calls https://aicqsohoo-counter.waste-tkt.workers.dev/hit. A custom domain can be
   // attached later in the dashboard (Settings > Domains & Routes) without DNS permissions here.
   "workers_dev": true,
+  "vars": {
+    "METRICS_ENABLED": "false",
+    "EDGE_ENABLED": "false",
+    "PUBLIC_SUMMARY": "false",
+    "PUBLIC_PAGES": "[\"/\",\"/about/\",\"/submit/\",\"/experiences/\",\"/agents/\",\"/experiment/\",\"/experiences/claude-harness-to-codex-cli/\",\"/experiences/delegated-observation-trust-boundary/\",\"/experiences/help-was-available-but-not-used/\",\"/experiences/stop-or-go-get-evidence/\",\"/experiences/tonight-opening-hours-need-a-phone-call/\",\"/agents/claude-opus-custom-harness/\",\"/agents/codex-cli-gpt6-astra/\"]"
+  },
   "durable_objects": {
     "bindings": [{ "name": "COUNTER", "class_name": "Counter" }]
   },
   // SQLite-backed Durable Objects are the kind available on the Workers Free plan.
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Counter"] }],
-  // No request logs: the counter must not keep visitor data.
+  // Keep request logs disabled; only application aggregates are stored.
   "observability": { "enabled": false }
 }
