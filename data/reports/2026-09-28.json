@@ -1,0 +1,64 @@
+{
+  "title": "Weekly experiment: 2026-09-28",
+  "facts": [
+    "Period: 2026-09-28 inclusive to 2026-10-05 exclusive (UTC).",
+    "Measurement coverage: not_verified. This describes configuration, not proven delivery or uptime.",
+    "Non-test browser page-view events: 30–39 (10-event publication band).",
+    "Submission-link click count withheld (fewer than 10, possibly zero).",
+    "Successful non-test resource GETs observed at the optional edge route: 320–329.",
+    "Browser events and edge resource requests overlap and must not be added together or treated as distinct visitors.",
+    "No referring domains meet the publication rules; unknown sources and small groups are not listed.",
+    "Frequent public pages (counts withheld): /experiment/.",
+    "Controlled discovery tests recorded: 1; tests with a site citation/link: 0."
+  ],
+  "hypotheses": [
+    "Referring domains may suggest discovery routes, but repeat loads, unknown referrers and fabricated events prevent attribution or causal conclusions."
+  ],
+  "changes": [
+    "2026-10-04: Published the privacy explanation, enabled separate browser and edge aggregates with explicit test separation, and prepared Monday weekly publication. Retained the legacy counter series and origin DNS values; verified test HTML/JSON/llms.txt retrieval and both routes in fail-open mode.",
+    "2026-10-04: Clarified one existing seven-run record: AI agents with  virtual budgets and missed outside help, not completed service/API purchases. Retained the URL, original counts and low confidence. Recorded the parent-reported one-task miss separately from informed site-scoped visibility checks; no ranking improvement is claimed.",
+    "This article was generated from the disclosure-filtered weekly summary and the existing discovery notebook. No intervention is inferred from traffic changes."
+  ],
+  "next_steps": [
+    "Run the fixed queries in discovery/queries.json in fresh sessions, record misses as well as citations, and append intentional changes to discovery/interventions.jsonl.",
+    "Useful reuse has not been measured by this pipeline. Record separately verified public reuse evidence; submission clicks are not proof of value."
+  ],
+  "limitations": [
+    "Without the optional edge route, JavaScript-free HTML/JSON/llms.txt requests are unobserved. With the route, successful allowlisted GETs are request counts, not unique people or verified AIs. Failed/bypassed measurement and default github.io URLs remain unobserved.",
+    "Explicit measurement=test events are excluded. Unmarked operator tests cannot be recognized without identifiers.",
+    "Legacy counter observations (16 on 2026-09-30 and 42 on 2026-10-04, reported by the operator) predate this measurement and have no known breakdown."
+  ],
+  "translations": {
+    "ja": {
+      "title": "週次実験記録：2026-09-28",
+      "facts": [
+        "期間：2026-09-28以上、2026-10-05未満（UTC）。",
+        "計測範囲：未検証（not_verified）。これは設定についての表示であり、配信の成功や稼働時間の証明ではありません。",
+        "テストを除くブラウザのページ表示イベント：30–39件（10イベント幅で公開）。",
+        "投稿リンクのクリック件数は非公開です（10件未満で、0件の可能性もあります）。",
+        "任意のEdge Routeで観測した、テストを除く成功したリソースGET：320–329件。",
+        "ブラウザイベントとEdgeリソース取得は重なります。足し合わせたり、異なる訪問者の数とみなしたりしません。",
+        "公開条件を満たす参照元ドメインはありません。不明な参照元や少数のグループは掲載しません。",
+        "公開条件を満たす公開ページ（件数は非公開）：/experiment/。",
+        "条件を決めた発見テストの記録：1件、サイトへの引用・リンクを含むテスト：0件。"
+      ],
+      "hypotheses": [
+        "参照元ドメインは発見経路の手がかりになるかもしれません。ただし、繰り返しの表示・不明な参照元・偽装イベントがあるため、流入の帰属や因果関係は結論できません。"
+      ],
+      "changes": [
+        "2026-10-04：プライバシー説明を公開し、明示的なテスト分離を備えたブラウザ・Edgeの別集計を有効化し、月曜の週次公開を準備しました。旧カウンター系列とorigin DNS値を保持し、HTML・JSON・llms.txtのテスト取得と、両Routeのfail open設定を確認しました。",
+        "2026-10-04：既存の7実行の記録1件について、AIエージェントの仮想予算10ドルと外部の助けの未利用を明確化し、サービスやAPIの購入完了例ではないことを示しました。URL、元の件数、低い確信度を保持しました。親が報告した1課題の非発見を、対象を知ったサイト指定の露出確認とは分けて記録し、順位改善は主張していません。",
+        "公開基準を適用した週次集計と既存の発見実験ノートから、この記事を生成しました。アクセス変化から変更作業の実施を推測していません。"
+      ],
+      "next_steps": [
+        "新しいセッションでdiscovery/queries.jsonの固定クエリを実行し、引用された場合だけでなく見つからなかった場合も記録します。意図した変更はdiscovery/interventions.jsonlに追記します。",
+        "この仕組みは有用な再利用を計測していません。別途確認できた公開の再利用証拠を記録します。投稿リンクのクリックは価値の証明ではありません。"
+      ],
+      "limitations": [
+        "任意のEdge Routeがなければ、JavaScriptなしのHTML・JSON・llms.txt取得は未観測です。Routeがある場合も、許可した成功GETの件数であり、ユニークな人数や確認されたAI数ではありません。計測の失敗・迂回や既定のgithub.io URLへの取得は観測できません。",
+        "明示的なmeasurement=testイベントは除外します。識別子を使わないため、印を付けていない運用者テストは認識できません。",
+        "運用者が報告した旧カウンターの観測値（2026-09-30に16、2026-10-04に42）は、この計測より前の値で、内訳は不明です。"
+      ]
+    }
+  }
+}
