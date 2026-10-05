@@ -6,7 +6,7 @@ import {generateJwt} from '@coinbase/cdp-sdk/auth';
 import {HTTPFacilitatorClient} from '@x402/core/server';
 import {RECEIVING_ADDRESS} from './payment-core.js';
 import {sanitizedPilotDiagnostic,recordPilotDiagnostic,readPilotDiagnostic} from './pilot-diagnostics.js';
-import {OWNER_PILOT_VERSION,OWNER_PILOT_NONCE,OWNER_PILOT_VALID_AFTER} from '../../static/owner-pilot-v4.js';
+import {OWNER_PILOT_VERSION,OWNER_PILOT_NONCE,OWNER_PILOT_VALID_AFTER,OWNER_PILOT_PAYER} from '../../static/owner-pilot-v5.js';
 export const PILOT_NETWORK='eip155:8453',PILOT_ASSET='0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
 export const PILOT_VERSION=OWNER_PILOT_VERSION;
 export const AUTHORIZATION_TYPES={TransferWithAuthorization:[{name:'from',type:'address'},{name:'to',type:'address'},
@@ -16,7 +16,7 @@ export const pilotAuthorizationDomain=()=>({name:'USD Coin',version:'2',chainId:
 export const pilotTerms=()=>({scheme:'exact',network:PILOT_NETWORK,asset:PILOT_ASSET,amount:'10000',
   payTo:RECEIVING_ADDRESS,maxTimeoutSeconds:300,extra:{name:'USD Coin',version:'2'}});
 export function pilotReceipt(row){
-  if(row.state==='settled')return response(200,{id:row.id,state:'settled',network:PILOT_NETWORK,transaction:row.transaction_hash,self_transfer:true,no_goods_or_access:true});
+  if(row.state==='settled')return response(200,{id:row.id,state:'settled',network:PILOT_NETWORK,transaction:row.transaction_hash,self_transfer:false,no_goods_or_access:true});
   return response(row.state==='failed'?422:202,{id:row.id,state:row.state==='failed'?'failed':'pending',retry_payment:false,...(row.diagnostic?{diagnostic:row.diagnostic}:{})});
 }
 const storedReceipt=(ledger,id)=>pilotReceipt({...ledger.row(id),diagnostic:readPilotDiagnostic(ledger.storage,id)});
@@ -41,25 +41,25 @@ async function bodyJson(request){
 export async function verifyOwnerAuthorization(payload,nowSeconds){
   const a=payload?.payload?.authorization;
   if(!a||typeof a.from!=='string'||typeof a.to!=='string'||Object.keys(a).length!==6||Object.keys(a).some(k=>!['from','to','value','validAfter','validBefore','nonce'].includes(k))||
-    a.from?.toLowerCase()!==RECEIVING_ADDRESS.toLowerCase()||a.to?.toLowerCase()!==RECEIVING_ADDRESS.toLowerCase()||
+    a.from?.toLowerCase()!==OWNER_PILOT_PAYER.toLowerCase()||a.to?.toLowerCase()!==RECEIVING_ADDRESS.toLowerCase()||
     String(a.value)!=='10000'||String(a.validAfter)!==OWNER_PILOT_VALID_AFTER||!/^\d{1,12}$/.test(String(a.validBefore))||
-    Number(a.validAfter)>nowSeconds||Number(a.validBefore)<=nowSeconds||Number(a.validBefore)>nowSeconds+300||
+    Number(a.validAfter)>nowSeconds||Number(a.validBefore)<nowSeconds+6||Number(a.validBefore)>nowSeconds+300||
     a.nonce!==OWNER_PILOT_NONCE||!/^0x[0-9a-fA-F]{130}$/.test(payload.payload?.signature||''))return false;
-  try{return await verifyTypedData({address:RECEIVING_ADDRESS,domain:pilotAuthorizationDomain(),
+  try{return await verifyTypedData({address:OWNER_PILOT_PAYER,domain:pilotAuthorizationDomain(),
     types:AUTHORIZATION_TYPES,primaryType:'TransferWithAuthorization',message:{...a,value:BigInt(a.value),validAfter:BigInt(a.validAfter),validBefore:BigInt(a.validBefore)},signature:payload.payload.signature});}
   catch(_){return false;}
 }
 export async function handlePilot(request,{mode='off',ledger,client,now=()=>new Date(),verifyOwner=verifyOwnerAuthorization}={}){
   const path=new URL(request.url).pathname;
-  if(request.method==='GET'&&/^\/contribution\/mainnet\/receipt\/main4_[a-zA-Z0-9_-]{16,59}$/.test(path)){
+  if(request.method==='GET'&&/^\/contribution\/mainnet\/receipt\/main5_[a-zA-Z0-9_-]{16,59}$/.test(path)){
     const id=path.split('/').pop(),row=ledger?.row(id);return row?storedReceipt(ledger,id):response(404,{error:'unknown_receipt'});
   }
-  if(mode!=='owner-pilot-v4')return response(503,{enabled:false,error:'mainnet_not_activated',retry_payment:false});
+  if(mode!=='owner-pilot-v5')return response(503,{enabled:false,error:'mainnet_not_activated',retry_payment:false});
   if(request.method!=='POST'||path!=='/contribution/mainnet/self-test')return response(503,{enabled:false,error:'owner_pilot_only',retry_payment:false});
   if(!request.headers.get('Content-Type')?.startsWith('application/json'))return response(400,{error:'json_required'});
   let body;try{body=await bodyJson(request);}catch(_){return response(400,{error:'invalid_request'});}
   if(!body||typeof body!=='object'||Array.isArray(body)||Object.keys(body).some(k=>!['id','terms_version','consent','owner_authorized'].includes(k))||
-    !/^main4_[a-zA-Z0-9_-]{16,59}$/.test(body.id||'')||body.terms_version!==PILOT_VERSION||body.consent!==true||body.owner_authorized!==true)
+    !/^main5_[a-zA-Z0-9_-]{16,59}$/.test(body.id||'')||body.terms_version!==PILOT_VERSION||body.consent!==true||body.owner_authorized!==true)
     return response(400,{error:'explicit_owner_consent_required'});
   const old=ledger.row(body.id);if(old)return storedReceipt(ledger,body.id);
   const count=ledger.storage.sql.exec('SELECT COUNT(*) AS n FROM contributions').toArray()[0].n;
@@ -68,7 +68,7 @@ export async function handlePilot(request,{mode='off',ledger,client,now=()=>new 
   if(!signature){
     // Unsigned requests cannot consume the owner's one slot or call CDP.
     const challenge={x402Version:2,resource:{url:'https://aicqsohoo.com/contribution/mainnet/self-test',
-      description:'Owner-only 0.01 real USDC self-transfer pilot; no goods or access.',mimeType:'application/json'},accepts:[terms],
+      description:'Owner-only 0.01 real USDC distinct-payer transfer pilot; no goods or access.',mimeType:'application/json'},accepts:[terms],
       extensions:{'payment-identifier':declarePaymentIdentifierExtension(true)}};
     return response(402,{id:body.id,...challenge},{'PAYMENT-REQUIRED':encodePaymentRequiredHeader(challenge)});
   }
@@ -93,7 +93,7 @@ export async function handlePilot(request,{mode='off',ledger,client,now=()=>new 
     const facilitator=typeof client==='function'?client():client;
     stage='verify';diagnostic('started');
     const verified=await facilitator.verify(payload,terms);
-    if(verified.isValid!==true){ledger.state(body.id,'failed');diagnostic('verification_invalid');return storedReceipt(ledger,body.id);}
+    if(verified.isValid!==true){ledger.state(body.id,'failed');diagnostic('verification_invalid',verified);return storedReceipt(ledger,body.id);}
     ledger.state(body.id,'settling');
     stage='settle';diagnostic('started');
     const result=await facilitator.settle(payload,terms);

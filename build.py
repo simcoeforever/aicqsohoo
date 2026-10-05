@@ -492,7 +492,7 @@ def build() -> None:
     for lang in ['en','ja']:
         page(('/ja' if lang=='ja' else '')+'/contribute/', '任意のテスト支援 | '+SITE_NAME if lang=='ja' else 'Voluntary test contribution | '+SITE_NAME, 'Base Sepolia x402 test, 0.01 test USDC; all content remains free.', (ROOT/'templates'/('contribute.'+lang+'.html')).read_text(encoding='utf-8'), lang=lang)
     for lang in ['en','ja']:
-        page(('/ja' if lang=='ja' else '')+'/contribute/self-test/', '本人限定の自己送金 | '+SITE_NAME if lang=='ja' else 'Owner self-transfer | '+SITE_NAME, 'Owner-only single 0.01 real USDC self-transfer on Base mainnet; general contributions disabled.', (ROOT/'templates'/('self-test.'+lang+'.html')).read_text(encoding='utf-8'), lang=lang)
+        page(('/ja' if lang=='ja' else '')+'/contribute/self-test/', '本人限定の送金 | '+SITE_NAME if lang=='ja' else 'Owner transfer | '+SITE_NAME, 'Owner-only single 0.01 real USDC distinct-payer transfer on Base mainnet; general contributions disabled.', (ROOT/'templates'/('self-test.'+lang+'.html')).read_text(encoding='utf-8'), lang=lang)
     from japanese_pages import render_japanese
     render_japanese(page, exps, agents, DATA, base_url())
     write_llms_txt(exps)

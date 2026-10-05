@@ -5,8 +5,8 @@ import {pilotReceipt,handlePilot} from '../src/mainnet-pilot.js';import {Mainnet
 const hash='0x'+'a'.repeat(64),id='main_'+'b'.repeat(32);
 test('diagnostics store only fixed stage/kind, typed HTTP status and chain-checked candidate hash; never error text or provider fields',()=>{
  const e=new SettleError(500,{errorReason:'PRIVATE',errorMessage:'JWT SECRET AUTHORIZATION NONCE PAYER',transaction:hash,network:'eip155:8453',payer:'PRIVATE'});
- assert.deepEqual(sanitizedPilotDiagnostic('settle','sdk_exception',e),{stage:'settle',kind:'provider_rejected',http_status:500,candidate_transaction:hash,candidate_network:'eip155:8453'});
- assert.deepEqual(sanitizedPilotDiagnostic('verify','sdk_exception',new VerifyError(403,{invalidReason:'PRIVATE',invalidMessage:'PRIVATE'})),{stage:'verify',kind:'provider_rejected',http_status:403});
+ assert.deepEqual(sanitizedPilotDiagnostic('settle','sdk_exception',e),{stage:'settle',kind:'provider_rejected',http_status:500,upstream_http_status:500,status_source:'sdk_http_response',provider_error_class:'SettleError',provider_response_shape:'x402_settle',provider_reason_omitted:true,provider_message_omitted:true,candidate_transaction:hash,candidate_network:'eip155:8453'});
+ assert.deepEqual(sanitizedPilotDiagnostic('verify','sdk_exception',new VerifyError(403,{invalidReason:'PRIVATE',invalidMessage:'PRIVATE'})),{stage:'verify',kind:'provider_rejected',http_status:403,upstream_http_status:403,status_source:'sdk_http_response',provider_error_class:'VerifyError',provider_response_shape:'x402_verify',provider_reason_omitted:true,provider_message_omitted:true});
  assert.equal(sanitizedPilotDiagnostic('verify','sdk_exception',new FacilitatorResponseError('PRIVATE')).kind,'sdk_response_invalid');
  assert.equal(sanitizedPilotDiagnostic('settle','sdk_exception',new FacilitatorTimeoutError('settle',90000)).kind,'sdk_timeout');
  const spoof={name:'SettleError',statusCode:500,message:'PRIVATE',transaction:hash,network:'eip155:84532'};

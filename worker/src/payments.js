@@ -41,6 +41,7 @@ export async function paymentRoute(request,env){
       if(path==='/contribution/mainnet/v1/info'||/^\/contribution\/mainnet\/receipt\/main_[a-zA-Z0-9_-]{16,59}$/.test(path))ledgerName='base-mainnet-pilot-v1';
       if(path==='/contribution/mainnet/v2/info'||/^\/contribution\/mainnet\/receipt\/main2_[a-zA-Z0-9_-]{16,59}$/.test(path))ledgerName='base-mainnet-pilot-v2';
       if(path==='/contribution/mainnet/v3/info'||/^\/contribution\/mainnet\/receipt\/main3_[a-zA-Z0-9_-]{16,59}$/.test(path))ledgerName='base-mainnet-pilot-v3';
+      if(path==='/contribution/mainnet/v4/info'||/^\/contribution\/mainnet\/receipt\/main4_[a-zA-Z0-9_-]{16,59}$/.test(path))ledgerName='base-mainnet-pilot-v4';
     }
     const response=await binding.get(binding.idFromName(ledgerName)).fetch(request);
     const result=new Response(response.body,response);for(const [name,value]of Object.entries(headers))result.headers.set(name,value);return result;

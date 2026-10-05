@@ -9,7 +9,7 @@ import {information,DEFAULT_CONFIG} from '../worker/src/payment-core.js';
 const contractEvidence=JSON.parse(readFileSync(new URL('../worker/tests/fixtures/usdc-domains-onchain-2026-10-05.json',import.meta.url)));
 const fixtureTerms=pilot=>{const c=contractEvidence.reports.find(r=>r.chainId===(pilot?8453:84532));return {scheme:'exact',network:'eip155:'+c.chainId,asset:c.address,amount:'10000',payTo:'0xF89FfB82f5F3dF83f68062a1b0d3BAA6A1005735',maxTimeoutSeconds:300,extra:{name:c.name,version:c.version}};};
 const script=readFileSync(new URL('../static/payment-client.js',import.meta.url),'utf8');
-const owner='0xF89FfB82f5F3dF83f68062a1b0d3BAA6A1005735';
+const owner='0x15835b36659fA5c252A8Bd575527d6B20BC6575B';
 const flush=async()=>{for(let i=0;i<12;i++)await new Promise(resolve=>setImmediate(resolve));};
 async function browser(options={}){
  const pilot=options.pilot!==false,chain=pilot?'0x2105':'0x14a34';
@@ -17,7 +17,7 @@ async function browser(options={}){
  session.set('aicqsohoo-owner-mainnet-v2-payment-id','main2_94fd3552-2209-43b7-bb10-d77f10063cbf');
  session.set('aicqsohoo-owner-mainnet-v2-payment-id-submitted','1');
  session.set('aicqsohoo-owner-mainnet-v3-payment-id','main3_3fbf09a5-b5ff-433b-94df-929dbaed05b4');session.set('aicqsohoo-owner-mainnet-v3-payment-id-submitted','1');
- const button={disabled:true,dataset:{paymentMode:options.mode??(pilot?'owner-pilot-v4':'testnet')},addEventListener:(name,fn)=>events[name]=fn};
+ const button={disabled:true,dataset:{paymentMode:options.mode??(pilot?'owner-pilot-v5':'testnet')},addEventListener:(name,fn)=>events[name]=fn};
  const consent={checked:false,addEventListener:()=>{}},status={textContent:'',append:()=>{}};
  const nodes={'test-payment':button,'payment-consent':consent,'payment-status':status};
  const provider={isRabby:true,request:async args=>{
@@ -38,7 +38,7 @@ async function browser(options={}){
   btoa:s=>Buffer.from(s,'binary').toString('base64'),atob:s=>Buffer.from(s,'base64').toString('binary'),
   location:{pathname:options.path??(pilot?'/contribute/self-test/':'/contribute/'),href:'https://aicqsohoo.com/'},
   sessionStorage:{getItem:k=>session.get(k)??null,setItem:(k,v)=>session.set(k,v)},
-  document:{documentElement:{lang:'en'},currentScript:{dataset:{paymentClient:options.marker??'chain-guard-v4'},src:options.src??'https://aicqsohoo.com/payment-client.'+'a'.repeat(64)+'.js'},
+  document:{documentElement:{lang:'en'},currentScript:{dataset:{paymentClient:options.marker??'chain-guard-v5'},src:options.src??'https://aicqsohoo.com/payment-client.'+'a'.repeat(64)+'.js'},
    getElementById:id=>nodes[id],querySelectorAll:selector=>nodes[selector.slice(1)]?[nodes[selector.slice(1)]]:[],createElement:()=>({})},
   window:{ethereum:provider,addEventListener:()=>{},dispatchEvent:()=>{}},
   fetch:async(url,opts={})=>{
@@ -57,12 +57,12 @@ test('bundled client preserves distinct mainnet generation and testnet signing/r
   const b=await browser({pilot});assert.equal(b.startupError,undefined);await b.click();
   assert.equal(b.typed[0].domain.name,pilot?'USD Coin':'USDC');assert.equal(b.typed[0].domain.version,'2');assert.equal(Number(b.typed[0].domain.chainId),pilot?8453:84532);
   assert.equal(b.session.get('aicqsohoo-owner-mainnet-v2-payment-id-submitted'),'1');assert.equal(b.session.get('aicqsohoo-owner-mainnet-v3-payment-id-submitted'),'1');
-  if(pilot)assert.match(b.session.get('aicqsohoo-owner-mainnet-v4-payment-id'),/^main4_/);
+  if(pilot)assert.match(b.session.get('aicqsohoo-owner-mainnet-v5-payment-id'),/^main5_/);
   assert.equal(b.typed.length,1);assert.equal(Number(b.typed[0].domain.chainId),pilot?8453:84532);
   assert.equal(b.requests.length,3);assert.equal(b.requests[1].url,pilot?'/contribution/mainnet/self-test':'/contribution/test');
   const payload=JSON.parse(Buffer.from(b.requests[2].opts.headers['PAYMENT-SIGNATURE'],'base64').toString());
   assert.equal(payload.accepted.network,pilot?'eip155:8453':'eip155:84532');
-  if(pilot){assert.equal(b.typed[0].message.validAfter,'1791181200');assert.equal(payload.payload.authorization.nonce,mainnetInformation(true).authorization_nonce);}
+  if(pilot){assert.equal(b.typed[0].message.validAfter,mainnetInformation(true).authorization_valid_after);assert.equal(payload.payload.authorization.nonce,mainnetInformation(true).authorization_nonce);}
   assert.match(b.status.textContent,/settled/);
  }
 });

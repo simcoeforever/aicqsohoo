@@ -7,12 +7,12 @@ import {encodePaymentSignatureHeader} from '@x402/core/http';
 import {x402Client} from '@x402/core/client';import {ExactEvmScheme} from '@x402/evm/exact/client';
 import {declarePaymentIdentifierExtension} from '@x402/extensions/payment-identifier';
 import {pilotTerms,PILOT_NETWORK} from '../src/mainnet-pilot.js';
-import {OWNER_PILOT_NONCE,OWNER_PILOT_VALID_AFTER} from '../../static/owner-pilot-v4.js';
+import {OWNER_PILOT_NONCE,OWNER_PILOT_VALID_AFTER} from '../../static/owner-pilot-v5.js';
 import {RECEIVING_ADDRESS} from '../src/payment-core.js';
 // Public RFC8032 vector, NOT a CDP account credential; never leaves local mock.
 const seed='9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60';
 const publicHex='d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a';
-const fixture=Buffer.from(seed+publicHex,'hex').toString('base64'),hash='0x'+'a'.repeat(64),id='main4_'+'a'.repeat(32);
+const fixture=Buffer.from(seed+publicHex,'hex').toString('base64'),hash='0x'+'a'.repeat(64),id='main5_'+'a'.repeat(32);
 test('regression: pinned CDP /x402 aggregate export loses JWT initializer in workerd bundle, before ANY mocked HTTP request',async()=>{
  const source=`import {createCdpFacilitatorClient} from '@coinbase/cdp-sdk/x402';export default {async fetch(request,env){try{
  await createCdpFacilitatorClient({apiKeyId:env.CDP_API_KEY_ID,apiKeySecret:env.CDP_API_KEY_SECRET}).verify({},{});
@@ -31,7 +31,7 @@ test('real pinned CDP client in workerd: exact SDK browser payload, POST JWTs, r
  const source=`import {handlePilot,cdpPilotClient} from './src/mainnet-pilot.js';import {Ledger} from './src/payment-core.js';
  export class Audit {constructor(ctx,env){this.ctx=ctx;this.env=env;this.ledger=new Ledger(ctx.storage,{daily:1,total:1});}
  async fetch(request){let error;const capture=e=>{error={name:e.name,message:String(e.message).replace(/[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+/g,'REDACTED_TOKEN')};throw e;};
- const response=await handlePilot(request,{mode:'owner-pilot-v4',ledger:this.ledger,client:()=>{try{const c=cdpPilotClient(this.env);return {verify:async(...args)=>{try{return await c.verify(...args);}catch(e){capture(e);}},settle:async(...args)=>{try{return await c.settle(...args);}catch(e){capture(e);}}};}catch(e){capture(e);}},verifyOwner:async()=>true});
+ const response=await handlePilot(request,{mode:'owner-pilot-v5',ledger:this.ledger,client:()=>{try{const c=cdpPilotClient(this.env);return {verify:async(...args)=>{try{return await c.verify(...args);}catch(e){capture(e);}},settle:async(...args)=>{try{return await c.settle(...args);}catch(e){capture(e);}}};}catch(e){capture(e);}},verifyOwner:async()=>true});
  return Response.json({...await response.json(),LOCAL_FIXTURE_ERROR:error},{status:response.status});}}
  export default {fetch(request,env){return env.AUDIT.get(env.AUDIT.idFromName('LOCAL-MOCK-ONLY')).fetch(request);}};`;
  const bundle=await build({stdin:{contents:source,resolveDir:fileURLToPath(new URL('..',import.meta.url)),sourcefile:'local-facilitator-audit.js'},bundle:true,write:false,format:'esm',platform:'browser',conditions:['workerd','worker','browser'],external:['node:*'],plugins:[{name:'nodejs-compat-builtins',setup(b){b.onResolve({filter:/.*/},args=>builtinModules.includes(args.path)?{path:'node:'+args.path,external:true}:undefined);}}],logLevel:'silent'});
@@ -60,7 +60,7 @@ test('real pinned CDP client in workerd: exact SDK browser payload, POST JWTs, r
   const bindings={CDP_API_KEY_ID:'public-rfc-fixture-not-a-cdp-key',CDP_API_KEY_SECRET:scenario==='invalid-credentials'?'not-a-key':fixture};if(scenario==='missing-credentials')delete bindings.CDP_API_KEY_SECRET;
   const mf=new Miniflare(convertV4MiniflareOptions({workers:[{name:'local-mock-facilitator',modules:true,script:process.env.AICQ_AUDIT_DEPLOYED_BUNDLE==='1'?readFileSync(process.env.AICQ_AUDIT_BUNDLE_PATH||new URL('../.wrangler/dryrun/index.js',import.meta.url),'utf8')+'\n'+source.slice(source.indexOf('export class Audit'),source.indexOf('export default')):bundle.outputFiles[0].text,compatibilityDate:'2026-09-01',compatibilityFlags:['nodejs_compat'],durableObjects:{AUDIT:{className:'Audit',useSQLite:true},MAINNET_PAYMENTS:{className:'Audit',useSQLite:true}},bindings,outboundService:outbound}]}));
   try{
-   const invoke=()=>mf.dispatchFetch('https://local/contribution/mainnet/self-test',{method:'POST',headers:{Origin:'https://aicqsohoo.com','content-type':'application/json','PAYMENT-SIGNATURE':encodePaymentSignatureHeader(payload)},body:JSON.stringify({id,terms_version:'mainnet-pilot-v4',consent:true,owner_authorized:true})});
+   const invoke=()=>mf.dispatchFetch('https://local/contribution/mainnet/self-test',{method:'POST',headers:{Origin:'https://aicqsohoo.com','content-type':'application/json','PAYMENT-SIGNATURE':encodePaymentSignatureHeader(payload)},body:JSON.stringify({id,terms_version:'mainnet-pilot-v5',consent:true,owner_authorized:true})});
    const first=await invoke(),result=await first.json();assert.equal(result.state,scenario==='success'?'settled':scenario==='verify-invalid'?'failed':'pending',scenario+' '+JSON.stringify(result));const {LOCAL_FIXTURE_ERROR,...publicResult}=result;assert.equal(JSON.stringify(publicResult).includes('PRIVATE'),false);
    if(scenario!=='success'){
     assert.equal(result.diagnostic.stage,scenario==='missing-credentials'?'client_setup':scenario.startsWith('settle-')?'settle':'verify');

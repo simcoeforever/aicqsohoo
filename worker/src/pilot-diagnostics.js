@@ -1,6 +1,7 @@
 // Fixed diagnostic fields only. Never store exception text, JWT, keys, authorization,
-// payer, nonce or provider response. This does not reconcile or retry a payment.
+// payer, nonce or raw provider response. Only fixed official reason/code/message enums are allowed. This does not reconcile or retry a payment.
 import {VerifyError,SettleError,FacilitatorResponseError,FacilitatorTimeoutError} from '@x402/core/types';
+import {safeProviderDetails} from './provider-error-details.js';
 const stages=new Set(['client_setup','verify','settle']);
 const kinds=new Set(['started','completed','verification_invalid','uncertain_response','sdk_exception','sdk_response_invalid','sdk_timeout','provider_rejected','local_setup_error']);
 export function sanitizedPilotDiagnostic(stage,kind,errorOrResult){
@@ -9,8 +10,11 @@ export function sanitizedPilotDiagnostic(stage,kind,errorOrResult){
   else if(errorOrResult instanceof FacilitatorResponseError)result.kind='sdk_response_invalid';
   else if(errorOrResult instanceof VerifyError||errorOrResult instanceof SettleError){
     result.kind='provider_rejected';
-    const status=errorOrResult.statusCode;if(Number.isInteger(status)&&status>=400&&status<=599)result.http_status=status;
+    result.provider_error_class=errorOrResult instanceof VerifyError?'VerifyError':'SettleError';
+    Object.assign(result,safeProviderDetails(errorOrResult instanceof VerifyError?{isValid:false,invalidReason:errorOrResult.invalidReason,invalidMessage:errorOrResult.invalidMessage}:{success:false,errorReason:errorOrResult.errorReason,errorMessage:errorOrResult.errorMessage},result.stage));
+    const status=errorOrResult.statusCode;if(Number.isInteger(status)&&status>=400&&status<=599){result.http_status=status;result.upstream_http_status=status;result.status_source='sdk_http_response';}
   }
+  if(result.kind==='verification_invalid')Object.assign(result,safeProviderDetails(errorOrResult,'verify'));
   if(result.stage==='settle'&&errorOrResult?.network==='eip155:8453'&&/^0x[0-9a-fA-F]{64}$/.test(errorOrResult?.transaction||'')){
     result.candidate_transaction=errorOrResult.transaction;result.candidate_network='eip155:8453';
     // A hash in an unsuccessful/error response is a read-only lookup candidate,
