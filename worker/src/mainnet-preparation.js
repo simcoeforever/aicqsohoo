@@ -47,7 +47,7 @@ export class MainnetPreparationService {
   async fetch(request){
     const path=new URL(request.url).pathname;
     // These GETs are routed to the old DO instance; never execute the new pilot there.
-    if(request.method==='GET'&&/^\/contribution\/mainnet\/receipt\/(?:main_|main2_|main3_|main5_)[a-zA-Z0-9_-]{16,59}$/.test(path)){
+    if(request.method==='GET'&&/^\/contribution\/mainnet\/receipt\/(?:main_|main2_|main3_|main4_)[a-zA-Z0-9_-]{16,59}$/.test(path)){
       const id=path.split('/').pop(),row=this.ledger.row(id);
       return row?pilotReceipt({...row,diagnostic:readPilotDiagnostic(this.ctx.storage,id)}):Response.json({error:'unknown_receipt'},{status:404});
     }
