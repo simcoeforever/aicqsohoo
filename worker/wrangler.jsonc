@@ -12,7 +12,7 @@
   // Do not add routes here: Wrangler's bulk replacement resets fail-open settings.
   "vars": {
     "PAYMENT_MODE": "testnet",
-    "MAINNET_PAYMENT_MODE": "owner-pilot-v3",
+    "MAINNET_PAYMENT_MODE": "owner-pilot-v4",
     "METRICS_ENABLED": "true",
     "EDGE_ENABLED": "true",
     "PUBLIC_SUMMARY": "true",

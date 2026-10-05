@@ -4,21 +4,22 @@ import {checkCdpAuthentication} from './cdp-auth.js';
 import {createSupportedBridge} from '../cdp-supported-bridge.mjs';
 import {handlePilot,cdpPilotClient,pilotReceipt} from './mainnet-pilot.js';
 import {readPilotDiagnostic} from './pilot-diagnostics.js';
-import {OWNER_PILOT_NONCE,OWNER_PILOT_VALID_AFTER} from '../../static/owner-pilot-v3.js';
-const AUTH_CHECK_VERSION='owner-pilot-v3-auth-2026-10-05';
+import {OWNER_PILOT_NONCE,OWNER_PILOT_VALID_AFTER} from '../../static/owner-pilot-v4.js';
+const AUTH_CHECK_VERSION='owner-pilot-v4-auth-2026-10-05';
 export const MAINNET_PROFILE=Object.freeze({
   network:'eip155:8453',asset:'0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
   amount_atomic:'10000',recipient:RECEIVING_ADDRESS,scheme:'exact',max_timeout_seconds:300,
-  terms_version:'mainnet-pilot-v3',daily_cap:1,total_cap:1,generation:3,
-  receipt_prefix:'main3_',ledger_name:'base-mainnet-pilot-v3',
+  terms_version:'mainnet-pilot-v4',daily_cap:1,total_cap:1,generation:4,
+  receipt_prefix:'main4_',ledger_name:'base-mainnet-pilot-v4',
   authorization_nonce:OWNER_PILOT_NONCE,authorization_valid_after:OWNER_PILOT_VALID_AFTER,
 });
 export function mainnetInformation(enabled=false){return {
-  ...MAINNET_PROFILE,enabled,payment_mode:enabled?'owner-pilot-v3':'off',preparation_only:!enabled,
+  ...MAINNET_PROFILE,enabled,payment_mode:enabled?'owner-pilot-v4':'off',preparation_only:!enabled,
   owner_only:true,payer:RECEIVING_ADDRESS,self_transfer:true,general_contributions_enabled:false,
   amount_display:'0.01 USDC (real funds)',existing_content_free:true,
   stop_on_success_or_unknown:true,automatic_retry:false,
-  pre_sign_balance_check:true,
+  pre_sign_balance_check:true,pre_sign_domain_check:true,
+  token_domain_name:'USD Coin',token_domain_version:'2',token_decimals:6,
   blockers:['eligibility_and_use_confirmation','billing_confirmation'],
 };}
 export class MainnetPreparationService {
@@ -46,20 +47,20 @@ export class MainnetPreparationService {
   async fetch(request){
     const path=new URL(request.url).pathname;
     // These GETs are routed to the old DO instance; never execute the new pilot there.
-    if(request.method==='GET'&&/^\/contribution\/mainnet\/receipt\/(?:main_|main2_)[a-zA-Z0-9_-]{16,59}$/.test(path)){
+    if(request.method==='GET'&&/^\/contribution\/mainnet\/receipt\/(?:main_|main2_|main3_)[a-zA-Z0-9_-]{16,59}$/.test(path)){
       const id=path.split('/').pop(),row=this.ledger.row(id);
       return row?pilotReceipt({...row,diagnostic:readPilotDiagnostic(this.ctx.storage,id)}):Response.json({error:'unknown_receipt'},{status:404});
     }
-    if(request.method==='GET'&&/^\/contribution\/mainnet\/v[12]\/info$/.test(path)){
-      const generation=path.includes('/v1/')?1:2;
+    if(request.method==='GET'&&/^\/contribution\/mainnet\/v[123]\/info$/.test(path)){
+      const generation=Number(path.match(/\/v([123])\//)[1]);
       return Response.json({generation,enabled:false,payment_mode:'off',ledger_name:'base-mainnet-pilot-v'+generation,total_cap:1,consumed:this.ctx.storage.sql.exec('SELECT COUNT(*) AS n FROM contributions').toArray()[0].n},{headers:{'Cache-Control':'no-store'}});
     }
     if(request.method==='GET'&&path==='/contribution/mainnet/auth-status')
       return Response.json(await this.authStatus(),{headers:{'Cache-Control':'no-store'}});
-    const mode=this.env.MAINNET_PAYMENT_MODE==='owner-pilot-v3'?'owner-pilot-v3':'off';
+    const mode=this.env.MAINNET_PAYMENT_MODE==='owner-pilot-v4'?'owner-pilot-v4':'off';
     if(request.method==='GET'&&path==='/contribution/mainnet/info'){
       const unused=this.ctx.storage.sql.exec('SELECT COUNT(*) AS n FROM contributions').toArray()[0].n===0;
-      return Response.json(mainnetInformation(mode==='owner-pilot-v3'&&unused),{headers:{'Cache-Control':'no-store'}});
+      return Response.json(mainnetInformation(mode==='owner-pilot-v4'&&unused),{headers:{'Cache-Control':'no-store'}});
     }
     return handlePilot(request,{mode,ledger:this.ledger,client:()=>cdpPilotClient(this.env)});
   }

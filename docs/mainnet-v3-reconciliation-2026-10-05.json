@@ -1,0 +1,78 @@
+{
+  "checked_at": "2026-10-05T06:14:50.951Z",
+  "receipt_id": "main3_3fbf09a5-b5ff-433b-94df-929dbaed05b4",
+  "fixed_expiry_upper_utc": "2026-10-05T05:51:36Z",
+  "public_generation_nonce": "0x5428ae33d87ac5565757f9888536c9db6aec036b1acd13027a520acfdea41f40",
+  "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+  "reports": [
+    {
+      "endpoint": "https://mainnet.base.org",
+      "chain": "eip155:8453",
+      "finalized_block": 52195188,
+      "finalized_hash": "0x2eb9addbc9db6676a51d6e18f6afe6746558b94e2beee9beb942ab6ece48039d",
+      "finalized_utc": "2026-10-05T05:55:23.000Z",
+      "authorization_state_tag": "0x31c6f74",
+      "authorization_state_block": 52195188,
+      "authorization_state_hash": "0x2eb9addbc9db6676a51d6e18f6afe6746558b94e2beee9beb942ab6ece48039d",
+      "authorization_state_utc": "2026-10-05T05:55:23.000Z",
+      "start_block": 52194000,
+      "start_utc": "2026-10-05T05:15:47.000Z",
+      "authorization_used_or_cancelled": false,
+      "contiguous_ranges": [
+        {
+          "from": 52194000,
+          "to": 52195188,
+          "count": 0
+        }
+      ],
+      "owner_self_transfers": [],
+      "matching_10000_count": 0
+    },
+    {
+      "endpoint": "https://base-rpc.publicnode.com",
+      "chain": "eip155:8453",
+      "finalized_block": 52195188,
+      "finalized_hash": "0x2eb9addbc9db6676a51d6e18f6afe6746558b94e2beee9beb942ab6ece48039d",
+      "finalized_utc": "2026-10-05T05:55:23.000Z",
+      "authorization_state_tag": "finalized",
+      "authorization_state_block": 52195188,
+      "authorization_state_hash": "0x2eb9addbc9db6676a51d6e18f6afe6746558b94e2beee9beb942ab6ece48039d",
+      "authorization_state_utc": "2026-10-05T05:55:23.000Z",
+      "start_block": 52194000,
+      "start_utc": "2026-10-05T05:15:47.000Z",
+      "authorization_used_or_cancelled": false,
+      "contiguous_ranges": [
+        {
+          "from": 52194000,
+          "to": 52195188,
+          "count": 0
+        }
+      ],
+      "owner_self_transfers": [],
+      "matching_10000_count": 0
+    }
+  ],
+  "proof_complete": true,
+  "slot_changed": false,
+  "payment_attempted": false,
+  "actual_valid_before_recorded": false,
+  "created_at_recorded": false,
+  "limitation": "Expiry upper is fixed from first pending HTTP Date plus server-enforced 300 seconds, assuming normal Worker UTC. This proves no successful authorization/owner self-transfer in the bounded finalized window; it does not rule out reverted/pending transactions or recover the provider invalidReason.",
+  "receipt": {
+    "http_status": 202,
+    "http_date": "Mon, 05 Oct 2026 06:14:51 GMT",
+    "body": {
+      "id": "main3_3fbf09a5-b5ff-433b-94df-929dbaed05b4",
+      "state": "pending",
+      "retry_payment": false,
+      "diagnostic": {
+        "stage": "verify",
+        "kind": "provider_rejected",
+        "http_status": 400
+      }
+    }
+  },
+  "mainnet_v3_enabled": false,
+  "legacy_consumed": 1,
+  "legacy_receipt_state": "pending"
+}

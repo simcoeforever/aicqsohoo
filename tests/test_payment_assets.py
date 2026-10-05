@@ -27,7 +27,7 @@ class PaymentAssets(unittest.TestCase):
         digest = hashlib.sha256(source).digest()
         expected_url = '/payment-client.' + digest.hex() + '.js'
         for prefix in ['', 'ja/']:
-            for suffix, mode in [('contribute/', 'testnet'), ('contribute/self-test/', 'owner-pilot-v3')]:
+            for suffix, mode in [('contribute/', 'testnet'), ('contribute/self-test/', 'owner-pilot-v4')]:
                 parser = Elements()
                 text = (ROOT/'site'/prefix/suffix/'index.html').read_text(encoding='utf-8')
                 parser.feed(text)
@@ -36,7 +36,7 @@ class PaymentAssets(unittest.TestCase):
                 self.assertEqual(scripts[0]['src'], expected_url)
                 self.assertEqual(scripts[0]['integrity'], 'sha256-' + base64.b64encode(digest).decode())
                 self.assertEqual(scripts[0]['crossorigin'], 'anonymous')
-                self.assertEqual(scripts[0]['data-payment-client'], 'chain-guard-v3')
+                self.assertEqual(scripts[0]['data-payment-client'], 'chain-guard-v4')
                 self.assertEqual((ROOT/'site'/expected_url.lstrip('/')).read_bytes(), source)
                 buttons = [b for b in parser.buttons if b.get('id') == 'test-payment']
                 self.assertEqual(len(buttons), 1)

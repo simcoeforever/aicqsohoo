@@ -1,0 +1,84 @@
+{
+  "checked_at": "2026-10-05T06:26:23.145Z",
+  "source": "Direct public contract eth_call, no application constants imported",
+  "read_only": true,
+  "payment_attempted": false,
+  "reports": [
+    {
+      "endpoint": "https://mainnet.base.org",
+      "chainId": 8453,
+      "address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+      "block": 52195550,
+      "block_hash": "0xcd25c00e2663618c825c42070f5e6f6064068f0c01c1b8683b0ed560573ad12d",
+      "block_utc": "2026-10-05T06:07:27.000Z",
+      "name": "USD Coin",
+      "version": "2",
+      "decimals": 6,
+      "domain_separator": "0x02fa7265e7c5d81118673727957699e4d68f74cd74b7db77da710fe8a2c7834f",
+      "computed_separator": "0x02fa7265e7c5d81118673727957699e4d68f74cd74b7db77da710fe8a2c7834f",
+      "domain": {
+        "name": "USD Coin",
+        "version": "2",
+        "chainId": 8453,
+        "verifyingContract": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+      }
+    },
+    {
+      "endpoint": "https://base-rpc.publicnode.com",
+      "chainId": 8453,
+      "address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+      "block": 52195550,
+      "block_hash": "0xcd25c00e2663618c825c42070f5e6f6064068f0c01c1b8683b0ed560573ad12d",
+      "block_utc": "2026-10-05T06:07:27.000Z",
+      "name": "USD Coin",
+      "version": "2",
+      "decimals": 6,
+      "domain_separator": "0x02fa7265e7c5d81118673727957699e4d68f74cd74b7db77da710fe8a2c7834f",
+      "computed_separator": "0x02fa7265e7c5d81118673727957699e4d68f74cd74b7db77da710fe8a2c7834f",
+      "domain": {
+        "name": "USD Coin",
+        "version": "2",
+        "chainId": 8453,
+        "verifyingContract": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+      }
+    },
+    {
+      "endpoint": "https://sepolia.base.org",
+      "chainId": 84532,
+      "address": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+      "block": 47705785,
+      "block_hash": "0xa4d14ffb288ef8b11268697bcff978d6ede5bdfb04010eed13383cfe5bb4b7d4",
+      "block_utc": "2026-10-05T05:57:38.000Z",
+      "name": "USDC",
+      "version": "2",
+      "decimals": 6,
+      "domain_separator": "0x71f17a3b2ff373b803d70a5a07c046c1a2bc8e89c09ef722fcb047abe94c9818",
+      "computed_separator": "0x71f17a3b2ff373b803d70a5a07c046c1a2bc8e89c09ef722fcb047abe94c9818",
+      "domain": {
+        "name": "USDC",
+        "version": "2",
+        "chainId": 84532,
+        "verifyingContract": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
+      }
+    },
+    {
+      "endpoint": "https://base-sepolia-rpc.publicnode.com",
+      "chainId": 84532,
+      "address": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+      "block": 47706038,
+      "block_hash": "0x57f3f0ed051963659efa3499afb14eaac27d57e6449f2fc7e4c50be6d21c12e4",
+      "block_utc": "2026-10-05T06:06:04.000Z",
+      "name": "USDC",
+      "version": "2",
+      "decimals": 6,
+      "domain_separator": "0x71f17a3b2ff373b803d70a5a07c046c1a2bc8e89c09ef722fcb047abe94c9818",
+      "computed_separator": "0x71f17a3b2ff373b803d70a5a07c046c1a2bc8e89c09ef722fcb047abe94c9818",
+      "domain": {
+        "name": "USDC",
+        "version": "2",
+        "chainId": 84532,
+        "verifyingContract": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
+      }
+    }
+  ]
+}
