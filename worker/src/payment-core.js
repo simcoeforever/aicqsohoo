@@ -27,7 +27,9 @@ export function requirements(recipient) {
 // SQLite DO-compatible storage adapter: each claim is synchronous and atomic.
 // Persist state BEFORE verify/settle. A restart at either point is pending, never retried.
 export class Ledger {
-  constructor(storage) {
+  constructor(storage,{daily=5,total=20}={}) {
+    if(!Number.isInteger(daily)||!Number.isInteger(total)||daily<1||total<1)throw Error('invalid_caps');
+    this.dailyCap=daily;this.totalCap=total;
     this.storage=storage;
     storage.sql.exec('CREATE TABLE IF NOT EXISTS contributions (id TEXT PRIMARY KEY, terms TEXT NOT NULL, day TEXT NOT NULL, state TEXT NOT NULL, transaction_hash TEXT)');
   }
@@ -38,7 +40,7 @@ export class Ledger {
       if(old)return old.terms===terms?{row:old}:{error:409};
       const daily=this.storage.sql.exec('SELECT COUNT(*) AS n FROM contributions WHERE day=?',day).toArray()[0].n;
       const total=this.storage.sql.exec('SELECT COUNT(*) AS n FROM contributions').toArray()[0].n;
-      if(daily>=5||total>=20)return {error:429};
+      if(daily>=this.dailyCap||total>=this.totalCap)return {error:429};
       this.storage.sql.exec('INSERT INTO contributions (id,terms,day,state) VALUES (?,?,?,?)',id,terms,day,'created');
       return {row:this.row(id)};
     });

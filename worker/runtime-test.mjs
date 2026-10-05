@@ -8,7 +8,8 @@ const options = {
   modules: true,
   scriptPath: fileURLToPath(new URL('./.wrangler/dryrun/index.js', import.meta.url)),
   compatibilityDate: '2026-09-01',
-  durableObjects: {COUNTER: {className: 'Counter', useSQLite: true},PAYMENTS:{className:'Payments',useSQLite:true}},
+  compatibilityFlags: ['nodejs_compat'],
+  durableObjects: {COUNTER: {className: 'Counter', useSQLite: true},PAYMENTS:{className:'Payments',useSQLite:true},MAINNET_PAYMENTS:{className:'MainnetPayments',useSQLite:true}},
   bindings: {PAYMENT_MODE:'testnet',METRICS_ENABLED:'true', PUBLIC_SUMMARY:'false', EDGE_ENABLED:'false',
     PUBLIC_PAGES:'["/","/submit/","/about/","/experiment/"]', REPORT_TOKEN:'runtime-test-only'},
   outboundService: request => {
@@ -26,6 +27,19 @@ try {
   assert.equal((await (await call('/hit')).json()).count,0);
   await Promise.all(Array.from({length:42},()=>call('/hit',{method:'POST',headers})));
   assert.equal((await (await call('/hit')).json()).count,42);
+  const mainnetInfo=await (await call('/contribution/mainnet/info')).json();
+  assert.equal(mainnetInfo.enabled,false);assert.equal(mainnetInfo.network,'eip155:8453');
+  assert.equal(mainnetInfo.amount_atomic,'10000');assert.equal(mainnetInfo.total_cap,1);
+  const auth=await (await call('/contribution/mainnet/auth-status')).json();
+  assert.equal(auth.authenticated,null);assert.equal(auth.payment_performed,false);
+  assert.equal(auth.check_state,'completed'); // No fixture key bindings, therefore no network call.
+  for(const mode of ['off','mainnet','true','testnet']){
+    options.workers[0].bindings.MAINNET_PAYMENT_MODE=mode;await mf.setOptions(convertV4MiniflareOptions(options));
+    for(const path of ['/contribution/mainnet','/contribution/mainnet/start','/contribution/mainnet/test','/contribution/mainnet/supported']){
+      const denied=await call(path,{method:'POST',headers,body:'{}'});
+      assert.equal(denied.status,503);assert.equal(denied.headers.has('PAYMENT-REQUIRED'),false);
+    }
+  }
   const paymentBody={id:'pay_'+'c'.repeat(32),terms_version:'test-contribution-v1',consent:true,owner_authorized:true};
   const payment=await mf.dispatchFetch('https://aicqsohoo.com/contribution/test?measurement=test',{method:'POST',headers,body:JSON.stringify(paymentBody)});
   assert.equal(payment.status,402);assert.ok(payment.headers.get('PAYMENT-REQUIRED'));
@@ -67,5 +81,5 @@ try {
     assert.equal(response.status,200); assert.equal(await response.text(),'mocked GitHub Pages origin');
   }
   assert.equal((await (await call('/hit')).json()).count,42);
-  console.log('workerd runtime: concurrency, SQL/RPC/alarm setup, private/public auth, limits, summary and mocked-origin JS-free GETs passed');
+  console.log('workerd runtime: disabled isolated mainnet, existing testnet, concurrency, SQL/RPC/alarm setup, auth, limits, summary and mocked-origin JS-free GETs passed');
 } finally { await mf.dispose(); }

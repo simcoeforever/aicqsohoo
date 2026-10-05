@@ -8,6 +8,11 @@ import { DurableObject } from "cloudflare:workers";
 import { normalizeEvent, weekRange, disclose } from './metrics.js';
 import { proxySite } from './gateway.js';
 import {PaymentService,paymentRoute} from './payments.js';
+import {MainnetPreparationService} from './mainnet-preparation.js';
+export class MainnetPayments extends DurableObject {
+  constructor(ctx,env){super(ctx,env);this.service=new MainnetPreparationService(ctx,env);}
+  fetch(request){return this.service.fetch(request);}
+}
 export class Payments extends DurableObject {
   constructor(ctx,env){super(ctx,env);this.service=new PaymentService(ctx,env);}
   fetch(request){return this.service.fetch(request);}
