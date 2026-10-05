@@ -6,7 +6,7 @@ import {generateJwt} from '@coinbase/cdp-sdk/auth';
 import {HTTPFacilitatorClient} from '@x402/core/server';
 import {RECEIVING_ADDRESS} from './payment-core.js';
 import {sanitizedPilotDiagnostic,recordPilotDiagnostic,readPilotDiagnostic} from './pilot-diagnostics.js';
-import {OWNER_PILOT_VERSION,OWNER_PILOT_NONCE,OWNER_PILOT_VALID_AFTER} from '../../static/owner-pilot-v2.js';
+import {OWNER_PILOT_VERSION,OWNER_PILOT_NONCE,OWNER_PILOT_VALID_AFTER} from '../../static/owner-pilot-v3.js';
 export const PILOT_NETWORK='eip155:8453',PILOT_ASSET='0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
 export const PILOT_VERSION=OWNER_PILOT_VERSION;
 export const AUTHORIZATION_TYPES={TransferWithAuthorization:[{name:'from',type:'address'},{name:'to',type:'address'},
@@ -50,15 +50,15 @@ export async function verifyOwnerAuthorization(payload,nowSeconds){
 }
 export async function handlePilot(request,{mode='off',ledger,client,now=()=>new Date(),verifyOwner=verifyOwnerAuthorization}={}){
   const path=new URL(request.url).pathname;
-  if(request.method==='GET'&&/^\/contribution\/mainnet\/receipt\/main2_[a-zA-Z0-9_-]{16,59}$/.test(path)){
+  if(request.method==='GET'&&/^\/contribution\/mainnet\/receipt\/main3_[a-zA-Z0-9_-]{16,59}$/.test(path)){
     const id=path.split('/').pop(),row=ledger?.row(id);return row?storedReceipt(ledger,id):response(404,{error:'unknown_receipt'});
   }
-  if(mode!=='owner-pilot-v2')return response(503,{enabled:false,error:'mainnet_not_activated',retry_payment:false});
+  if(mode!=='owner-pilot-v3')return response(503,{enabled:false,error:'mainnet_not_activated',retry_payment:false});
   if(request.method!=='POST'||path!=='/contribution/mainnet/self-test')return response(503,{enabled:false,error:'owner_pilot_only',retry_payment:false});
   if(!request.headers.get('Content-Type')?.startsWith('application/json'))return response(400,{error:'json_required'});
   let body;try{body=await bodyJson(request);}catch(_){return response(400,{error:'invalid_request'});}
   if(!body||typeof body!=='object'||Array.isArray(body)||Object.keys(body).some(k=>!['id','terms_version','consent','owner_authorized'].includes(k))||
-    !/^main2_[a-zA-Z0-9_-]{16,59}$/.test(body.id||'')||body.terms_version!==PILOT_VERSION||body.consent!==true||body.owner_authorized!==true)
+    !/^main3_[a-zA-Z0-9_-]{16,59}$/.test(body.id||'')||body.terms_version!==PILOT_VERSION||body.consent!==true||body.owner_authorized!==true)
     return response(400,{error:'explicit_owner_consent_required'});
   const old=ledger.row(body.id);if(old)return storedReceipt(ledger,body.id);
   const count=ledger.storage.sql.exec('SELECT COUNT(*) AS n FROM contributions').toArray()[0].n;

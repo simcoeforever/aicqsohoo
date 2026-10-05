@@ -40,10 +40,10 @@ try {
       assert.equal(denied.status,503);assert.equal(denied.headers.has('PAYMENT-REQUIRED'),false);
     }
   }
-  options.workers[0].bindings.MAINNET_PAYMENT_MODE='owner-pilot-v2';await mf.setOptions(convertV4MiniflareOptions(options));
+  options.workers[0].bindings.MAINNET_PAYMENT_MODE='owner-pilot-v3';await mf.setOptions(convertV4MiniflareOptions(options));
   const pilotInfo=await (await call('/contribution/mainnet/info')).json();
   assert.equal(pilotInfo.enabled,true);assert.equal(pilotInfo.owner_only,true);assert.equal(pilotInfo.general_contributions_enabled,false);
-  const pilotBody={id:'main2_'+'a'.repeat(32),terms_version:'mainnet-pilot-v2',consent:true,owner_authorized:true};
+  const pilotBody={id:'main3_'+'a'.repeat(32),terms_version:'mainnet-pilot-v3',consent:true,owner_authorized:true};
   for(let i=0;i<3;i++)assert.equal((await call('/contribution/mainnet/self-test',{method:'POST',headers,body:JSON.stringify(pilotBody)})).status,402);
   const {encodePaymentSignatureHeader}=await import('@x402/core/http');
   const {pilotTerms}=await import('./src/mainnet-pilot.js');

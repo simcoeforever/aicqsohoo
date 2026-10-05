@@ -1,4 +1,5 @@
-<p><strong>Pilot generation 2: separately approved corrected one-start self-test. The old receipt and consumed generation remain preserved.</strong></p>
+<p><strong>Pilot generation 3: separately approved one-start self-test. Both earlier receipts and consumed generations remain preserved.</strong></p>
+<p>Immediately before any signature request, Rabby reads the fixed owner's official USDC balance on Base mainnet. Below 0.01 USDC, an unavailable balance, or mismatched account/network stops before signing. The balance value is not stored or sent to this site.</p>
 <h1>Owner-only Base mainnet self-transfer</h1>
 <p><strong>0.01 real USDC on Base mainnet (8453).</strong> This is a single owner self-transfer, not general contribution acceptance. No goods, service, access or investment return is provided; all content stays free.</p>
 <p>Only <code>0xF89FfB82f5F3dF83f68062a1b0d3BAA6A1005735</code> may sign, and the recipient is the same address. Its USDC balance has no net increase. Circle native USDC: <code>0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913</code>; fixed amount 10000 atomic (0.01 USDC).</p>
@@ -6,9 +7,9 @@
 <p>The one slot is reserved only after verifying the owner's signature. Success, failure, restart or uncertain result consumes it. No automatic re-signing, retry payment or reset. This signature authorizes a real transfer, not login. No automatic refund is offered for the self-transfer; mandatory legal rights are preserved.</p>
 <p>Blockchain information is public; CDP receives the signed authorization for screening and settlement. Our separate ledger stores only receipt ID, fixed terms, UTC day, state and transaction hash, without raw signatures, payer data, IP or visitor identifiers. Browser storage holds only this attempt's ID and submitted marker. Reading this page does not connect or sign.</p>
 <p><label><input id="payment-consent" type="checkbox"> I am the fixed wallet owner and authorize this one 0.01 real USDC self-transfer on Base mainnet.</label></p>
-<p><button id="test-payment" data-payment-mode="owner-pilot-v2" type="button" disabled>Self-transfer 0.01 real USDC with Rabby</button></p>
+<p><button id="test-payment" data-payment-mode="owner-pilot-v3" type="button" disabled>Self-transfer 0.01 real USDC with Rabby</button></p>
 <p id="payment-status" role="status" aria-live="polite">Loading availability; no automatic connection or signature.</p>
 <noscript><p>JavaScript is required for the owner-operated experiment; reading remains free.</p></noscript>
 <p><a href="https://docs.cdp.coinbase.com/x402/seller/facilitator">CDP facilitator / pricing</a> · <a href="https://developers.circle.com/stablecoins/usdc-contract-addresses">Circle USDC contracts</a></p>
 <p><a href="/contribution/mainnet/info">Fixed terms and availability</a> · <a href="/contribute/">Separate Base Sepolia test</a></p>
-<script src="/payment-client.js" data-payment-client="chain-guard-v2" defer></script>
+<script src="/payment-client.js" data-payment-client="chain-guard-v3" defer></script>

@@ -1,7 +1,7 @@
 import {x402Client} from '@x402/core/client';
 import {ExactEvmScheme} from '@x402/evm/exact/client';
 import {encodePaymentSignatureHeader} from '@x402/core/http';
-import {OWNER_PILOT_VERSION,OWNER_PILOT_NONCE,OWNER_PILOT_VALID_AFTER} from './owner-pilot-v2.js';
+import {OWNER_PILOT_VERSION,OWNER_PILOT_NONCE,OWNER_PILOT_VALID_AFTER} from './owner-pilot-v3.js';
 const recipient='0xF89FfB82f5F3dF83f68062a1b0d3BAA6A1005735';
 // The page URL determines the chain. Unknown/mixed HTML never falls back to testnet.
 const pagePath=location.pathname;
@@ -19,8 +19,8 @@ const message=(en,japanese)=>{status.textContent=ja?japanese:en;};
 function assertPageContext(){
   if((!pilot&&!testnet)||location.pathname!==pagePath||document.querySelectorAll('#test-payment').length!==1||
     document.querySelectorAll('#payment-consent').length!==1||document.querySelectorAll('#payment-status').length!==1||
-    button?.dataset.paymentMode!==(pilot?'owner-pilot-v2':'testnet')||
-    clientScript?.dataset.paymentClient!=='chain-guard-v2'||
+    button?.dataset.paymentMode!==(pilot?'owner-pilot-v3':'testnet')||
+    clientScript?.dataset.paymentClient!=='chain-guard-v3'||
     !/^\/payment-client\.[0-9a-f]{64}\.js$/.test(new URL(clientScript.src,location.href).pathname)){
     if(button)button.disabled=true;
     if(status)message('Stopped: page and payment client versions do not match. No signature or payment requested. Reload the updated page.',
@@ -29,9 +29,9 @@ function assertPageContext(){
   }
 }
 assertPageContext();
-const key=pilot?'aicqsohoo-owner-mainnet-v2-payment-id':'aicqsohoo-test-payment-id';
+const key=pilot?'aicqsohoo-owner-mainnet-v3-payment-id':'aicqsohoo-test-payment-id';
 let id;try{id=sessionStorage.getItem(key);}catch(_){}
-if(!(pilot?/^main2_[a-zA-Z0-9_-]{16,59}$/:/^pay_[a-zA-Z0-9_-]{16,60}$/).test(id||''))id=null;
+if(!(pilot?/^main3_[a-zA-Z0-9_-]{16,59}$/:/^pay_[a-zA-Z0-9_-]{16,60}$/).test(id||''))id=null;
 let enabled=false,busy=false,terminal=false;
 if(pilot){try{terminal=sessionStorage.getItem(key+'-submitted')==='1';}catch(_){}}
 const update=()=>button.disabled=!enabled||!consent.checked||busy||terminal;
@@ -53,7 +53,7 @@ function showReceipt(data){
   update();return true;
 }
 fetch(api+'/info',{credentials:'omit',cache:'no-store',referrerPolicy:'no-referrer'}).then(r=>r.json()).then(async info=>{
-  enabled=info.enabled===true&&info.network===network&&info.asset===asset&&info.amount_atomic==='10000'&&info.recipient===recipient&&(!pilot||(info.owner_only===true&&info.payer===recipient&&info.general_contributions_enabled===false&&info.generation===2&&info.terms_version===OWNER_PILOT_VERSION&&info.authorization_nonce===OWNER_PILOT_NONCE&&info.authorization_valid_after===OWNER_PILOT_VALID_AFTER));
+  enabled=info.enabled===true&&info.network===network&&info.asset===asset&&info.amount_atomic==='10000'&&info.recipient===recipient&&(!pilot||(info.owner_only===true&&info.payer===recipient&&info.general_contributions_enabled===false&&info.generation===3&&info.pre_sign_balance_check===true&&info.terms_version===OWNER_PILOT_VERSION&&info.authorization_nonce===OWNER_PILOT_NONCE&&info.authorization_valid_after===OWNER_PILOT_VALID_AFTER));
   if(!enabled)message('Test payments are currently disabled.','現在、テスト決済は停止しています。');
   else message('Ready. Nothing happens until you confirm and press the test button.','準備できました。確認してテストボタンを押すまで、接続・署名はしません。');
   if(id){const existing=await fetch(api+'/receipt/'+id,{credentials:'omit',cache:'no-store',referrerPolicy:'no-referrer'});if(existing.ok)showReceipt(await existing.json());else if(pilot&&terminal)message('Submission outcome unknown. Do not sign or pay again. Receipt: '+id,'送信結果が不明です。再署名・再支払いせず受領IDを保管してください：'+id);}update();
@@ -61,7 +61,7 @@ fetch(api+'/info',{credentials:'omit',cache:'no-store',referrerPolicy:'no-referr
 button.addEventListener('click',async()=>{
   if(!enabled||!consent.checked||busy||terminal)return;
   busy=true;update();
-  if(!id){id=(pilot?'main2_':'pay_')+crypto.randomUUID();try{sessionStorage.setItem(key,id);}catch(_){}}
+  if(!id){id=(pilot?'main3_':'pay_')+crypto.randomUUID();try{sessionStorage.setItem(key,id);}catch(_){}}
   let signedSubmitted=false;
   try{
     assertPageContext();
@@ -84,6 +84,18 @@ button.addEventListener('click',async()=>{
       if(pilot&&(args.message.from?.toLowerCase()!==recipient.toLowerCase()||args.domain.name!=='USDC'||args.domain.version!=='2'))throw Error('owner_signing_terms');
       if(await provider.request({method:'eth_chainId'})!==chain||
         (await provider.request({method:'eth_accounts'}))?.[0]?.toLowerCase()!==address.toLowerCase())throw Error('wallet_changed_before_signature');
+      if(pilot){
+        // Fixed owner/token on the already checked Base chain. Read only; never
+        // store or transmit the returned balance. No approvals or gas requests.
+        let balance;
+        try{balance=await provider.request({method:'eth_call',params:[{
+          to:asset,data:'0x70a08231'+recipient.slice(2).toLowerCase().padStart(64,'0')
+        },'latest']});}catch(_){throw Error('balance_unavailable');}
+        if(typeof balance!=='string'||!/^0x[0-9a-fA-F]{64}$/.test(balance))throw Error('balance_unavailable');
+        if(BigInt(balance)<10000n)throw Error('balance_insufficient');
+        if(await provider.request({method:'eth_chainId'})!==chain||
+          (await provider.request({method:'eth_accounts'}))?.[0]?.toLowerCase()!==recipient.toLowerCase())throw Error('wallet_changed_before_signature');
+      }
       // Generation fields are signed by Rabby and mirrored in the returned SDK
       // authorization below. The old generation always signed validAfter=0.
       if(pilot){args.message.nonce=OWNER_PILOT_NONCE;args.message.validAfter=BigInt(OWNER_PILOT_VALID_AFTER);}
@@ -106,8 +118,10 @@ button.addEventListener('click',async()=>{
     const receipt=await result.json();if(!showReceipt(receipt)){
       terminal=true;message('Outcome unknown. Do not sign/pay again; check receipt '+id,'結果が不明です。再署名・再決済せず、受領IDを確認してください：'+id);
     }
-  }catch(_){
+  }catch(error){
     if(signedSubmitted){terminal=true;message('Outcome unknown. Do not sign/pay again. Receipt ID: '+id,'結果が不明です。再署名・再決済せず、受領IDを保管してください：'+id);}
+    else if(error?.message==='balance_insufficient')message('Stopped: Base mainnet official USDC is below 0.01. No signature or payment submitted.','停止：Base本番の公式USDCが0.01未満です。署名要求・決済送信はしていません。');
+    else if(error?.message==='balance_unavailable')message('Stopped: the fixed USDC balance could not be confirmed. No signature or payment submitted.','停止：指定USDCの残高を確認できません。署名要求・決済送信はしていません。');
     else message('Stopped before submission. Check Rabby/network or retry only if you choose.','署名済み承認の送信前に停止しました。Rabby・ネットワークを確認してください。');
   }finally{busy=false;update();}
 });
