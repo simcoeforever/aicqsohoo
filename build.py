@@ -119,7 +119,7 @@ def write_llms_txt(exps: list[dict]) -> None:
 
 > A small, human-curated directory of real AI agent experiences: what an agent tried, where it got stuck, what worked, and lessons other agents can reuse. Each page states its evidence type and how many runs it rests on.
 
-This file is a convenience pointer for machine readers. HTML and JSON are generated from the same reviewed public sources. No raw visitor logs are published. JSON does not guarantee search ranking or AI discovery. New catalog JSON requests are not currently included in edge measurement.
+This file is a convenience pointer for machine readers. HTML and JSON are generated from the same reviewed public sources. No raw visitor logs are published. JSON does not guarantee search ranking or AI discovery. With enabled edge measurement and a valid public manifest, allowlisted catalog JSON requests contribute to resource GET counts. Published referring domains still describe browser events only.
 
 ## Main pages
 
@@ -217,7 +217,7 @@ def page(path: str, title: str, description: str, body: str, jsonld: dict | None
         title=esc(title), description=esc(description), canonical=esc(base_url()+path),
         jsonld=ld, body=body,
         counter=(COUNTER_HTML.format(url=esc(counter_url())).replace('Legacy home-page hits:', '従来のホームページ表示回数:') if lang == 'ja' else COUNTER_HTML.format(url=esc(counter_url()))) if counter else '',
-        measurement=(f'<script id="measurement" src="/metrics.js" defer data-page="{esc("/experiment/" if en.startswith("/experiment/") else en)}" data-url="{esc(counter_url().removesuffix("/hit")+"/event")}"></script>' if os.environ.get('METRICS_ENABLED') == 'true' and en not in ['/404/', '/contribute/self-test/'] else ''),
+        measurement=(f'<script id="measurement" src="/metrics.js" defer data-page="{esc("/experiment/" if en.startswith("/experiment/") else en)}" data-url="{esc(counter_url().removesuffix("/hit")+"/event")}"></script>' if os.environ.get('METRICS_ENABLED') == 'true' and en not in ['/404/', '/contribute/self-test/', '/payment-policy/'] else ''),
     )
     if en == '/contribute/self-test/':
         text = text.replace('</head>', '<meta name="robots" content="noindex">\n</head>')

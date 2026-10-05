@@ -42,3 +42,11 @@ Published data never identifies unique people or genuine AI visitors. Referrer
 domains are declarations, empty values are unknown, small counts are suppressed,
 and released counts use ten-event bands. No IP, UA, full URL/query, cookie,
 fingerprint or visitor identifier is added to application storage or public reports.
+
+## Catalog resource GET alignment, 2026-10-05
+
+`measurement-manifest.json` is generated from the same reviewed public catalog: index/schema JSON, exact record JSON paths and both payment-policy HTML paths. The Worker fetches this public origin metadata without visitor headers, credentials or query, bounded to 64 KiB and 8 seconds; a five-minute in-memory cache coalesces concurrent reads. A missing/invalid manifest disables new-resource counting until refresh while preserving the original response. New weekly JSON paths become eligible on manifest refresh without weekly Worker deployment.
+
+Ledger rows retain UTC date, resource_get, fixed resource-group label, referring domain (or unknown/internal) and explicit test flag/count. Individual record IDs and languages are only public manifest metadata and are not access-ledger fields. Head/error/unknown requests are excluded. Existing source cardinality cap, 90-day retention, threshold10, ten-event bands and immutable closed-week exports are unchanged. The existing public resource_gets field includes these counts; public referring-domain and frequent-page fields still describe browser page views only. No new public referrer schema or per-resource source/count combinations are published. JSON GET does not identify an AI, person, successful discovery or useful reuse. Previously unobserved requests are not backfilled.
+
+Payment-policy HTML uses only the resource GET metric, avoiding an unsupported browser-event request. Payment endpoints, receipts, slots, existing proxy routes/fail-open settings, weekly schedule and billing remain unchanged.

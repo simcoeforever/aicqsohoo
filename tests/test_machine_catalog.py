@@ -92,3 +92,17 @@ class CatalogTests(unittest.TestCase):
         self.assertIn('/machine-schema.json', llms)
         self.assertIn('does not guarantee', llms)
         self.assertNotIn('signature', json.dumps(self.index))
+
+    def test_measurement_manifest_is_derived_from_catalog_without_visitor_fields(self):
+        manifest = json.loads((self.site/'measurement-manifest.json').read_text(encoding='utf-8'))
+        self.assertEqual(set(manifest), {'schema_version', 'resources'})
+        entries = {r['path']: r['group'] for r in manifest['resources']}
+        self.assertEqual(len(entries), len(self.index['records'])+4)
+        for record in self.index['records']:
+            self.assertEqual(entries[urlsplit(record['json_url']).path], '/records/'+record['kind']+'/')
+        self.assertEqual(entries['/ja/payment-policy/'], '/payment-policy/')
+        self.assertEqual(entries['/payment-policy/'], '/payment-policy/')
+        self.assertNotIn('id', {k for r in manifest['resources'] for k in r})
+        # Policy HTML GET is counted at the edge; no unsupported browser event.
+        for lang in ['', 'ja/']:
+            self.assertNotIn('id="measurement"', (self.site/(lang+'payment-policy/index.html')).read_text(encoding='utf-8'))

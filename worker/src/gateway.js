@@ -1,7 +1,8 @@
 // Optional route in front of GitHub Pages. No DNS/route is configured by this file.
 import { normalizeEvent } from './metrics.js';
+import {resolvePublicResource} from './public-resource-manifest.js';
 
-export async function proxySite(request, env, ctx, forward = fetch) {
+export async function proxySite(request, env, ctx, forward = fetch, resolveResource=resolvePublicResource) {
   ctx.passThroughOnException();
   const response = await forward(request);
   if (env.EDGE_ENABLED !== 'true' || request.method !== 'GET' ||
@@ -13,7 +14,12 @@ export async function proxySite(request, env, ctx, forward = fetch) {
     if (/^\/experiment\/[a-z0-9-]+\/$/.test(page)) page = '/experiment/';
     const pages = JSON.parse(env.PUBLIC_PAGES || '[]');
     const resources = ['/experiences.json', '/agents.json', '/submission-schema.json', '/llms.txt'];
-    if (!Array.isArray(pages) || !pages.concat(resources).includes(page)) return;
+    if (!Array.isArray(pages)) return;
+    if(!pages.concat(resources).includes(page)){
+      const group=await resolveResource(url.pathname.replace(/\/index\.html$/, '/'),forward);
+      if(!group)return;
+      page=group;resources.push(group);
+    }
     let source = 'unknown';
     try {
       const ref = new URL(request.headers.get('Referer'));

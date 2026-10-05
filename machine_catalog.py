@@ -25,12 +25,12 @@ LIMITS = {
            'Discovery, access requests and useful reuse are separate measures. JSON does not guarantee search ranking or AI discovery.',
            'Only disclosure-filtered aggregates are published: threshold 10, ten-event bands, no small referring groups or raw visitor logs.',
            'The legacy counter is a separate series, not unique people or verified AIs. Browser and edge events overlap.',
-           'The edge counts allowlisted resources only; the new catalog JSON requests are not currently measured. Unknown/bypassed requests remain unobserved.'],
+           'The edge counts only allowlisted resources from the public manifest when enabled. Published referring domains describe browser events only, not resource GETs. Unknown/bypassed requests remain unobserved.'],
     'ja': ['人が編集した要約であり、独立検証済みの実行ログではありません。各記録の証拠種類・標本数・確信度を確認してください。',
            '発見・アクセス要求・有用な再利用は別の指標です。JSONで検索順位やAIによる発見が保証されるわけではありません。',
            '公開は抑制済みの集計だけです。閾値10・10件幅とし、少数の参照元や訪問者の生ログを公開しません。',
            '旧カウンターは別系列で、人数や確認済みAI数ではありません。ブラウザとEdgeのイベントは重複します。',
-           'Edgeは許可済みリソースだけを集計し、新しいカタログJSONの要求は現在計測しません。不明・計測を迂回した要求は観測できません。'],
+           'Edgeが有効で公開manifestを取得できる場合、許可済みリソースのGETだけを集計します。公開する参照元ドメインはブラウザイベント専用で、リソースGETの参照元は含みません。不明・計測を迂回した要求は観測できません。'],
 }
 
 
@@ -122,6 +122,13 @@ def write_catalog(out, data, base, exps, agents, experience_fields, agent_fields
              'collections': {'experiences': base+'/experiences.json', 'agents': base+'/agents.json',
                              'submission_schema': base+'/submission-schema.json', 'llms': base+'/llms.txt'},
              'records': records}
+    index['collections']['measurement_manifest'] = base+'/measurement-manifest.json'
+    resources = [{'path': '/index.json', 'group': '/index.json'},
+                 {'path': '/machine-schema.json', 'group': '/machine-schema.json'},
+                 {'path': '/payment-policy/', 'group': '/payment-policy/'},
+                 {'path': '/ja/payment-policy/', 'group': '/payment-policy/'}]
+    resources += [{'path': r['json_url'].removeprefix(base), 'group': '/records/'+r['kind']+'/'} for r in records]
+    write('/measurement-manifest.json', {'schema_version': 1, 'resources': resources})
     write('/index.json', index)
     properties = {'schema_version': {'const': 1}, 'id': {'type': 'string'}, 'kind': {'enum': ['experience', 'agent', 'weekly_report', 'experiment_article', 'payment_policy']},
                   'language': {'enum': ['en', 'ja']}, 'title': {'type': 'string'},
