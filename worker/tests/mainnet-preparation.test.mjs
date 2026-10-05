@@ -4,7 +4,7 @@ import {DatabaseSync} from 'node:sqlite';
 import {Ledger} from '../src/payment-core.js';
 import {MainnetPreparationService,MAINNET_PROFILE} from '../src/mainnet-preparation.js';
 function storage(){const db=new DatabaseSync(':memory:');return {sql:{exec(sql,...args){const rows=db.prepare(sql).all(...args);return {toArray:()=>rows};}},transactionSync(fn){db.exec('BEGIN IMMEDIATE');try{const result=fn();db.exec('COMMIT');return result;}catch(e){db.exec('ROLLBACK');throw e;}}};}
-test('mainnet cannot be enabled by an environment flag or signed request; no ledger rows are created',async()=>{
+test('mainnet defaults off without explicit owner-pilot mode; no ledger rows are created',async()=>{
   const s=storage(),service=new MainnetPreparationService({storage:s});
   const info=await (await service.fetch(new Request('https://local/contribution/mainnet/info'))).json();
   assert.equal(info.enabled,false);assert.equal(info.network,'eip155:8453');assert.equal(info.amount_atomic,'10000');

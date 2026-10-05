@@ -1,8 +1,9 @@
-# Base mainnet preparation — disabled
+# Base mainnet owner-only self-transfer pilot
 
-This change is local preparation, not approval to publish or activate real payments.
-The deployed Base Sepolia experiment remains the current public service. Its successful
-self-transfer is not a real-USDC mainnet result.
+The user authorized publication of one owner-only 0.01 real-USDC self-transfer on
+Base mainnet. This implementation does not enable general contributions. Signing and
+submission belong to the user in Rabby; agent tests use fabricated wallets and providers.
+No mainnet settlement has been observed by this implementation work.
 
 ## Fixed pilot and separation
 
@@ -16,12 +17,23 @@ self-transfer is not a real-USDC mainnet result.
 - Pilot capacity: one start per UTC day and one start for the entire pilot.
   Failed, pending and settled records all consume that capacity permanently.
   No reset, deletion or automatic re-signing to regain capacity.
-- `MAINNET_PAYMENT_MODE=off` documents the state. **No value of this variable
-  can enable this version:** mainnet payment, signature, verify and settle handlers
-  are intentionally absent. Only disabled information and unknown-receipt GETs exist.
-- Mainnet information is `/contribution/mainnet/info`; other mainnet requests
-  return 503 without a payment challenge or network call. No public mainnet page,
-  browser wallet connection, navigation link or AI payment offer is added.
+- Only `MAINNET_PAYMENT_MODE=owner-pilot` enables this specific owner-only endpoint.
+  All other values disable signed mainnet submissions. Both payer and recipient must be
+  the fixed owner address above, cryptographically verified locally with EIP-712 before
+  reserving the only slot or calling CDP. Unsigned challenges and forged signatures do
+  not consume the slot. Capacity is reserved atomically before provider verify/settle.
+- Direct owner pages: `/contribute/self-test/` and `/ja/contribute/self-test/`.
+  They are noindex, omitted from navigation/sitemap/machine discovery and browser
+  measurement. Public mainnet information is `/contribution/mainnet/info`;
+  signed POSTs go only to `/contribution/mainnet/self-test`; free receipts use
+  `/contribution/mainnet/receipt/main_...`. The page never auto-connects or signs.
+- Browser mainnet ID and submitted marker are separate from testnet. The marker is
+  set before a signed POST; loss of its response keeps signing disabled after reload.
+  A server failure, uncertain result, restart or success permanently consumes the slot.
+  No reset or automatic re-signing exists. Self-transfer gives no net USDC increase.
+- Existing encrypted Worker Secrets are reused without reading their values. Official
+  pinned CDP facilitator uses them only after owner signature validation; no wallet
+  secret or new permissions are needed. No raw authorization/signature is stored.
 - The new migration is additive (`v3`), never resetting Counter or Payments.
 
 ## 本人が扱う秘密値
@@ -91,15 +103,22 @@ verify/settle・wallet API・決済POSTは呼びません。
 Cloudflare上の準備版反映と認証確認は、デプロイが自動承認レビューに2回拒否されたため
 未実施です。別経路で迂回していません。
 
-## Remaining decisions before any publication or activation
+## Deployment and unresolved conditions
 
-Japan-specific eligibility, voluntary-support applicability (including conditional charity
-uses), billing/card requirements and actual key permissions/IP settings remain unverified.
-Confirm these with the user/provider; do not infer permission from a supported response.
-Agree on real-fund consent/refunds/privacy wording, self-transfer versus a separate payer,
-recipient control and the one-start cap. Real acceptance requires a separately reviewed
-implementation and explicit publication/activation approval. Never reuse the previous
-testnet publication script: its old release manifest intentionally rejects these changes.
+Approval covers only the owner self-test. Provider eligibility, voluntary-support use,
+billing/card requirements and actual key permissions/IP settings remain unverified;
+a successful supported GET is not proof of those conditions. General contributions
+remain disabled. Stop if new charges, terms acceptance or permissions are required.
+
+Publication must use the dedicated owner-pilot manifest/helper, never an older testnet
+or disabled-preparation helper. It checks the exact baseline, leaves unrelated
+`experiments/` work untouched, waits for Pages CI, then deploys the Worker once using
+existing login/Secrets. Ambiguous deployment stops for review instead of retrying.
+Post-release checks are GET-only. User signing/payment is a separate action in Rabby.
+
+Rollback is `MAINNET_PAYMENT_MODE=off` with a reviewed Worker deployment; preserve
+`MAINNET_PAYMENTS` and all receipts. Do not remove the migration, delete the ledger,
+change its instance name or reset the one-start cap to repeat payment.
 
 ## Official references
 

@@ -1,7 +1,8 @@
-// Preparation only. No enable flag, signature decoder, verify or settle path exists.
+// Isolated owner-only pilot; general contributions remain disabled.
 import {Ledger,RECEIVING_ADDRESS} from './payment-core.js';
 import {checkCdpAuthentication} from './cdp-auth.js';
 import {createSupportedBridge} from '../cdp-supported-bridge.mjs';
+import {handlePilot,cdpPilotClient} from './mainnet-pilot.js';
 const AUTH_CHECK_VERSION='prep-auth-2026-10-05-v1';
 export const MAINNET_PROFILE=Object.freeze({
   network:'eip155:8453',asset:'0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
@@ -9,11 +10,12 @@ export const MAINNET_PROFILE=Object.freeze({
   terms_version:'mainnet-pilot-v1',daily_cap:1,total_cap:1,
   receipt_prefix:'main_',ledger_name:'base-mainnet-pilot-v1',
 });
-export function mainnetInformation(){return {
-  ...MAINNET_PROFILE,enabled:false,payment_mode:'off',preparation_only:true,
+export function mainnetInformation(enabled=false){return {
+  ...MAINNET_PROFILE,enabled,payment_mode:enabled?'owner-pilot':'off',preparation_only:!enabled,
+  owner_only:true,payer:RECEIVING_ADDRESS,self_transfer:true,general_contributions_enabled:false,
   amount_display:'0.01 USDC (real funds)',existing_content_free:true,
   stop_on_success_or_unknown:true,automatic_retry:false,
-  blockers:['eligibility_and_use_confirmation','billing_confirmation','explicit_publication_and_activation_approval'],
+  blockers:['eligibility_and_use_confirmation','billing_confirmation'],
 };}
 export class MainnetPreparationService {
   constructor(ctx,env={},check=checkCdpAuthentication){
@@ -41,13 +43,11 @@ export class MainnetPreparationService {
     const path=new URL(request.url).pathname;
     if(request.method==='GET'&&path==='/contribution/mainnet/auth-status')
       return Response.json(await this.authStatus(),{headers:{'Cache-Control':'no-store'}});
-    if(request.method==='GET'&&path==='/contribution/mainnet/info')
-      return Response.json(mainnetInformation(),{headers:{'Cache-Control':'no-store'}});
-    if(request.method==='GET'&&/^\/contribution\/mainnet\/receipt\/main_[a-zA-Z0-9_-]{16,59}$/.test(path)){
-      // No acceptance in this version, therefore no real mainnet receipts can exist.
-      return Response.json({error:'unknown_receipt'},{status:404,headers:{'Cache-Control':'no-store'}});
+    const mode=this.env.MAINNET_PAYMENT_MODE==='owner-pilot'?'owner-pilot':'off';
+    if(request.method==='GET'&&path==='/contribution/mainnet/info'){
+      const unused=this.ctx.storage.sql.exec('SELECT COUNT(*) AS n FROM contributions').toArray()[0].n===0;
+      return Response.json(mainnetInformation(mode==='owner-pilot'&&unused),{headers:{'Cache-Control':'no-store'}});
     }
-    return Response.json({enabled:false,error:'mainnet_not_activated',retry_payment:false},
-      {status:503,headers:{'Cache-Control':'no-store'}});
+    return handlePilot(request,{mode,ledger:this.ledger,client:()=>cdpPilotClient(this.env)});
   }
 }

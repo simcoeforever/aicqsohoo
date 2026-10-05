@@ -61,7 +61,7 @@ class BuildTest(unittest.TestCase):
             for href in parser.hrefs:
                 if not href.startswith("/"):
                     continue
-                if href == '/contribution/info':
+                if href in ['/contribution/info','/contribution/mainnet/info']:
                     continue  # Worker API, checked by real workerd tests rather than a static file.
                 from urllib.parse import urlsplit
                 pathname = urlsplit(href).path
@@ -112,7 +112,9 @@ class BuildTest(unittest.TestCase):
     def test_sitemap_lists_every_page(self):
         sitemap = (SITE / "sitemap.xml").read_text(encoding="utf-8")
         locs = set(re.findall(r"<loc>(.*?)</loc>", sitemap))
-        self.assertEqual(len(locs), len([p for p in self.pages if p.parent.name != '404']))
+        self.assertEqual(len(locs), len([p for p in self.pages if p.parent.name not in ['404','self-test']]))
+        self.assertNotIn('/contribute/self-test/',sitemap)
+        self.assertIn('noindex',(SITE/'contribute/self-test/index.html').read_text(encoding='utf-8'))
 
     def test_llms_txt_links_resolve(self):
         text = (SITE / "llms.txt").read_text(encoding="utf-8")

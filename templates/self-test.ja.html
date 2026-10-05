@@ -1,0 +1,13 @@
+<h1>本人限定：Base本番での自己送金1回</h1>
+<p><strong>Base本番（8453）の0.01実USDCです。</strong>一般向けのカンパ受付ではなく、本人の自己送金実験です。商品・サービス・閲覧権・投資利益は提供せず、サイトは無料のままです。</p>
+<p>署名できるのは <code>0xF89FfB82f5F3dF83f68062a1b0d3BAA6A1005735</code>だけで、受取先も同じアドレスです。USDC残高の純増はありません。Circle公式USDC：<code>0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913</code>。固定金額10000 atomic（0.01 USDC）。</p>
+<p>Rabbyで別アカウント・ネットワーク・トークン・受取先・金額・トークン承認・費用が表示されたら停止してください。通常CDPがEIP-3009決済ガスを負担し、本人のETH送金やトークン承認は要求しません。公表料金は月1000オンチェーン取引まで無料、超過は1件0.001ドルです。個別の請求条件・利用資格は未確認で、認証成功は一般向け任意支援の許可を意味しません。新しい課金契約を求められたら停止してください。</p>
+<p>本人の署名を照合してから1回の枠を確保します。成功・失敗・再起動・結果不明は枠を消費し、自動再署名・再支払い・リセットはしません。署名はログインではなく実送金の承認です。自己送金の自動返金は行いませんが、法令上の権利は放棄させません。</p>
+<p>チェーン情報は公開され、CDPは審査・決済のため署名済み承認を受け取ります。別台帳には受領ID・固定条件・UTC日付・状態・取引ハッシュだけを保存し、生署名・支払元情報・IP・訪問者識別子は記録しません。ブラウザにはこの試行のIDと送信済み状態だけを保存します。閲覧だけでは接続・署名しません。</p>
+<p><label><input id="payment-consent" type="checkbox"> 私は指定ウォレットの本人で、Base本番の0.01実USDCの自己送金1回を許可します。</label></p>
+<p><button id="test-payment" data-payment-mode="owner-pilot" type="button" disabled>Rabbyで0.01実USDCを自己送金</button></p>
+<p id="payment-status" role="status" aria-live="polite">受付状況を確認中。接続・署名は自動では行いません。</p>
+<noscript><p>本人操作の実験にはJavaScriptが必要です。閲覧は無料です。</p></noscript>
+<p><a href="https://docs.cdp.coinbase.com/x402/seller/facilitator">CDP facilitator / pricing</a> · <a href="https://developers.circle.com/stablecoins/usdc-contract-addresses">Circle USDC contracts</a></p>
+<p><a href="/contribution/mainnet/info">固定条件と受付状況</a> · <a href="/ja/contribute/">別のBase Sepoliaテスト</a></p>
+<script src="/payment-client.js" defer></script>

@@ -201,8 +201,10 @@ def page(path: str, title: str, description: str, body: str, jsonld: dict | None
         title=esc(title), description=esc(description), canonical=esc(base_url()+path),
         jsonld=ld, body=body,
         counter=(COUNTER_HTML.format(url=esc(counter_url())).replace('Legacy home-page hits:', '従来のホームページ表示回数:') if lang == 'ja' else COUNTER_HTML.format(url=esc(counter_url()))) if counter else '',
-        measurement=(f'<script id="measurement" src="/metrics.js" defer data-page="{esc("/experiment/" if en.startswith("/experiment/") else en)}" data-url="{esc(counter_url().removesuffix("/hit")+"/event")}"></script>' if os.environ.get('METRICS_ENABLED') == 'true' and en != '/404/' else ''),
+        measurement=(f'<script id="measurement" src="/metrics.js" defer data-page="{esc("/experiment/" if en.startswith("/experiment/") else en)}" data-url="{esc(counter_url().removesuffix("/hit")+"/event")}"></script>' if os.environ.get('METRICS_ENABLED') == 'true' and en not in ['/404/', '/contribute/self-test/'] else ''),
     )
+    if en == '/contribute/self-test/':
+        text = text.replace('</head>', '<meta name="robots" content="noindex">\n</head>')
     target = OUT / path.lstrip("/") / "index.html"
     if en == '/404/':
         text = text.replace(f'<link rel="canonical" href="{esc(base_url()+path)}">', '<meta name="robots" content="noindex">')
@@ -480,6 +482,8 @@ def build() -> None:
     render_reports()
     for lang in ['en','ja']:
         page(('/ja' if lang=='ja' else '')+'/contribute/', '任意のテスト支援 | '+SITE_NAME if lang=='ja' else 'Voluntary test contribution | '+SITE_NAME, 'Base Sepolia x402 test, 0.01 test USDC; all content remains free.', (ROOT/'templates'/('contribute.'+lang+'.html')).read_text(encoding='utf-8'), lang=lang)
+    for lang in ['en','ja']:
+        page(('/ja' if lang=='ja' else '')+'/contribute/self-test/', '本人限定の自己送金 | '+SITE_NAME if lang=='ja' else 'Owner self-transfer | '+SITE_NAME, 'Owner-only single 0.01 real USDC self-transfer on Base mainnet; general contributions disabled.', (ROOT/'templates'/('self-test.'+lang+'.html')).read_text(encoding='utf-8'), lang=lang)
     from japanese_pages import render_japanese
     render_japanese(page, exps, agents, DATA, base_url())
     write_llms_txt(exps)

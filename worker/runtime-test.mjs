@@ -40,6 +40,17 @@ try {
       assert.equal(denied.status,503);assert.equal(denied.headers.has('PAYMENT-REQUIRED'),false);
     }
   }
+  options.workers[0].bindings.MAINNET_PAYMENT_MODE='owner-pilot';await mf.setOptions(convertV4MiniflareOptions(options));
+  const pilotInfo=await (await call('/contribution/mainnet/info')).json();
+  assert.equal(pilotInfo.enabled,true);assert.equal(pilotInfo.owner_only,true);assert.equal(pilotInfo.general_contributions_enabled,false);
+  const pilotBody={id:'main_'+'a'.repeat(32),terms_version:'mainnet-pilot-v1',consent:true,owner_authorized:true};
+  for(let i=0;i<3;i++)assert.equal((await call('/contribution/mainnet/self-test',{method:'POST',headers,body:JSON.stringify(pilotBody)})).status,402);
+  const {encodePaymentSignatureHeader}=await import('@x402/core/http');
+  const {pilotTerms}=await import('./src/mainnet-pilot.js');
+  const forged=encodePaymentSignatureHeader({x402Version:2,accepted:pilotTerms(),extensions:{'payment-identifier':{info:{required:true,id:pilotBody.id}}},payload:{signature:'0x'+'b'.repeat(130),authorization:{from:pilotInfo.payer,to:pilotInfo.recipient,value:'10000',validAfter:'0',validBefore:String(Math.floor(Date.now()/1000)+180),nonce:'0x'+'c'.repeat(64)}}});
+  assert.equal((await call('/contribution/mainnet/self-test',{method:'POST',headers:{...headers,'PAYMENT-SIGNATURE':forged},body:JSON.stringify(pilotBody)})).status,403);
+  assert.equal((await (await call('/contribution/mainnet/info')).json()).enabled,true);
+  assert.equal((await call('/contribution/mainnet/self-test',{method:'POST',headers:{...headers,Origin:'https://attacker.invalid'},body:JSON.stringify(pilotBody)})).status,403);
   const paymentBody={id:'pay_'+'c'.repeat(32),terms_version:'test-contribution-v1',consent:true,owner_authorized:true};
   const payment=await mf.dispatchFetch('https://aicqsohoo.com/contribution/test?measurement=test',{method:'POST',headers,body:JSON.stringify(paymentBody)});
   assert.equal(payment.status,402);assert.ok(payment.headers.get('PAYMENT-REQUIRED'));
