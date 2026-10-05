@@ -9,6 +9,8 @@ Standard library only. Usage:
 from __future__ import annotations
 
 import html
+import base64
+import hashlib
 import json
 import os
 import shutil
@@ -188,6 +190,11 @@ def page(path: str, title: str, description: str, body: str, jsonld: dict | None
     # Explicit English links prevent a saved/browser Japanese preference overriding navigation.
     suffix = '?lang=en' if lang == 'en' else ''
     body = localize_links(body, lang)
+    if 'src="/payment-client.js"' in body:
+        payment_bytes = (ROOT / 'static' / 'payment-client.js').read_bytes()
+        digest = hashlib.sha256(payment_bytes).digest()
+        body = body.replace('src="/payment-client.js"',
+            f'src="/payment-client.{digest.hex()}.js" integrity="sha256-{base64.b64encode(digest).decode()}" crossorigin="anonymous"')
     if en == '/about/':
         body += ('<p><a href="/ja/contribute/">任意のテスト支援</a>は別の実験です。商品や閲覧権は提供せず、既存内容は無料です。決済ID・状態などはアクセス解析と分離して保存します。</p>' if lang == 'ja' else '<p><a href="/contribute/?lang=en">Voluntary test contributions</a> are a separate experiment. They buy no goods or access; all content stays free. Payment IDs and status are stored separately from access analytics.</p>')
         body += ('<h2>言語の選択</h2><p>ブラウザ内に言語の選択（jaまたはen）だけを保存します。識別子や解析データではなく、サーバーへ送信しません。明示した言語URLを優先し、保存した選択がないときはブラウザ言語を使います。</p>' if lang == 'ja' else '<h2>Language preference</h2><p>Only a language choice (ja or en) is saved in your browser. It is not an identifier or analytics data and is not sent to the server. Explicit language URLs take priority; otherwise your saved choice or browser language selects the initial page.</p>')
@@ -471,6 +478,8 @@ def build() -> None:
     shutil.copy(ROOT / "static" / "metrics.js", OUT / "metrics.js")
     shutil.copy(ROOT / "static" / "language.js", OUT / "language.js")
     shutil.copy(ROOT / "static" / "payment-client.js", OUT / "payment-client.js")
+    payment_digest = hashlib.sha256((ROOT / 'static' / 'payment-client.js').read_bytes()).hexdigest()
+    shutil.copy(ROOT / 'static' / 'payment-client.js', OUT / f'payment-client.{payment_digest}.js')
     shutil.copy(ROOT / "static" / "payment-client.LICENSE.txt", OUT / "payment-client.LICENSE.txt")
     shutil.copytree(ROOT / "static" / "img", OUT / "img")
     for e in exps:

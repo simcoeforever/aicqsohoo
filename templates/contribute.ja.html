@@ -11,8 +11,8 @@
 <h2>Rabbyブラウザ拡張で試す</h2>
 <p>受け取るだけなら接続・署名・入金は不要です。支払う側はBase SepoliaのテストUSDCが必要です。本人が<a href="https://faucet.circle.com/">Circle公式テストfaucet</a>でUSDCとBase Sepoliaを選び、支払用アドレスに取得してください。Rabby公式の方法でネットワークを追加します：RPC <code>https://sepolia.base.org</code>、chain ID <code>84532</code>、通貨ETH。同じ受取アドレスへの自己送金は承認処理のテストにはなり得ますが、残高の純増にはなりません。実際の互換性はこれから確認します。</p>
 <p><label><input id="payment-consent" type="checkbox"> 条件を理解し、0.01 test USDCの送金についてウォレット所有者の明示許可があります。</label></p>
-<p><button id="test-payment" type="button" disabled>Rabbyで0.01 test USDCをテストする</button></p>
+<p><button id="test-payment" data-payment-mode="testnet" type="button" disabled>Rabbyで0.01 test USDCをテストする</button></p>
 <p id="payment-status" role="status" aria-live="polite">試験の利用可否を確認中です。自動で接続や署名は求めません。</p>
 <noscript><p>任意のウォレット試験にはJavaScriptが必要です。サイトの全内容はJavaScriptなしでも無料で読めます。</p></noscript>
 <p><a href="/contribution/info">機械可読の条件と利用可否</a>。公開したばかりのプロトコル試験であり、決済完了を実証した状態ではありません。</p>
-<script src="/payment-client.js" defer></script>
+<script src="/payment-client.js" data-payment-client="chain-guard-v2" defer></script>

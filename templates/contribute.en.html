@@ -11,8 +11,8 @@
 <h2>Try with Rabby browser extension</h2>
 <p>Receiving alone needs no connection, signature or funds. A payer needs test USDC on Base Sepolia; obtain it yourself from the <a href="https://faucet.circle.com/">Circle testnet faucet</a>, choosing USDC and Base Sepolia. Add the network using Rabby's official guide: RPC <code>https://sepolia.base.org</code>, chain ID <code>84532</code>, currency ETH. A self-transfer to the same receiving address may test authorization but would not increase its net balance; actual compatibility remains to be tested.</p>
 <p><label><input id="payment-consent" type="checkbox"> I understand the terms and have the wallet owner's explicit permission for this 0.01 test USDC transfer.</label></p>
-<p><button id="test-payment" type="button" disabled>Test 0.01 test USDC with Rabby</button></p>
+<p><button id="test-payment" data-payment-mode="testnet" type="button" disabled>Test 0.01 test USDC with Rabby</button></p>
 <p id="payment-status" role="status" aria-live="polite">Loading test availability. No connection or signature is requested automatically.</p>
 <noscript><p>JavaScript is needed for the optional wallet test. Reading all site content is free without it.</p></noscript>
 <p><a href="/contribution/info">Machine-readable terms and availability</a>. This is a newly enabled protocol test, not a verified completed payment.</p>
-<script src="/payment-client.js" defer></script>
+<script src="/payment-client.js" data-payment-client="chain-guard-v2" defer></script>
