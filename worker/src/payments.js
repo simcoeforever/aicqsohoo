@@ -36,7 +36,8 @@ export async function paymentRoute(request,env){
   const binding=mainnet?env.MAINNET_PAYMENTS:env.PAYMENTS;
   if(!binding)return Response.json({enabled:false,error:'payments_disabled'},{status:503,headers});
   try{
-    const response=await binding.get(binding.idFromName(mainnet?MAINNET_PROFILE.ledger_name:'base-sepolia-test-v1')).fetch(request);
+    const legacyRead=mainnet&&request.method==='GET'&&(path==='/contribution/mainnet/v1/info'||/^\/contribution\/mainnet\/receipt\/main_[a-zA-Z0-9_-]{16,59}$/.test(path));
+    const response=await binding.get(binding.idFromName(mainnet?(legacyRead?'base-mainnet-pilot-v1':MAINNET_PROFILE.ledger_name):'base-sepolia-test-v1')).fetch(request);
     const result=new Response(response.body,response);for(const [name,value]of Object.entries(headers))result.headers.set(name,value);return result;
   }catch(_){return Response.json({error:'payment_state_unavailable',retry_payment:false},{status:503,headers});}
 }

@@ -2,10 +2,13 @@
 import {verifyTypedData} from 'viem';
 import {encodePaymentRequiredHeader,decodePaymentSignatureHeader} from '@x402/core/http';
 import {declarePaymentIdentifierExtension,extractPaymentIdentifier} from '@x402/extensions/payment-identifier';
-import {createCdpFacilitatorClient} from '@coinbase/cdp-sdk/x402';
+import {generateJwt} from '@coinbase/cdp-sdk/auth';
+import {HTTPFacilitatorClient} from '@x402/core/server';
 import {RECEIVING_ADDRESS} from './payment-core.js';
+import {sanitizedPilotDiagnostic,recordPilotDiagnostic,readPilotDiagnostic} from './pilot-diagnostics.js';
+import {OWNER_PILOT_VERSION,OWNER_PILOT_NONCE,OWNER_PILOT_VALID_AFTER} from '../../static/owner-pilot-v2.js';
 export const PILOT_NETWORK='eip155:8453',PILOT_ASSET='0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
-export const PILOT_VERSION='mainnet-pilot-v1';
+export const PILOT_VERSION=OWNER_PILOT_VERSION;
 export const AUTHORIZATION_TYPES={TransferWithAuthorization:[{name:'from',type:'address'},{name:'to',type:'address'},
   {name:'value',type:'uint256'},{name:'validAfter',type:'uint256'},{name:'validBefore',type:'uint256'},{name:'nonce',type:'bytes32'}]};
 const response=(status,body,headers={})=>Response.json(body,{status,headers:{'Cache-Control':'no-store',...headers}});
@@ -13,10 +16,20 @@ export const pilotTerms=()=>({scheme:'exact',network:PILOT_NETWORK,asset:PILOT_A
   payTo:RECEIVING_ADDRESS,maxTimeoutSeconds:300,extra:{name:'USDC',version:'2'}});
 export function pilotReceipt(row){
   if(row.state==='settled')return response(200,{id:row.id,state:'settled',network:PILOT_NETWORK,transaction:row.transaction_hash,self_transfer:true,no_goods_or_access:true});
-  return response(row.state==='failed'?422:202,{id:row.id,state:row.state==='failed'?'failed':'pending',retry_payment:false});
+  return response(row.state==='failed'?422:202,{id:row.id,state:row.state==='failed'?'failed':'pending',retry_payment:false,...(row.diagnostic?{diagnostic:row.diagnostic}:{})});
 }
+const storedReceipt=(ledger,id)=>pilotReceipt({...ledger.row(id),diagnostic:readPilotDiagnostic(ledger.storage,id)});
 export function cdpPilotClient(env){
-  return createCdpFacilitatorClient({apiKeyId:env.CDP_API_KEY_ID,apiKeySecret:env.CDP_API_KEY_SECRET});
+  // Match pinned CDP1.57.1 facilitator.js's headers/URI claims using its public
+  // auth entrypoint. The aggregate /x402 barrel loses JWT initializers when
+  // bundled for workerd; its client throws BEFORE the first network request.
+  if(!env.CDP_API_KEY_ID||!env.CDP_API_KEY_SECRET)throw Error('credentials_missing');
+  return new HTTPFacilitatorClient({url:'https://api.cdp.coinbase.com/platform/v2/x402',
+    createAuthHeaders:async()=>Object.fromEntries(await Promise.all(['verify','settle','supported'].map(async operation=>{
+      const jwt=await generateJwt({apiKeyId:env.CDP_API_KEY_ID,apiKeySecret:env.CDP_API_KEY_SECRET,
+        requestMethod:operation==='supported'?'GET':'POST',requestHost:'api.cdp.coinbase.com',requestPath:'/platform/v2/x402/'+operation});
+      return [operation,{Authorization:'Bearer '+jwt,'Correlation-Context':'sdkLanguage=typescript,source=cdp-sdk,sourceVersion=1.57.1'}];
+    })))});
 }
 async function bodyJson(request){
   let size=0;const chunks=[];const reader=request.body?.getReader();if(!reader)throw Error('body');
@@ -28,26 +41,26 @@ export async function verifyOwnerAuthorization(payload,nowSeconds){
   const a=payload?.payload?.authorization;
   if(!a||typeof a.from!=='string'||typeof a.to!=='string'||Object.keys(a).length!==6||Object.keys(a).some(k=>!['from','to','value','validAfter','validBefore','nonce'].includes(k))||
     a.from?.toLowerCase()!==RECEIVING_ADDRESS.toLowerCase()||a.to?.toLowerCase()!==RECEIVING_ADDRESS.toLowerCase()||
-    String(a.value)!=='10000'||!/^\d{1,12}$/.test(String(a.validAfter))||!/^\d{1,12}$/.test(String(a.validBefore))||
+    String(a.value)!=='10000'||String(a.validAfter)!==OWNER_PILOT_VALID_AFTER||!/^\d{1,12}$/.test(String(a.validBefore))||
     Number(a.validAfter)>nowSeconds||Number(a.validBefore)<=nowSeconds||Number(a.validBefore)>nowSeconds+300||
-    !/^0x[0-9a-fA-F]{64}$/.test(a.nonce||'')||!/^0x[0-9a-fA-F]{130}$/.test(payload.payload?.signature||''))return false;
+    a.nonce!==OWNER_PILOT_NONCE||!/^0x[0-9a-fA-F]{130}$/.test(payload.payload?.signature||''))return false;
   try{return await verifyTypedData({address:RECEIVING_ADDRESS,domain:{name:'USDC',version:'2',chainId:8453,verifyingContract:PILOT_ASSET},
     types:AUTHORIZATION_TYPES,primaryType:'TransferWithAuthorization',message:{...a,value:BigInt(a.value),validAfter:BigInt(a.validAfter),validBefore:BigInt(a.validBefore)},signature:payload.payload.signature});}
   catch(_){return false;}
 }
 export async function handlePilot(request,{mode='off',ledger,client,now=()=>new Date(),verifyOwner=verifyOwnerAuthorization}={}){
   const path=new URL(request.url).pathname;
-  if(request.method==='GET'&&/^\/contribution\/mainnet\/receipt\/main_[a-zA-Z0-9_-]{16,59}$/.test(path)){
-    const row=ledger?.row(path.split('/').pop());return row?pilotReceipt(row):response(404,{error:'unknown_receipt'});
+  if(request.method==='GET'&&/^\/contribution\/mainnet\/receipt\/main2_[a-zA-Z0-9_-]{16,59}$/.test(path)){
+    const id=path.split('/').pop(),row=ledger?.row(id);return row?storedReceipt(ledger,id):response(404,{error:'unknown_receipt'});
   }
-  if(mode!=='owner-pilot')return response(503,{enabled:false,error:'mainnet_not_activated',retry_payment:false});
+  if(mode!=='owner-pilot-v2')return response(503,{enabled:false,error:'mainnet_not_activated',retry_payment:false});
   if(request.method!=='POST'||path!=='/contribution/mainnet/self-test')return response(503,{enabled:false,error:'owner_pilot_only',retry_payment:false});
   if(!request.headers.get('Content-Type')?.startsWith('application/json'))return response(400,{error:'json_required'});
   let body;try{body=await bodyJson(request);}catch(_){return response(400,{error:'invalid_request'});}
   if(!body||typeof body!=='object'||Array.isArray(body)||Object.keys(body).some(k=>!['id','terms_version','consent','owner_authorized'].includes(k))||
-    !/^main_[a-zA-Z0-9_-]{16,59}$/.test(body.id||'')||body.terms_version!==PILOT_VERSION||body.consent!==true||body.owner_authorized!==true)
+    !/^main2_[a-zA-Z0-9_-]{16,59}$/.test(body.id||'')||body.terms_version!==PILOT_VERSION||body.consent!==true||body.owner_authorized!==true)
     return response(400,{error:'explicit_owner_consent_required'});
-  const old=ledger.row(body.id);if(old)return pilotReceipt(old);
+  const old=ledger.row(body.id);if(old)return storedReceipt(ledger,body.id);
   const count=ledger.storage.sql.exec('SELECT COUNT(*) AS n FROM contributions').toArray()[0].n;
   if(count>=1)return response(429,{error:'single_owner_attempt_consumed',retry_payment:false});
   const terms=pilotTerms(),signature=request.headers.get('PAYMENT-SIGNATURE');
@@ -63,22 +76,28 @@ export async function handlePilot(request,{mode='off',ledger,client,now=()=>new 
   const accepted=payload?.accepted;
   if(payload?.x402Version!==2||!accepted||Object.keys(accepted).some(k=>!(k in terms))||
     Object.keys(terms).some(k=>k!=='extra'&&accepted[k]!==terms[k])||accepted.extra?.name!=='USDC'||accepted.extra?.version!=='2'||
-    Object.keys(accepted.extra).length!==2||extractPaymentIdentifier(payload)!==body.id)return response(409,{error:'fixed_payment_terms_or_id_mismatch'});
+       Object.keys(accepted.extra).length!==2||extractPaymentIdentifier(payload)!==body.id)return response(409,{error:'fixed_payment_terms_or_id_mismatch'});
+  if(payload?.payload?.authorization?.nonce!==OWNER_PILOT_NONCE||String(payload?.payload?.authorization?.validAfter)!==OWNER_PILOT_VALID_AFTER)
+    return response(409,{error:'generation_signature_mismatch'});
   // Cryptographic ownership check BEFORE any quota reservation/provider call.
   if(!(await verifyOwner(payload,Math.floor(now().getTime()/1000))))return response(403,{error:'owner_self_transfer_signature_required'});
   const canonical=JSON.stringify({terms_version:PILOT_VERSION,...terms});
   const record=ledger.create(body.id,canonical,now().toISOString().slice(0,10));
   if(record.error)return response(record.error,{error:'single_owner_attempt_consumed',retry_payment:false});
-  if(!ledger.claim(body.id))return pilotReceipt(ledger.row(body.id));
+  if(!ledger.claim(body.id))return storedReceipt(ledger,body.id);
   // All exceptions/restarts from this point consume the sole start and stop.
+  let stage='client_setup';const diagnostic=(kind,data)=>recordPilotDiagnostic(ledger.storage,body.id,sanitizedPilotDiagnostic(stage,kind,data));
+  diagnostic('started');
   try{
     const facilitator=typeof client==='function'?client():client;
+    stage='verify';diagnostic('started');
     const verified=await facilitator.verify(payload,terms);
-    if(verified.isValid!==true){ledger.state(body.id,'failed');return pilotReceipt(ledger.row(body.id));}
+    if(verified.isValid!==true){ledger.state(body.id,'failed');diagnostic('verification_invalid');return storedReceipt(ledger,body.id);}
     ledger.state(body.id,'settling');
+    stage='settle';diagnostic('started');
     const result=await facilitator.settle(payload,terms);
-    if(result.success===true&&result.network===PILOT_NETWORK&&/^0x[a-fA-F0-9]{64}$/.test(result.transaction||''))ledger.state(body.id,'settled',result.transaction);
-    else ledger.state(body.id,'pending');
-  }catch(_){ledger.state(body.id,'pending');}
-  return pilotReceipt(ledger.row(body.id));
+    if(result.success===true&&result.network===PILOT_NETWORK&&/^0x[a-fA-F0-9]{64}$/.test(result.transaction||'')){ledger.state(body.id,'settled',result.transaction);diagnostic('completed');}
+    else {ledger.state(body.id,'pending');diagnostic('uncertain_response',result);}
+  }catch(error){ledger.state(body.id,'pending');diagnostic(stage==='client_setup'?'local_setup_error':'sdk_exception',error);}
+  return storedReceipt(ledger,body.id);
 }

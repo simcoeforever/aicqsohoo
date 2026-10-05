@@ -2,16 +2,18 @@
 import {Ledger,RECEIVING_ADDRESS} from './payment-core.js';
 import {checkCdpAuthentication} from './cdp-auth.js';
 import {createSupportedBridge} from '../cdp-supported-bridge.mjs';
-import {handlePilot,cdpPilotClient} from './mainnet-pilot.js';
-const AUTH_CHECK_VERSION='prep-auth-2026-10-05-v1';
+import {handlePilot,cdpPilotClient,pilotReceipt} from './mainnet-pilot.js';
+import {OWNER_PILOT_NONCE,OWNER_PILOT_VALID_AFTER} from '../../static/owner-pilot-v2.js';
+const AUTH_CHECK_VERSION='owner-pilot-v2-auth-2026-10-05';
 export const MAINNET_PROFILE=Object.freeze({
   network:'eip155:8453',asset:'0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
   amount_atomic:'10000',recipient:RECEIVING_ADDRESS,scheme:'exact',max_timeout_seconds:300,
-  terms_version:'mainnet-pilot-v1',daily_cap:1,total_cap:1,
-  receipt_prefix:'main_',ledger_name:'base-mainnet-pilot-v1',
+  terms_version:'mainnet-pilot-v2',daily_cap:1,total_cap:1,generation:2,
+  receipt_prefix:'main2_',ledger_name:'base-mainnet-pilot-v2',
+  authorization_nonce:OWNER_PILOT_NONCE,authorization_valid_after:OWNER_PILOT_VALID_AFTER,
 });
 export function mainnetInformation(enabled=false){return {
-  ...MAINNET_PROFILE,enabled,payment_mode:enabled?'owner-pilot':'off',preparation_only:!enabled,
+  ...MAINNET_PROFILE,enabled,payment_mode:enabled?'owner-pilot-v2':'off',preparation_only:!enabled,
   owner_only:true,payer:RECEIVING_ADDRESS,self_transfer:true,general_contributions_enabled:false,
   amount_display:'0.01 USDC (real funds)',existing_content_free:true,
   stop_on_success_or_unknown:true,automatic_retry:false,
@@ -41,12 +43,17 @@ export class MainnetPreparationService {
   }
   async fetch(request){
     const path=new URL(request.url).pathname;
+    // These GETs are routed to the old DO instance; never execute the new pilot there.
+    if(request.method==='GET'&&/^\/contribution\/mainnet\/receipt\/main_[a-zA-Z0-9_-]{16,59}$/.test(path)){
+      const row=this.ledger.row(path.split('/').pop());return row?pilotReceipt(row):Response.json({error:'unknown_receipt'},{status:404});
+    }
+    if(request.method==='GET'&&path==='/contribution/mainnet/v1/info')return Response.json({generation:1,enabled:false,payment_mode:'off',ledger_name:'base-mainnet-pilot-v1',total_cap:1,consumed:this.ctx.storage.sql.exec('SELECT COUNT(*) AS n FROM contributions').toArray()[0].n},{headers:{'Cache-Control':'no-store'}});
     if(request.method==='GET'&&path==='/contribution/mainnet/auth-status')
       return Response.json(await this.authStatus(),{headers:{'Cache-Control':'no-store'}});
-    const mode=this.env.MAINNET_PAYMENT_MODE==='owner-pilot'?'owner-pilot':'off';
+    const mode=this.env.MAINNET_PAYMENT_MODE==='owner-pilot-v2'?'owner-pilot-v2':'off';
     if(request.method==='GET'&&path==='/contribution/mainnet/info'){
       const unused=this.ctx.storage.sql.exec('SELECT COUNT(*) AS n FROM contributions').toArray()[0].n===0;
-      return Response.json(mainnetInformation(mode==='owner-pilot'&&unused),{headers:{'Cache-Control':'no-store'}});
+      return Response.json(mainnetInformation(mode==='owner-pilot-v2'&&unused),{headers:{'Cache-Control':'no-store'}});
     }
     return handlePilot(request,{mode,ledger:this.ledger,client:()=>cdpPilotClient(this.env)});
   }

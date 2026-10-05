@@ -12,12 +12,12 @@ No mainnet settlement has been observed by this implementation work.
 - Amount `10000` atomic (0.01 real USDC); recipient
   `0xF89FfB82f5F3dF83f68062a1b0d3BAA6A1005735`.
 - Separate `MAINNET_PAYMENTS` SQLite Durable Object class `MainnetPayments`,
-  instance `base-mainnet-pilot-v1`; intended receipt IDs start `main_`.
+  instance `base-mainnet-pilot-v2`; intended receipt IDs start `main2_`.
   Existing `PAYMENTS` / `base-sepolia-test-v1` / `pay_` receipts remain unchanged.
 - Pilot capacity: one start per UTC day and one start for the entire pilot.
   Failed, pending and settled records all consume that capacity permanently.
   No reset, deletion or automatic re-signing to regain capacity.
-- Only `MAINNET_PAYMENT_MODE=owner-pilot` enables this specific owner-only endpoint.
+- Only `MAINNET_PAYMENT_MODE=owner-pilot-v2` enables this specific owner-only endpoint.
   All other values disable signed mainnet submissions. Both payer and recipient must be
   the fixed owner address above, cryptographically verified locally with EIP-712 before
   reserving the only slot or calling CDP. Unsigned challenges and forged signatures do
@@ -129,3 +129,37 @@ change its instance name or reset the one-start cap to repeat payment.
 - [Privacy](https://www.coinbase.com/legal/privacy)
 - [Circle USDC contracts](https://developers.circle.com/stablecoins/usdc-contract-addresses)
 - [Cloudflare secret bindings](https://developers.cloudflare.com/workers/configuration/secrets/)
+
+
+## Separately approved generation 2
+
+The first receipt remains pending in its original generation1 DO and can still be
+read with its original main_ URL. Fixed expiry/finalized-chain reconciliation is
+recorded in mainnet-boundary-audit.md and the two evidence JSON files. No old row,
+state, cap, nonce or signature is changed or recovered. Legacy info is read-only
+at /contribution/mainnet/v1/info. POSTs always route to the active generation2 DO;
+no mode can reopen generation1. Testnet keeps its original instance and pay_ IDs.
+
+Generation2 uses base-mainnet-pilot-v2, main2_ receipt IDs, mainnet-pilot-v2 terms
+and a separate browser session key, leaving the old submitted marker untouched.
+Its EIP3009 authorization must sign public fixed nonce
+0xec464afbfd8603a33eceff4adffd5da4b6122b95b89d8d62fdb6d265c990800b
+and validAfter1791166500 (2026-10-05T02:15:00Z). The server enforces these before
+cryptographic verification, quota reservation or CDP calls. Original generation1
+signed validAfter0; replacing it or the nonce invalidates that signature. The old
+nonce was not recorded and is not obtained or compared. Generation2's nonce is a
+new fixed authorization namespace, not an access identifier. It cannot be changed
+or recycled to create additional payments in this generation. Capacity is one
+start permanently, regardless of success/failure/unknown.
+
+The official browser SDK's signing message and returned authorization are both
+updated for these two fixed generation fields and checked in browser/workerd
+boundary tests. Official JWT/auth and HTTPFacilitatorClient avoid the defective
+CDP aggregate export without changing SDK versions. Diagnostics contain fixed
+stage/kind, typed HTTP status and chain-checked candidate hash only.
+
+Publication uploads the exact locally tested Wrangler bundle with --no-bundle,
+protected by its SHA256 in the release helper's manifest. CI independently builds
+and tests its actual Wrangler output, including generation routing/storage/auth.
+The bundle contains no test harness, RFC fixture, wallet or CDP secret. Public
+checks remain GET-only; neither the release helper nor agent starts a payment.

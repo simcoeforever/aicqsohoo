@@ -44,6 +44,7 @@ jobs:
         run: |
           node node_modules/wrangler/bin/wrangler.js deploy --dry-run --outdir .wrangler/dryrun
           node runtime-test.mjs
+          AICQ_AUDIT_DEPLOYED_BUNDLE=1 node --test tests/mainnet-facilitator-runtime.test.mjs tests/mainnet-generation-bundle.test.mjs
       - name: Build
         env:
           BASE_URL: https://aicqsohoo.com

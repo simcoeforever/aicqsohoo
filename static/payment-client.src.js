@@ -1,8 +1,9 @@
 import {x402Client} from '@x402/core/client';
 import {ExactEvmScheme} from '@x402/evm/exact/client';
 import {encodePaymentSignatureHeader} from '@x402/core/http';
+import {OWNER_PILOT_VERSION,OWNER_PILOT_NONCE,OWNER_PILOT_VALID_AFTER} from './owner-pilot-v2.js';
 const recipient='0xF89FfB82f5F3dF83f68062a1b0d3BAA6A1005735';
-const pilot=document.getElementById('test-payment')?.dataset.paymentMode==='owner-pilot';
+const pilot=document.getElementById('test-payment')?.dataset.paymentMode==='owner-pilot-v2';
 const asset=pilot?'0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913':'0x036CbD53842c5426634e7929541eC2318f3dCF7e';
 const network=pilot?'eip155:8453':'eip155:84532';
 const chain=pilot?'0x2105':'0x14a34',chainNumber=pilot?8453:84532;
@@ -11,9 +12,9 @@ const paymentPath=pilot?api+'/self-test':api+'/test';
 const ja=document.documentElement.lang==='ja';
 const button=document.getElementById('test-payment'),consent=document.getElementById('payment-consent'),status=document.getElementById('payment-status');
 const message=(en,japanese)=>{status.textContent=ja?japanese:en;};
-const key=pilot?'aicqsohoo-owner-mainnet-payment-id':'aicqsohoo-test-payment-id';
+const key=pilot?'aicqsohoo-owner-mainnet-v2-payment-id':'aicqsohoo-test-payment-id';
 let id;try{id=sessionStorage.getItem(key);}catch(_){}
-if(!(pilot?/^main_[a-zA-Z0-9_-]{16,59}$/:/^pay_[a-zA-Z0-9_-]{16,60}$/).test(id||''))id=null;
+if(!(pilot?/^main2_[a-zA-Z0-9_-]{16,59}$/:/^pay_[a-zA-Z0-9_-]{16,60}$/).test(id||''))id=null;
 let enabled=false,busy=false,terminal=false;
 if(pilot){try{terminal=sessionStorage.getItem(key+'-submitted')==='1';}catch(_){}}
 const update=()=>button.disabled=!enabled||!consent.checked||busy||terminal;
@@ -32,7 +33,7 @@ function showReceipt(data){
   update();return true;
 }
 fetch(api+'/info',{credentials:'omit',cache:'no-store',referrerPolicy:'no-referrer'}).then(r=>r.json()).then(async info=>{
-  enabled=info.enabled===true&&info.network===network&&info.asset===asset&&info.amount_atomic==='10000'&&info.recipient===recipient&&(!pilot||(info.owner_only===true&&info.payer===recipient&&info.general_contributions_enabled===false));
+  enabled=info.enabled===true&&info.network===network&&info.asset===asset&&info.amount_atomic==='10000'&&info.recipient===recipient&&(!pilot||(info.owner_only===true&&info.payer===recipient&&info.general_contributions_enabled===false&&info.generation===2&&info.terms_version===OWNER_PILOT_VERSION&&info.authorization_nonce===OWNER_PILOT_NONCE&&info.authorization_valid_after===OWNER_PILOT_VALID_AFTER));
   if(!enabled)message('Test payments are currently disabled.','現在、テスト決済は停止しています。');
   else message('Ready. Nothing happens until you confirm and press the test button.','準備できました。確認してテストボタンを押すまで、接続・署名はしません。');
   if(id){const existing=await fetch(api+'/receipt/'+id,{credentials:'omit',cache:'no-store',referrerPolicy:'no-referrer'});if(existing.ok)showReceipt(await existing.json());else if(pilot&&terminal)message('Submission outcome unknown. Do not sign or pay again. Receipt: '+id,'送信結果が不明です。再署名・再支払いせず受領IDを保管してください：'+id);}update();
@@ -40,10 +41,10 @@ fetch(api+'/info',{credentials:'omit',cache:'no-store',referrerPolicy:'no-referr
 button.addEventListener('click',async()=>{
   if(!enabled||!consent.checked||busy||terminal)return;
   busy=true;update();
-  if(!id){id=(pilot?'main_':'pay_')+crypto.randomUUID();try{sessionStorage.setItem(key,id);}catch(_){}}
+  if(!id){id=(pilot?'main2_':'pay_')+crypto.randomUUID();try{sessionStorage.setItem(key,id);}catch(_){}}
   let signedSubmitted=false;
   try{
-    const body={id,terms_version:pilot?'mainnet-pilot-v1':'test-contribution-v1',consent:true,owner_authorized:true};
+    const body={id,terms_version:pilot?OWNER_PILOT_VERSION:'test-contribution-v1',consent:true,owner_authorized:true};
     const options={method:'POST',credentials:'omit',cache:'no-store',referrerPolicy:'no-referrer',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)};
     const challengeResponse=await fetch(paymentPath,options),challenge=await challengeResponse.json();
     if(challengeResponse.status!==402){if(!showReceipt(challenge))message('The test could not start (paused, quota or service unavailable). No signature was requested.','停止・上限・サービス状態により開始できません。署名は求めていません。');return;}
@@ -59,6 +60,9 @@ button.addEventListener('click',async()=>{
     const signer={address,signTypedData:async args=>{
       if(Number(args.domain.chainId)!==chainNumber||args.domain.verifyingContract?.toLowerCase()!==asset.toLowerCase()||args.message.to?.toLowerCase()!==recipient.toLowerCase()||String(args.message.value)!=='10000')throw Error('signing_terms');
       if(pilot&&(args.message.from?.toLowerCase()!==recipient.toLowerCase()||args.domain.name!=='USDC'||args.domain.version!=='2'))throw Error('owner_signing_terms');
+      // Generation fields are signed by Rabby and mirrored in the returned SDK
+      // authorization below. The old generation always signed validAfter=0.
+      if(pilot){args.message.nonce=OWNER_PILOT_NONCE;args.message.validAfter=BigInt(OWNER_PILOT_VALID_AFTER);}
       message(pilot?'Review the 0.01 REAL USDC self-transfer on Base mainnet. You choose whether to sign.':'Review the 0.01 test USDC authorization in Rabby. You choose whether to sign.',pilot?'RabbyでBase本番・0.01実USDCの自己送金承認を確認し、署名するか判断してください。':'Rabbyで0.01 test USDCの送金承認を確認し、署名するか判断してください。');
       const typed={...args,types:{EIP712Domain:[{name:'name',type:'string'},{name:'version',type:'string'},{name:'chainId',type:'uint256'},{name:'verifyingContract',type:'address'}],...args.types}};
       const data=JSON.stringify(typed,(_,value)=>typeof value==='bigint'?value.toString():value);
@@ -66,6 +70,7 @@ button.addEventListener('click',async()=>{
     }};
     const client=new x402Client().register(network,new ExactEvmScheme(signer));
     const payload=await client.createPaymentPayload(challenge);
+    if(pilot){payload.payload.authorization.nonce=OWNER_PILOT_NONCE;payload.payload.authorization.validAfter=OWNER_PILOT_VALID_AFTER;}
     payload.extensions['payment-identifier'].info.id=id;
     message('Submitting the signed test authorization once.','署名済みのテスト承認を1回だけ送信します。');
     signedSubmitted=true;
