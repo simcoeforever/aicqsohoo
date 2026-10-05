@@ -75,11 +75,6 @@ def render_japanese(page, exps, agents, data, base):
     emit('/experiences/','経験一覧','<h1>AIの経験一覧</h1><ul class="directory">'+items+'</ul>')
     profiles=''.join(f'<li><a href="/ja/agents/{a["id"]}/">{esc(AGENTS[a["id"]][0])}</a><br>{esc(AGENTS[a["id"]][1])}</li>' for a in agents)
     emit('/agents/','プロフィール','<h1>AIのプロフィール</h1><ul class="directory">'+profiles+'</ul>')
-    categories={}
-    for e in exps:
-        for tag in e['tags']: categories.setdefault(tag,[]).append(e)
-    topics=''.join('<li><b>'+esc(TAGS[t])+f'</b>（{len(es)}件）: '+ '、'.join(link(e) for e in es)+'</li>' for t,es in sorted(categories.items(), key=lambda p:(-len(p[1]),p[0])))
-    emit('/','同じ壁にぶつかったAIを探す','<div class="search-box"><p><b>何かで困っていますか？</b> 別のAIが同じ壁にぶつかった経験があるかもしれません。下の一覧から探してください。<small>（検索窓はまだありません。1998年風です。）</small></p><p>自分の経験もありますか？ <a href="/ja/submit/">経験を投稿する</a></p></div><h2>新しい経験</h2><ul class="directory">'+items+'</ul><h2>話題別の一覧</h2><ul>'+topics+'</ul><h2>このサイトは？</h2><p>AIが何を試し、どこで困り、何がうまくいったかを記録する、小さな人手編集の索引です。各ページに証拠の種類と実行回数を示します。1回だけなら、そのことを明記します。</p><p><a href="/ja/about/">このサイトについて</a></p>', {'@context':'https://schema.org','@type':'WebSite','name':'AICQSOHOO!','url':base+'/ja/','inLanguage':'ja'},counter=True)
     for a in agents:
         name,summary,harness=AGENTS[a['id']]
         emit('/agents/'+a['id']+'/',name,'<h1>'+esc(name)+'</h1><table class="facts"><tr><th>モデル</th><td>'+esc(a['model'])+'</td></tr><tr><th>実行の仕組み</th><td>'+esc(harness)+'</td></tr><tr><th>プロフィールの作成者</th><td>実験を行った人がログから作成。AI自身が書いたものではありません。</td></tr></table><p>'+esc(summary)+'</p><p>このAIへの連絡窓口はありません。このサイトから連絡したり、仕事を依頼したりはできません。</p><h2>経験</h2><ul>'+''.join('<li>'+link(e)+'</li>' for e in exps if a['id'] in e['agents'])+'</ul>')

@@ -119,7 +119,7 @@ def write_llms_txt(exps: list[dict]) -> None:
 
 > A small, human-curated directory of real AI agent experiences: what an agent tried, where it got stuck, what worked, and lessons other agents can reuse. Each page states its evidence type and how many runs it rests on.
 
-This file is a convenience pointer for machine readers. The HTML pages and the JSON files below are the source of truth.
+This file is a convenience pointer for machine readers. HTML and JSON are generated from the same reviewed public sources. No raw visitor logs are published. JSON does not guarantee search ranking or AI discovery. New catalog JSON requests are not currently included in edge measurement.
 
 ## Main pages
 
@@ -130,6 +130,10 @@ This file is a convenience pointer for machine readers. The HTML pages and the J
 
 ## Machine-readable
 
+- [index.json]({b}/index.json): read-only bilingual catalog; experiences, profiles, experiment articles, weekly reports and dated payment policy
+- [machine-schema.json]({b}/machine-schema.json): catalog and record JSON Schema
+- [Payment policy]({b}/payment-policy/): dated closed mainnet pilot; GET runtime status for availability
+- [Experiment notebook]({b}/experiment/): observed facts, hypotheses and limitations
 - [experiences.json]({b}/experiences.json): every experience with all fields
 - [agents.json]({b}/agents.json): agent profiles
 - [submission-schema.json]({b}/submission-schema.json): JSON Schema for proposed experiences
@@ -189,6 +193,11 @@ def page(path: str, title: str, description: str, body: str, jsonld: dict | None
     prefix = '/ja' if lang == 'ja' else ''
     # Explicit English links prevent a saved/browser Japanese preference overriding navigation.
     suffix = '?lang=en' if lang == 'en' else ''
+    from machine_catalog import record_path_for_page
+    record_json = record_path_for_page(en, lang, DATA)
+    if record_json:
+        body += '<p class="machine-link"><a href="'+record_json+'">JSON</a> · <a href="/index.json">index.json</a></p>'
+        ld += '<link rel="alternate" type="application/json" href="'+esc(base_url()+record_json)+'">'
     body = localize_links(body, lang)
     if 'src="/payment-client.js"' in body:
         payment_bytes = (ROOT / 'static' / 'payment-client.js').read_bytes()
@@ -201,7 +210,7 @@ def page(path: str, title: str, description: str, body: str, jsonld: dict | None
     text = layout.substitute(
         lang=lang, home=prefix+'/' + suffix,
         tagline='答えを探すより、すでに同じ壁にぶつかったAIを探そう。' if lang == 'ja' else "Don't search for the answer. Find the AI that already found it.",
-        navigation='[ ' + ' | '.join(f'<a href="{prefix}{p}{suffix}">{n}</a>' for p,n in zip(paths,names)) + ' ]',
+        navigation=' '.join(f'<a href="{prefix}{p}{suffix}">{n}</a>' for p,n in zip(paths,names)),
         footer='手作りの静的ページ' if lang == 'ja' else 'hand-made static pages',
         alternates='\n'.join(f'<link rel="alternate" hreflang="{code}" href="{esc(base_url()+target)}">' for code,target in [('en',en),('ja',ja),('x-default',en)]),
         language_switch=f'<p class="language-switch" aria-label="Language / 言語"><a data-language="en" lang="en" hreflang="en" href="{en}?lang=en">English</a> | <a data-language="ja" lang="ja" hreflang="ja" href="{ja}?lang=ja">日本語</a></p>',
@@ -331,42 +340,6 @@ def render_indexes(exps: list[dict], agents: list[dict]) -> None:
          "Profiles of the AI agents whose experiences are listed on AICQSOHOO!.",
          f"<h1>Agents</h1>\n<ul class=\"directory\">\n{agent_items}</ul>")
 
-    tags: dict[str, list[dict]] = {}
-    for e in exps:
-        for t in e["tags"]:
-            tags.setdefault(t, []).append(e)
-    cats = "".join(
-        f'<li><b>{esc(t)}</b> ({len(v)}): '
-        + ", ".join(f'<a href="{exp_path(e)}">{esc(e["title"])}</a>' for e in v)
-        + "</li>\n"
-        for t, v in sorted(tags.items(), key=lambda kv: (-len(kv[1]), kv[0]))
-    )
-    home = f"""<div class="search-box">
-<p><b>Stuck on something?</b> Somebody's AI may have hit the same wall already. Browse the directory below.
-<small>(No search box yet. It is 1998 in here.)</small></p>
-<p>Got one of your own? <a href="/submit/">Submit an experience</a> <span class="new">NEW!</span></p>
-</div>
-<h2>What's New! <span class="new">NEW!</span></h2>
-<ul class="directory">
-{exp_items}</ul>
-<h2>Directory by topic</h2>
-<ul>
-{cats}</ul>
-<h2>What is this?</h2>
-<p>Search engines find pages that contain an answer. AICQSOHOO! lists AI agents and the concrete things they
-went through: what they tried, where they got stuck, and what worked. Every experience here comes from a
-logged run. Pages say how many runs they rest on, and they say so when that number is one.</p>
-<p><a href="/about/">More about AICQSOHOO!</a></p>"""
-    page("/", f"{SITE_NAME} - find the AI that already found it",
-         "A small directory of real AI agent experiences: what the agent tried, what failed, and reusable lessons.",
-         home, {
-             "@context": "https://schema.org",
-             "@type": "WebSite",
-             "name": SITE_NAME,
-             "url": base_url() + "/",
-             "description": "A small directory of real AI agent experiences.",
-         }, counter=True)
-
     about = """<h1>About AICQSOHOO!</h1>
 <p>AICQSOHOO! is a small experiment. The question is whether a page about what an AI agent actually
 experienced can be found by people, crawlers and AI web search, without anyone being handed the URL.</p>
@@ -414,7 +387,7 @@ def write_machine_files(exps: list[dict], agents: list[dict]) -> None:
     (OUT / "agents.json").write_text(
         json.dumps([machine_record(a, AGENT_FIELDS) for a in agents], ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8")
-    paths = ["/", "/about/", "/submit/", "/experiences/", "/agents/", "/experiment/", "/contribute/"] + [exp_path(e) for e in exps] + [agent_path(a) for a in agents]
+    paths = ["/", "/about/", "/submit/", "/experiences/", "/agents/", "/experiment/", "/contribute/", "/payment-policy/"] + [exp_path(e) for e in exps] + [agent_path(a) for a in agents]
     paths += [f'/experiment/{p.stem}/' for p in sorted((DATA / 'reports').glob('*.json'))]
     paths += ['/ja'+path for path in list(paths)]
     modified = {exp_path(e): e.get('updated_at', PUBLISHED) for e in exps}
@@ -434,12 +407,9 @@ def render_reports() -> None:
     for source in sorted((DATA / 'reports').glob('*.json'), reverse=True):
         report = json.loads(source.read_text(encoding='utf-8'))
         path = f'/experiment/{source.stem}/'
-        ja = report.get('translations', {}).get('ja')
-        translated = DATA/'report-translations'/'ja'/(source.stem+'.json')
-        if ja is None and translated.exists():
-            ja = json.loads(translated.read_text(encoding='utf-8'))
-        if ja is None:
-            raise ValueError(f'Missing reviewed Japanese report: {source.stem}')
+        from machine_catalog import reviewed_report
+        views = reviewed_report(DATA, source)
+        report, ja = views['en'], views['ja']
         body = f'<article><h1>{esc(report["title"])}</h1>'
         for key, label in [('facts', 'Observed facts'), ('hypotheses', 'Hypotheses'),
                            ('changes', 'Changes and process'), ('next_steps', 'Next steps'),
@@ -495,6 +465,8 @@ def build() -> None:
         page(('/ja' if lang=='ja' else '')+'/contribute/self-test/', '本人限定の送金 | '+SITE_NAME if lang=='ja' else 'Owner transfer | '+SITE_NAME, 'Owner-only single 0.01 real USDC distinct-payer transfer on Base mainnet; general contributions disabled.', (ROOT/'templates'/('self-test.'+lang+'.html')).read_text(encoding='utf-8'), lang=lang)
     from japanese_pages import render_japanese
     render_japanese(page, exps, agents, DATA, base_url())
+    from machine_catalog import write_catalog
+    write_catalog(OUT, DATA, base_url(), exps, agents, EXPERIENCE_FIELDS, AGENT_FIELDS, page)
     write_llms_txt(exps)
     page("/404/", f"Page not found | {SITE_NAME}", "This page does not exist.",
          '<h1>404: Not Found!</h1>\n<p>This page wandered off. Try the <a href="/experiences/">experience index</a>.</p>')

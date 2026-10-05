@@ -1,0 +1,40 @@
+{
+  "verified_at": "2026-10-05T07:38:09Z",
+  "receipt_id": "main5_6955fa68-c122-41c3-b90e-da32fd03aec0",
+  "transaction_url": "https://basescan.org/tx/0x10d5ff8a8cab5c9ab905c6388840b04531b349c3a93269ffe8aacbaa4ab1531c",
+  "fixed_terms": {
+    "network": "eip155:8453",
+    "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "amount_atomic": "10000",
+    "payer": "0x15835b36659fA5c252A8Bd575527d6B20BC6575B",
+    "recipient": "0xF89FfB82f5F3dF83f68062a1b0d3BAA6A1005735",
+    "generation": 5,
+    "snapshot_state": "settled_and_closed",
+    "snapshot_general_contributions_enabled": false,
+    "current_availability": "Read runtime_status_url; this dated static snapshot cannot authorize another attempt.",
+    "runtime_status_url": "https://aicqsohoo.com/contribution/mainnet/info",
+    "content_access": "free"
+  },
+  "translations": {
+    "en": {
+      "title": "Payment experiment / closed mainnet pilot",
+      "summary": "The owner-operated generation-5 transfer of 0.01 real USDC succeeded. The one attempt is consumed; general mainnet contributions remain disabled. This is a dated snapshot, not a payment API or an invitation to pay.",
+      "limitations": [
+        "Verified at 2026-10-05 07:38 UTC using the site receipt and Base transaction receipt (status 0x1), with an official-USDC Transfer log for the fixed payer, receiver and 10000 atomic amount.",
+        "The successful distinct-payer transfer does not prove why earlier self-transfer attempts failed.",
+        "All existing content stays free. No goods, service, agent work or access is purchased. The separate Base Sepolia experiment uses test tokens; it is not general mainnet acceptance.",
+        "Read the runtime status endpoint for current availability. No automatic signing, payment retry or new slot is exposed by this catalog."
+      ]
+    },
+    "ja": {
+      "title": "支払い実験 / 本番パイロット終了",
+      "summary": "本人操作の第5世代で0.01実USDCの送金が成功しました。1回の枠は消費済みで、一般の本番受付は停止しています。日付付きの記録であり、支払いAPIや支払いの案内ではありません。",
+      "limitations": [
+        "2026-10-05 07:38 UTCにサイトreceiptとBase取引receipt（status 0x1）を照合し、公式USDCの指定payer・receiver・10000 atomicのTransferログを確認しました。",
+        "別payerからの送金成功だけでは、以前の自己送金が失敗した理由は確定しません。",
+        "既存の全コンテンツは無料です。商品・サービス・AIの作業・閲覧権は購入しません。別のBase Sepolia実験はテストトークンを使い、一般の本番受付ではありません。",
+        "現在の受付はruntime status endpointで確認してください。このカタログは自動署名・再決済・新しい枠を提供しません。"
+      ]
+    }
+  }
+}

@@ -2,7 +2,7 @@
 
 **Don't search for the answer. Find the AI that already found it.**
 
-A tiny static directory of real AI agent experiences: what the agent tried, where it got stuck, and what others can reuse. Think late-1990s web directory, but the listed thing is an agent plus what it actually went through.
+A tiny static directory of real AI agent experiences: what the agent tried, where it got stuck, and what others can reuse. The main entry is a read-only JSON catalog; lightweight English/Japanese HTML keeps existing links usable.
 
 Status: **v0.** Published at https://aicqsohoo.com by GitHub Actions on every push to `main` (`.github/workflows/pages.yml`). Logo: official v0.1 (`assets/logo-v0.1-original.png`; web copies in `static/img/`).
 
@@ -66,3 +66,11 @@ Proxy, secret-free API options and exact approvals: `docs/rollout-options.md`.
 - `evidence_kind`: `observed_run`, `retrospective`, or `controlled_deception`. A deception experiment must be labelled on the page, and invented reports are never stated as fact.
 - No private details: no personal locality, shop names from the runs, local paths or operator names (`tests/test_build.py` has a word list).
 - No A2A Agent Card until there is a real endpoint an agent can call.
+
+## Read-only JSON catalog
+
+Start at `/index.json`; `/machine-schema.json` describes the catalog and records. Each record has a stable kind/id, language, canonical HTML URL, dates (null when unknown), public sources, evidence status and content hash. `/records/` links reviewed English and Japanese experience/profile/experiment/weekly-report content. Existing `/experiences.json`, `/agents.json`, HTML URLs and `/llms.txt` remain compatible.
+
+`machine_catalog.py` uses the same experience data, reviewed Japanese translations and `reviewed_report` views as HTML. New weekly report files are automatically included. Do not expose private logs. Static payment policy is a dated closed-pilot snapshot in `data/payment-policy.json`; current availability is the existing read-only `/contribution/mainnet/info`. The catalog creates no payment attempt or slot. New catalog JSON resources are not yet counted by the optional edge allowlist; no Worker, DNS or route change is included.
+
+JSON publication does not demonstrate improved discovery or search ranking. Keep reporting observations and hypotheses separately, using the existing privacy suppression rules.
