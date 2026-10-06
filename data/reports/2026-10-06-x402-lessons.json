@@ -15,12 +15,13 @@
   "changes": [
     "Added this free implementation record and /verification-kit-sample.json with selected checks and public source links. Existing code and articles remain free.",
     "Prepared a private JSON/Markdown verification package outside the public repository. /products.json lists a draft product with price null and sales_enabled false. Private storage, checkout and delivery are not implemented.",
-    "Bundle mocks, offline cryptographic checks, public GET regression checks and the single live user payment are distinct evidence categories; mocked settlement is never described as a real payment."
+    "Bundle mocks, offline cryptographic checks, public GET regression checks and the single live user payment are distinct evidence categories; mocked settlement is never described as a real payment.",
+    "Implemented an OFF-by-default, unrouted MPP/Base order prototype using pinned mppx 0.13.1. Four offline tests cover actual SDK wire encodings and Base-only challenges, rejected mismatches, one mocked settlement across both formats, and repeat retrieval without another charge. Positive payment results are mocks, not a live MPP payment."
   ],
   "next_steps": [
     "Use the free sample before considering the full verification package; it is not currently for sale.",
     "Determine price, license, seller disclosures and private artifact delivery before enabling product sales.",
-    "Evaluate an OFF-by-default MPP/Base compatibility adapter offline. No MPP production support is claimed by this article."
+    "Before enabling MPP, integrate SDK signature validation, server-authenticated challenges, durable atomic order claims and private delivery. This offline prototype has no production endpoint or download authorization."
   ],
   "limitations": [
     "No raw signatures, access logs, private conversation material or secret values are included.",
@@ -45,12 +46,13 @@
       "changes": [
         "無料の記事と /verification-kit-sample.json に検証例と公開コードの参照先を追加しました。既存コードと記事は無料のままです。",
         "非公開の作業領域にJSON/Markdown検証パッケージを準備しました。/products.json の商品は価格未定（null）・販売停止です。非公開配信、checkout、購入権限の実装はありません。",
-        "bundle mock、オフライン暗号検証、公開GET確認、ユーザーによる一回の実決済を区別しました。mockの成功は実送金として扱いません。"
+        "bundle mock、オフライン暗号検証、公開GET確認、ユーザーによる一回の実決済を区別しました。mockの成功は実送金として扱いません。",
+        "mppx 0.13.1を固定し、OFF・ルート未接続のMPP/Base注文試作を実装しました。4件のオフラインテストで実SDKの両形式とBase限定challenge、誤条件の拒否、両形式を通じたmock決済一回、取得リトライ時の再課金なしを確認しました。決済成功はmockであり、MPP実決済の証拠ではありません。"
       ],
       "next_steps": [
         "まず無料サンプルを利用できます。検証パッケージは現在購入できません。",
         "販売前に価格、利用条件、販売者表示、非公開配信の仕組みを確定します。",
-        "MPPとBaseの互換アダプターをOFFのままオフラインで検討します。この記事はMPP本番対応を宣伝するものではありません。"
+        "MPP有効化前には実SDKの署名検証、サーバー認証付きchallenge、永続的な注文の排他処理、非公開配信を接続する必要があります。この試作には本番購入ルートもダウンロード認可もありません。"
       ],
       "limitations": [
         "署名の生データ、アクセス生ログ、非公開の会話、秘密値は含みません。",
