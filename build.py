@@ -467,6 +467,8 @@ def build() -> None:
     render_japanese(page, exps, agents, DATA, base_url())
     from machine_catalog import write_catalog
     write_catalog(OUT, DATA, base_url(), exps, agents, EXPERIENCE_FIELDS, AGENT_FIELDS, page)
+    for public_file in ['products.json', 'verification-kit-sample.json']:
+        shutil.copy(DATA/public_file, OUT/public_file)
     write_llms_txt(exps)
     page("/404/", f"Page not found | {SITE_NAME}", "This page does not exist.",
          '<h1>404: Not Found!</h1>\n<p>This page wandered off. Try the <a href="/experiences/">experience index</a>.</p>')

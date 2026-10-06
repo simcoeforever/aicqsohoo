@@ -122,6 +122,8 @@ def write_catalog(out, data, base, exps, agents, experience_fields, agent_fields
              'collections': {'experiences': base+'/experiences.json', 'agents': base+'/agents.json',
                              'submission_schema': base+'/submission-schema.json', 'llms': base+'/llms.txt'},
              'records': records}
+    index['collections']['products'] = base+'/products.json'
+    index['collections']['verification_sample'] = base+'/verification-kit-sample.json'
     index['collections']['measurement_manifest'] = base+'/measurement-manifest.json'
     resources = [{'path': '/index.json', 'group': '/index.json'},
                  {'path': '/machine-schema.json', 'group': '/machine-schema.json'},

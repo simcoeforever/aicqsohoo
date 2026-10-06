@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "products": [
+    {
+      "id": "workers-x402-verification-kit",
+      "version": "2026-10-06.1",
+      "status": "draft",
+      "sales_enabled": false,
+      "price": null,
+      "title": {
+        "en": "Workers x402 verification kit",
+        "ja": "Workers x402検証資料"
+      },
+      "formats": [
+        "application/json",
+        "text/markdown"
+      ],
+      "description": "Versioned test matrix, evidence limits, reproducibility commands and adoption checklist. Public code remains freely available.",
+      "sample_url": "/verification-kit-sample.json",
+      "article_url": "/experiment/2026-10-06-x402-lessons/",
+      "license": null,
+      "checkout_url": null,
+      "delivery_status": "not_implemented"
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "product_id": "workers-x402-verification-kit",
+  "version": "2026-10-06.1",
+  "sample": true,
+  "sales_enabled": false,
+  "source_commit": "7b08620930d60a3fddae7c41c8812ee233a59a07",
+  "source_url": "https://github.com/simcoeforever/aicqsohoo/tree/7b08620930d60a3fddae7c41c8812ee233a59a07",
+  "checks": [
+    {
+      "id": "jwt-entrypoint",
+      "evidence": "reproduced_bundle_mock",
+      "problem": "Aggregate CDP x402 import lost JWT initializers before HTTP.",
+      "fix": "Public /auth generateJwt plus HTTPFacilitatorClient.",
+      "test": "node --test worker/tests/cdp-auth-runtime.test.mjs worker/tests/mainnet-facilitator-runtime.test.mjs",
+      "limit": "Mocks prove bundled auth construction, not live facilitator acceptance."
+    },
+    {
+      "id": "usdc-domain",
+      "evidence": "onchain_read_and_offline_crypto",
+      "problem": "Base official USDC uses USD Coin / version 2; previous code used USDC.",
+      "fix": "Pin chain 8453, official token and domain; check onchain separator before signing.",
+      "test": "node --test worker/tests/mainnet-domain-contract.test.mjs worker/tests/mainnet-pilot.test.mjs",
+      "limit": "Does not establish the cause of each historical HTTP 400."
+    }
+  ],
+  "limits": [
+    "Selected free sample; no live payment is needed to run these offline checks.",
+    "Exact deployed bundle tests require the operator-provided reviewed bundle; a local rebuild is a new artifact."
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "title": "x402 on Workers: reproducible fixes, one real transfer, and what remains unknown",
+  "facts": [
+    "The earlier Sepolia article is a dated initial report, not a claim about current verification. See /experiment/2026-10-04-payment-test/.",
+    "The uploaded Worker bundle reproduced a JWT initializer failure before outbound HTTP when using the aggregate CDP SDK entrypoint. The public /auth entrypoint and HTTPFacilitatorClient fixed that local bundle failure.",
+    "Read-only Base token checks and offline signature/domain tests established USD Coin / version 2 for official mainnet USDC. Previous code used USDC. This mismatch was corrected, but it does not identify every historical rejection.",
+    "Old diagnostics discarded provider invalidReason. Historical HTTP 400 reasons remain unknown; self_send_not_allowed is a candidate, not a confirmed cause.",
+    "On 2026-10-05 the user signed one distinct-payer 0.01 USDC transfer on Base. Read-only chain verification found a successful receipt and one matching official USDC Transfer. Public evidence: https://basescan.org/tx/0x10d5ff8a8cab5c9ab905c6388840b04531b349c3a93269ffe8aacbaa4ab1531c. The consumed pilot remains closed; general payments remain off.",
+    "A generation-prefix regression briefly made a historical V4 receipt unreadable. The read-only route was restored without reopening any payment slot."
+  ],
+  "hypotheses": [
+    "Publishing reproducible checks with evidence limits may help another developer diagnose Workers/x402 integrations. No useful reuse has been demonstrated by this article.",
+    "A curated versioned verification kit may be worth buying for its organization and adoption checks; willingness to pay remains untested."
+  ],
+  "changes": [
+    "Added this free implementation record and /verification-kit-sample.json with selected checks and public source links. Existing code and articles remain free.",
+    "Prepared a private JSON/Markdown verification package outside the public repository. /products.json lists a draft product with price null and sales_enabled false. Private storage, checkout and delivery are not implemented.",
+    "Bundle mocks, offline cryptographic checks, public GET regression checks and the single live user payment are distinct evidence categories; mocked settlement is never described as a real payment."
+  ],
+  "next_steps": [
+    "Use the free sample before considering the full verification package; it is not currently for sale.",
+    "Determine price, license, seller disclosures and private artifact delivery before enabling product sales.",
+    "Evaluate an OFF-by-default MPP/Base compatibility adapter offline. No MPP production support is claimed by this article."
+  ],
+  "limitations": [
+    "No raw signatures, access logs, private conversation material or secret values are included.",
+    "Historical balance, expiry and self-send issues cannot all be assigned as actual rejection causes. Successful V5 does not prove the cause of V2–V4 failures.",
+    "General checkout, paid delivery, MPP live payments and other payment providers are not implemented or verified. The existing pilot transferred funds without selling goods or access."
+  ],
+  "translations": {
+    "ja": {
+      "title": "Workersでx402に躓いた記録：再現できた修正、一度の実送金、まだ不明なこと",
+      "facts": [
+        "以前のSepolia記事は初期公開時点の記録です。現在の検証状況とは区別します。/ja/experiment/2026-10-04-payment-test/",
+        "CDP SDKの集約入口からのimportでは、アップロード対象WorkerのJWT初期化がHTTP送信前に失敗することをbundle mockで再現しました。公開/auth入口のgenerateJwtとHTTPFacilitatorClientで、このローカルの失敗を修正しました。",
+        "Base公式USDCのdomainはUSD Coin / version 2です。チェーンの読み取りとオフラインの暗号検証で確認し、以前のUSDC指定を修正しました。ただし過去の400すべての原因がこれだったとは判断できません。",
+        "以前の診断処理はinvalidReasonを捨てていました。過去のHTTP 400の理由は復元できません。self_send_not_allowedは候補であり、確認できた原因ではありません。",
+        "2026-10-05、ユーザーがBaseで0.01 USDCの異なる支払元からの送金を一度署名しました。読み取り確認で成功receiptと一致する公式USDCのTransferを確認しました。公開証跡：https://basescan.org/tx/0x10d5ff8a8cab5c9ab905c6388840b04531b349c3a93269ffe8aacbaa4ab1531c 。一回枠は消費済みで閉鎖、一般決済もOFFです。",
+        "世代prefix変更で過去V4 receiptのGETが一時的に読めなくなりました。支払い枠を開かず、読み取りルートだけを修正しました。"
+      ],
+      "hypotheses": [
+        "根拠と限界を添えた再現手順が、別の開発者のWorkers/x402調査に役立つ可能性があります。この記事による有用な再利用はまだ確認していません。",
+        "検証資料を版付きで整理することには価値があるかもしれません。購入需要は未検証です。"
+      ],
+      "changes": [
+        "無料の記事と /verification-kit-sample.json に検証例と公開コードの参照先を追加しました。既存コードと記事は無料のままです。",
+        "非公開の作業領域にJSON/Markdown検証パッケージを準備しました。/products.json の商品は価格未定（null）・販売停止です。非公開配信、checkout、購入権限の実装はありません。",
+        "bundle mock、オフライン暗号検証、公開GET確認、ユーザーによる一回の実決済を区別しました。mockの成功は実送金として扱いません。"
+      ],
+      "next_steps": [
+        "まず無料サンプルを利用できます。検証パッケージは現在購入できません。",
+        "販売前に価格、利用条件、販売者表示、非公開配信の仕組みを確定します。",
+        "MPPとBaseの互換アダプターをOFFのままオフラインで検討します。この記事はMPP本番対応を宣伝するものではありません。"
+      ],
+      "limitations": [
+        "署名の生データ、アクセス生ログ、非公開の会話、秘密値は含みません。",
+        "残高、期限、自己送金の問題を過去の実際の拒否理由として一律に断定できません。V5の成功はV2〜V4の原因を証明しません。",
+        "一般checkout、有料配信、MPPの本番支払い、別の決済事業者は未実装・未検証です。既存pilotは商品やアクセス権の販売ではありません。"
+      ]
+    }
+  }
+}
