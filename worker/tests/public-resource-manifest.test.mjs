@@ -10,8 +10,14 @@ test('exact common public manifest includes all catalog JSONs and both policy HT
 test('bounded manifest fetch strips all visitor headers/query, caches concurrent requests, refreshes for future weekly publication without Worker deployment',async()=>{
  let clock=0,calls=0,body=manifest;const resolve=createManifestResolver({now:()=>clock,ttlMs:300000});const fetcher=async r=>{calls++;assert.equal(r.url,'https://aicqsohoo.com/measurement-manifest.json');assert.equal(r.method,'GET');assert.equal(r.redirect,'manual');assert.equal(r.headers.has('Cookie'),false);assert.equal(r.headers.has('Referer'),false);assert.equal(r.headers.has('Authorization'),false);return Response.json(body);};
  assert.deepEqual(await Promise.all(Array.from({length:10},()=>resolve('/index.json',fetcher))),Array(10).fill('/index.json'));assert.equal(calls,1);
- const future='/records/weekly_report/2026-10-05.ja.json';assert.equal(await resolve(future,fetcher),null);body={...manifest,resources:[...manifest.resources,{path:future,group:'/records/weekly_report/'}]};clock=300001;assert.equal(await resolve(future,fetcher),'/records/weekly_report/');assert.equal(calls,2);
- assert.equal(await resolve('/arbitrary.json',fetcher),null);assert.equal(calls,2);
+ // Model publication explicitly: the real catalog may already contain this week.
+ const future='/records/weekly_report/2026-10-05.ja.json';
+ body={...manifest,resources:manifest.resources.filter(resource=>resource.path!==future)};
+ clock=300001;assert.equal(await resolve(future,fetcher),null);assert.equal(calls,2);
+ body={...body,resources:[...body.resources,{path:future,group:'/records/weekly_report/'}]};
+ assert.equal(await resolve(future,fetcher),null);assert.equal(calls,2);
+ clock=600002;assert.equal(await resolve(future,fetcher),'/records/weekly_report/');assert.equal(calls,3);
+ assert.equal(await resolve('/arbitrary.json',fetcher),null);assert.equal(calls,3);
  for(const reply of [new Response('PRIVATE'),Response.json({...manifest,private:'PRIVATE'}),new Response('x'.repeat(65537),{headers:{'Content-Type':'application/json'}})]){let n=0;const r=createManifestResolver();assert.equal(await r('/index.json',async()=>{n++;return reply;}),null);assert.equal(await r('/index.json',async()=>{n++;throw Error('PRIVATE');}),null);assert.equal(n,1);}
 });
 test('every exact new JSON/policy success GET stores only category/domain/test; unknown/HEAD/404 excluded and origin retained',async()=>{
