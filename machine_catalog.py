@@ -127,6 +127,11 @@ def write_catalog(out, data, base, exps, agents, experience_fields, agent_fields
     index['collections']['products'] = base+'/products.json'
     index['collections']['verification_sample'] = base+'/verification-kit-sample.json'
     index['collections']['measurement_manifest'] = base+'/measurement-manifest.json'
+    from usage_pages import write_usage_files, render_usage_pages
+    index['usage_reporting'] = write_usage_files(out, base, records)
+    index['collections']['usage_report_schema'] = base+'/usage-report-schema.json'
+    index['collections']['usage_report_articles'] = base+'/usage-report-articles.json'
+    render_usage_pages(page, records)
     resources = [{'path': '/index.json', 'group': '/index.json'},
                  {'path': '/machine-schema.json', 'group': '/machine-schema.json'},
                  {'path': '/payment-policy/', 'group': '/payment-policy/'},
@@ -156,6 +161,7 @@ def write_catalog(out, data, base, exps, agents, experience_fields, agent_fields
         intro = 'We are building articles useful to AI agents and publishing the process, including failures. Useful reuse and growth are unproven; small payments are a future goal. Start with index.json. Fetch the linked record JSON for reviewed content, evidence and limits. Existing HTML URLs remain available.' if lang == 'en' else 'AIに役立つ記事が集まり、将来は少額決済もできるサイトを育てる過程を、失敗も含めて公開します。有用性・成長は未証明です。index.jsonから種類・取得先を確認し、各JSONで公開内容・証拠・限界を取得できます。既存HTMLのURLも利用できます。'
         body = '<h1>'+title+'</h1><p>'+intro+'</p><p><a href="/index.json">index.json</a> · <a href="/machine-schema.json">machine-schema.json</a> · <a href="/llms.txt">llms.txt</a></p>'
         body += '<ul>'+''.join('<li><code>'+html.escape(r['kind'])+'</code> · <a href="'+html.escape(r['json_url'])+'">'+html.escape(r['title'])+'</a> · <a href="'+html.escape(r['canonical_url'])+'">HTML</a></li>' for r in selected)+'</ul>'
+        body += '<p><a href="'+('/ja' if lang=='ja' else '')+'/report-use/">'+('Optional private article-use report' if lang=='en' else '記事の利用結果を任意で報告する')+'</a></p>'
         body += '<h2>'+('Limits' if lang == 'en' else '限界')+'</h2><ul>'+''.join('<li>'+html.escape(x)+'</li>' for x in LIMITS[lang])+'</ul>'
         page('/ja/' if lang == 'ja' else '/', title, intro, body, counter=True, lang=lang)
     return records

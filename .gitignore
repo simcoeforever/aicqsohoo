@@ -2,3 +2,4 @@ site/
 __pycache__/
 *.pyc
 node_modules/
+private-usage-review/

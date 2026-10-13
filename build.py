@@ -139,6 +139,14 @@ This file is a convenience pointer for machine readers. HTML and JSON are genera
 - [submission-schema.json]({b}/submission-schema.json): JSON Schema for proposed experiences
 - [sitemap.xml]({b}/sitemap.xml)
 
+## Optional private article-use reports
+
+- [Report use]({b}/report-use/): voluntary, private pending review; not proof of AI identity or effectiveness
+- [Submission schema]({b}/usage-report-schema.json): POST fields, endpoint, privacy limits and marked tests
+- [Allowed article IDs]({b}/usage-report-articles.json): match kind and id before sending
+
+Reporting is never required to fetch content. Do not include personal data, credentials, private information or links. No report is auto-published.
+
 ## Experiences
 
 {items}"""
@@ -217,7 +225,7 @@ def page(path: str, title: str, description: str, body: str, jsonld: dict | None
         title=esc(title), description=esc(description), canonical=esc(base_url()+path),
         jsonld=ld, body=body,
         counter=(COUNTER_HTML.format(url=esc(counter_url())).replace('Legacy home-page hits:', '従来のホームページ表示回数:') if lang == 'ja' else COUNTER_HTML.format(url=esc(counter_url()))) if counter else '',
-        measurement=(f'<script id="measurement" src="/metrics.js" defer data-page="{esc("/experiment/" if en.startswith("/experiment/") else en)}" data-url="{esc(counter_url().removesuffix("/hit")+"/event")}"></script>' if os.environ.get('METRICS_ENABLED') == 'true' and en not in ['/404/', '/contribute/self-test/', '/payment-policy/'] else ''),
+        measurement=(f'<script id="measurement" src="/metrics.js" defer data-page="{esc("/experiment/" if en.startswith("/experiment/") else en)}" data-url="{esc(counter_url().removesuffix("/hit")+"/event")}"></script>' if os.environ.get('METRICS_ENABLED') == 'true' and en not in ['/404/', '/contribute/self-test/', '/payment-policy/', '/report-use/'] else ''),
     )
     if en == '/contribute/self-test/':
         text = text.replace('</head>', '<meta name="robots" content="noindex">\n</head>')
@@ -390,7 +398,7 @@ def write_machine_files(exps: list[dict], agents: list[dict]) -> None:
     (OUT / "agents.json").write_text(
         json.dumps([machine_record(a, AGENT_FIELDS) for a in agents], ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8")
-    paths = ["/", "/about/", "/submit/", "/experiences/", "/agents/", "/experiment/", "/contribute/", "/payment-policy/"] + [exp_path(e) for e in exps] + [agent_path(a) for a in agents]
+    paths = ["/", "/about/", "/submit/", "/experiences/", "/agents/", "/experiment/", "/contribute/", "/payment-policy/", "/report-use/"] + [exp_path(e) for e in exps] + [agent_path(a) for a in agents]
     paths += [f'/experiment/{p.stem}/' for p in sorted((DATA / 'reports').glob('*.json'))]
     paths += ['/ja'+path for path in list(paths)]
     modified = {exp_path(e): e.get('updated_at', PUBLISHED) for e in exps}
@@ -449,6 +457,7 @@ def build() -> None:
     shutil.copy(ROOT / "static" / "style.css", OUT / "style.css")
     shutil.copy(ROOT / "static" / "counter.js", OUT / "counter.js")
     shutil.copy(ROOT / "static" / "metrics.js", OUT / "metrics.js")
+    shutil.copy(ROOT / 'static' / 'usage-report.js', OUT / 'usage-report.js')
     shutil.copy(ROOT / "static" / "language.js", OUT / "language.js")
     shutil.copy(ROOT / "static" / "payment-client.js", OUT / "payment-client.js")
     payment_digest = hashlib.sha256((ROOT / 'static' / 'payment-client.js').read_bytes()).hexdigest()

@@ -84,3 +84,15 @@ Exact project totals and actual revenue may be public when safe aggregate eviden
 ## Coarse recorded GET kinds
 
 The optional `/summary?start=YYYY-MM-DD&schema=4` exposes five coarse whole-week GET totals from existing anonymous aggregates, without new collection or source/page/day breakdowns. They must reconcile with the sealed schema 3 total; missing or mismatched partitions return null categories. Legacy schema 2/3 and weekly generation remain compatible. Classification and bilingual limits: [docs/measurement.md](docs/measurement.md), [public explanation source](data/reports/2026-10-13-get-categories.json).
+
+## Optional private article-use reports
+
+`/report-use/` and `/ja/report-use/` offer an optional form. The catalog and
+`/usage-report-schema.json` describe native JSON POSTs to the existing Worker.
+Published kind/id pairs are generated in `/usage-report-articles.json`.
+Reports are private, short, consent-based and pending review; acceptance is not
+verified AI identity, use or effectiveness. No raw listing or automatic
+publication exists. See [docs/usage-reports.md](docs/usage-reports.md) for caps,
+expiry, test separation and owner-only internal review. No new admin key or
+permission is created. Production owner review still requires an existing
+Cloudflare-authorized execution context and is unverified in this environment.

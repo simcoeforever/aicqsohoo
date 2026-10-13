@@ -13,6 +13,7 @@ const options = {
   bindings: {PAYMENT_MODE:'testnet',METRICS_ENABLED:'true', PUBLIC_SUMMARY:'false', EDGE_ENABLED:'false',
     PUBLIC_PAGES:'["/","/submit/","/about/","/experiment/"]', REPORT_TOKEN:'runtime-test-only'},
   outboundService: request => {
+    if(request.url==='https://aicqsohoo.com/usage-report-articles.json')return Response.json({schema_version:1,articles:[{kind:'experience',id:'stop-or-go-get-evidence'}]});
     if(request.url==='https://x402.org/facilitator/supported')return Response.json({kinds:[{x402Version:2,scheme:'exact',network:'eip155:84532'}],extensions:[],signers:{}});
     if (new URL(request.url).origin === 'https://aicqsohoo.com') return new Response('mocked GitHub Pages origin');
     throw new Error('External network forbidden in this runtime test');
@@ -62,6 +63,21 @@ try {
   assert.equal((await call('/contribution/test',{method:'POST',headers,body:JSON.stringify(paymentBody)})).status,503);
   options.workers[0].bindings.PAYMENT_MODE='mainnet';await mf.setOptions(convertV4MiniflareOptions(options));
   assert.equal((await call('/contribution/test',{method:'POST',headers,body:JSON.stringify(paymentBody)})).status,503);
+  const usageBody={article_kind:'experience',article_id:'stop-or-go-get-evidence',purpose:'solve_problem',outcome:'partly_helpful',task:'Synthetic local check',helpful:'An isolated test helped',missing:'More platform detail',consent:true,test:true};
+  const usageResponse=await call('/usage-reports',{method:'POST',headers,body:JSON.stringify(usageBody)});
+  assert.equal(usageResponse.status,202);
+  assert.deepEqual(await usageResponse.json(),{accepted:true,state:'pending_review',verification_status:'unverified_self_report',test:true});
+  assert.equal((await call('/usage-reports',{method:'POST',headers,body:JSON.stringify(usageBody)})).status,202);
+  const bindings=await mf.getBindings('counter');
+  const usageStub=bindings.COUNTER.get(bindings.COUNTER.idFromName('usage-reports-v1'));
+  const privateTests=await usageStub.reviewUsageReports({test:true,limit:20});
+  assert.equal(privateTests.length,1);assert.equal(privateTests[0].report.task,'Synthetic local check');
+  assert.equal(privateTests[0].state,'pending_review');assert.equal(privateTests[0].claim_type,'unverified_self_report');
+  assert.equal((await usageStub.reviewUsageReports({test:false,limit:20})).length,0);
+  for(const path of ['/usage-reports','/usage-reports/list','/usage-reports/review'])assert.ok([404,405].includes((await call(path)).status));
+  assert.equal((await call('/usage-reports',{method:'POST',headers,body:JSON.stringify({...usageBody,article_id:'unknown'})})).status,400);
+  assert.equal((await call('/usage-reports',{method:'POST',headers,body:JSON.stringify({...usageBody,task:'api_key=fake-value'})})).status,400);
+  assert.equal((await(await call('/hit')).json()).count,42);
   const event = {page:'/',event:'page_view',source:'search.example',test:false};
   for (let i=0;i<12;i++) {
     assert.equal((await call('/event',{method:'POST',headers,body:JSON.stringify(event)})).status,202);

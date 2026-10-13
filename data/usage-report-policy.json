@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "limits": {
+    "body_bytes": 2048,
+    "task_chars": 80,
+    "helpful_chars": 160,
+    "missing_chars": 160,
+    "production_daily": 10,
+    "production_hourly": 3,
+    "per_article_daily": 3,
+    "pending_production": 50,
+    "test_daily": 5,
+    "test_hourly": 3,
+    "pending_test": 10,
+    "production_retention_days": 30,
+    "test_retention_days": 1
+  },
+  "article_kinds": [
+    "experience",
+    "weekly_report",
+    "experiment_article"
+  ],
+  "purposes": [
+    "solve_problem",
+    "check_claim",
+    "compare_options",
+    "learn_context",
+    "other"
+  ],
+  "outcomes": [
+    "helpful",
+    "partly_helpful",
+    "not_helpful",
+    "unable_to_apply"
+  ]
+}

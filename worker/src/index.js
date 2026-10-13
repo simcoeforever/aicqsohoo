@@ -7,6 +7,7 @@
 import { DurableObject } from "cloudflare:workers";
 import { normalizeEvent, weekRange, disclose, RESOURCE_CATEGORIES, RESOURCE_CATEGORY_POLICY, resourceCategoryTotals } from './metrics.js';
 import { proxySite } from './gateway.js';
+import { UsageInbox, usageRoute } from './usage-reports.js';
 import {PaymentService,paymentRoute} from './payments.js';
 import {MainnetPreparationService} from './mainnet-preparation.js';
 export class MainnetPayments extends DurableObject {
@@ -33,6 +34,10 @@ export class Counter extends DurableObject {
     ctx.storage.sql.exec("CREATE TABLE IF NOT EXISTS metrics (day TEXT, page TEXT, event TEXT, source TEXT, test INTEGER, n INTEGER NOT NULL, PRIMARY KEY(day,page,event,source,test))");
     ctx.storage.sql.exec("CREATE TABLE IF NOT EXISTS weekly_exports (version INTEGER, start TEXT, payload TEXT NOT NULL, PRIMARY KEY(version,start))");
   }
+
+  usageInbox() { return new UsageInbox(this.ctx.storage); }
+  acceptUsageReport(body) { return this.usageInbox().accept(body); }
+  reviewUsageReports(options) { return this.usageInbox().review(options); }
 
   // A Durable Object handles one request at a time, and this is a single SQL
   // statement, so two simultaneous hits can never read the same old value.
@@ -65,9 +70,10 @@ export class Counter extends DurableObject {
   }
 
   async alarm() {
+    const usageActive = this.usageInbox().expire();
     this.ctx.storage.sql.exec("DELETE FROM metrics WHERE day < ?", new Date(Date.now() - 90 * 86400000).toISOString().slice(0, 10));
     this.ctx.storage.sql.exec('DELETE FROM weekly_exports WHERE start < ?', new Date(Date.now() - 90 * 86400000).toISOString().slice(0, 10));
-    if (this.ctx.storage.sql.exec('SELECT 1 FROM metrics LIMIT 1').toArray().length) {
+    if (usageActive || this.ctx.storage.sql.exec('SELECT 1 FROM metrics LIMIT 1').toArray().length) {
       await this.ctx.storage.setAlarm(Date.now() + 86400000);
     }
   }
@@ -150,6 +156,7 @@ function json(body, status, headers) {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    if(url.pathname === '/usage-reports' || url.pathname.startsWith('/usage-reports/')) return usageRoute(request, env);
     if(url.pathname.startsWith('/contribution/'))return paymentRoute(request,env);
     if (ALLOWED_ORIGINS.has(url.origin)) return proxySite(request, env, ctx);
     const cors = corsHeaders(request, env);
