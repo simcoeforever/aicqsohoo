@@ -341,8 +341,11 @@ def render_indexes(exps: list[dict], agents: list[dict]) -> None:
          f"<h1>Agents</h1>\n<ul class=\"directory\">\n{agent_items}</ul>")
 
     about = """<h1>About AICQSOHOO!</h1>
-<p>AICQSOHOO! is a small experiment. The question is whether a page about what an AI agent actually
-experienced can be found by people, crawlers and AI web search, without anyone being handed the URL.</p>
+<p>AICQSOHOO! is building a collection of articles useful to AI agents, with a possible future path to small payments. We publish the process: the questions, changes, measured results, failures and next experiments. Useful reuse and growth are still unproven.</p>
+<p>Original measurements and failed attempts may give an AI information it cannot get from a general explanation. That is a hypothesis to test. Start with <a href="/index.json">the JSON catalog</a>; human-readable pages make the same evidence reviewable.</p>
+<h2>What we publish</h2>
+<p>Code and project decisions are open. Exact project totals and actual revenue may be published when supported by safe aggregate records. Personal data, third-party private information, credentials and raw visitor logs stay private. We do not add individual tracking.</p>
+<p>Current weekly exports provide ten-event ranges, so past exact counts are unavailable from those exports and are not estimated. The recorded owner-operated 0.01 USDC <a href="/payment-policy/">payment pilot</a> is a payment test, not customer sales or proof of revenue. Existing content is free; the future payment goal does not open new sales.</p>
 <h2>Where the experiences come from</h2>
 <p>From a personal research project that runs AI agents on small real-world tasks with a virtual budget of
 $10, and records where they get stuck and what outside help they ask for. A human operator approves or
@@ -411,14 +414,14 @@ def render_reports() -> None:
         views = reviewed_report(DATA, source)
         report, ja = views['en'], views['ja']
         body = f'<article><h1>{esc(report["title"])}</h1>'
-        for key, label in [('facts', 'Observed facts'), ('hypotheses', 'Hypotheses'),
-                           ('changes', 'Changes and process'), ('next_steps', 'Next steps'),
+        for key, label in [('changes', 'Question and what we tried'), ('facts', 'Observed facts'),
+                           ('hypotheses', 'What the evidence means'), ('next_steps', 'What we will change next'),
                            ('limitations', 'Limits of the evidence')]:
             body += f'<h2>{label}</h2>' + ul(report[key])
         page(path, report['title'] + ' | ' + SITE_NAME, 'Public experiment observations and their limits.', body + '</article>', alternate='/ja'+path)
         links.append(f'<li><a href="{path}">{esc(report["title"])}</a></li>')
         body_ja = f'<article><h1>{esc(ja["title"])}</h1>'
-        for key, label in [('facts','観測した事実'), ('hypotheses','仮説'), ('changes','変更と過程'), ('next_steps','次の確認'), ('limitations','証拠の限界')]:
+        for key, label in [('changes','問いと試したこと'), ('facts','観測した事実'), ('hypotheses','言えること・言えないこと'), ('next_steps','次に変えること'), ('limitations','証拠の限界')]:
             body_ja += f'<h2>{label}</h2>' + ul(ja[key])
         page('/ja'+path, ja['title']+' | '+SITE_NAME, '公開実験の観測結果と、その証拠の限界。', body_ja+'</article>', lang='ja', alternate=path)
         links_ja.append(f'<li><a href="/ja{path}">{esc(ja["title"])}</a></li>')

@@ -44,6 +44,29 @@ class WeeklyTest(unittest.TestCase):
         self.assertIn('42', text)
         self.assertNotIn('raw_logs', text)
 
+    def test_editorial_notes_preserve_facts_and_reject_unsafe_overrides(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder); (root/'discovery').mkdir()
+            for name in ['tests.jsonl', 'interventions.jsonl']:
+                (root/'discovery'/name).write_text('', encoding='utf-8')
+            path = root/'discovery'/'weekly-notes.json'
+            with patch.object(weekly_report, 'ROOT', root):
+                original = weekly_report.make_report(self.sample())
+                fields = dict(changes=['Reviewed question and trial.'],
+                              hypotheses=['No demonstrated benefit.'], next_steps=['Plan only.'])
+                notes = {'en': fields, 'ja': fields}
+                path.write_text(json.dumps({'2026-09-28': notes}), encoding='utf-8')
+                edited = weekly_report.make_report(self.sample())
+                self.assertEqual(edited['changes'], fields['changes'])
+                self.assertEqual(edited['facts'], original['facts'])
+                self.assertEqual(edited['translations']['ja']['facts'], original['translations']['ja']['facts'])
+                self.assertEqual(edited['limitations'], original['limitations'])
+                for unsafe in [{'en': fields}, {'en': {**fields, 'facts': ['invented']}, 'ja': fields},
+                               {'en': fields, 'ja': {**fields, 'changes': 'not a list'}}]:
+                    path.write_text(json.dumps({'2026-09-28': unsafe}), encoding='utf-8')
+                    with self.assertRaises(ValueError):
+                        weekly_report.make_report(self.sample())
+
     def test_worker_page_allowlist_covers_site_without_arbitrary_paths(self):
         config = json.loads(re.sub(r'^\s*//.*$', '', (ROOT / 'worker' / 'wrangler.jsonc').read_text(encoding='utf-8'), flags=re.M))
         allowed = set(json.loads(config['vars']['PUBLIC_PAGES']))

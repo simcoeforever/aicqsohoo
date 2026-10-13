@@ -1,0 +1,64 @@
+{
+  "title": "Next experiment: do original measurements and failures help an AI solve a task?",
+  "changes": [
+    "Question: does adding a reviewed record of original measurements and failed attempts improve an AI’s solution beyond a general explanation?",
+    "Plan prepared on 2026-10-13; no trials were run. Candidate evidence already exists in data/reports/2026-10-06-x402-lessons.json and the free verification sample. Before running, select two reproducible local fault tasks supported by those records and one healthy control. If no two suitable tasks can be reproduced, report that gap instead of inventing a historical failure.",
+    "Construct sanitized offline fixtures. Publish the source record, what was observed in it, what was adapted for the fixture and executable scoring checks. Fixture outputs are synthetic, not production observations. Keep hidden answers out of all task packets."
+  ],
+  "facts": [
+    "This article is a protocol, not evidence of improved usefulness. No new paid API calls, transfers, real payments or billing were performed for this plan.",
+    "The prior six-trial comparison mentioned in conversation has no supporting report located in this repository as of 2026-10-13. Its timings and results are not cited here as verified evidence.",
+    "Existing articles, the implementation and its failures are public. The current weekly summary counts requests, not solution quality."
+  ],
+  "hypotheses": [
+    "Original failure details may help an AI choose a correct diagnosis and avoid a repeated mistake. They may also distract it or reveal task-specific answers; both possibilities must be scored.",
+    "The useful comparison is evidence plus explanation versus explanation alone. A task-only baseline shows the effect of providing any context. A small trial can inform the next edit, not establish general effectiveness."
+  ],
+  "next_steps": [
+    "Before execution, freeze fixture hashes, source records, model/version, prompt, local tools, time/token limits, scoring rubric and randomized condition order. No networking, secrets, wallets, automatic signing or payment endpoints in the fixtures.",
+    "Use three conditions: A task input only; B task input plus a general explanation drawn from public documentation; C the same input and general explanation plus AICQ measurements and failures. Match B and C context budgets and formatting using equally relevant generic material in B; record the exact packets and remaining length differences. Do not give any condition the scoring checks or a solution to that fixture.",
+    "For each of the three fixtures, use three repetitions per condition: 27 independent fresh sessions total. Rotate condition order and code session IDs so a scorer can evaluate patches without knowing A/B/C. Each solver sees only its own task; disable search, memory and cross-session history. Record possible contamination from public sources as a limitation.",
+    "Primary outcome: executable checks for correct diagnosis, successful repair and no unnecessary edits to the healthy control. Also score unsupported claims and new regressions. Use the same rubric and tool limits in every condition. Report counts per fixture and condition, including misses and all failures.",
+    "Secondary outcomes: elapsed wall time, tool calls and tokens when reliably available; record exact start/end boundaries and timeout rules. Timing is not evidence of correctness and is not the primary success criterion.",
+    "Preregister a small-trial decision rule: C must solve more fault trials than B with no additional regressions or unnecessary healthy-control edits. Ties and worse outcomes mean no demonstrated benefit in this trial; publish them and revise the article. Compare A separately. Do not stop early after favorable runs or hide timeouts.",
+    "Execution remains a future step. First establish an available, authorized no-new-charge execution method. If that is unavailable, keep this as a plan. Review logs for private information before publishing sanitized packets, checks and aggregate outcomes."
+  ],
+  "limitations": [
+    "Artificial offline fixtures and one frozen model do not establish value on real tasks or other models. Three repetitions per fixture are exploratory; do not claim statistical significance or broad growth.",
+    "Balanced length cannot make evidence and general explanations equally informative. List remaining differences, leakage, measurement failures and scoring disagreements.",
+    "Visitor events, resource GETs, internal trials, payment tests and revenue are separate measures. None substitutes for the task outcomes in this plan."
+  ],
+  "translations": {
+    "ja": {
+      "title": "次の実験計画：独自の実測と失敗情報はAIの課題解決に役立つか",
+      "changes": [
+        "問い：一般的な解説に、レビュー済みの独自の実測・失敗記録を加えると、AIの解決は改善するか。",
+        "2026-10-13に作成した計画で、試行は未実施です。証拠候補は既存のdata/reports/2026-10-06-x402-lessons.jsonと無料の検証サンプルです。実行前に、その記録で裏付けられ、ローカルで再現できる故障課題2件と正常例1件を選びます。適切な2件を再現できなければ不足を報告し、過去の失敗を作りません。",
+        "秘密情報を除いたオフライン教材を作り、出典、実際の観測、教材用の変更、実行できる採点チェックを区別して公開します。教材の出力は合成で、本番観測ではありません。非公開の正解は全条件の課題文から除きます。"
+      ],
+      "facts": [
+        "この記事は手順の計画で、有用性向上の証拠ではありません。この計画のための有料API呼び出し、送金、実決済、新規課金は行っていません。",
+        "会話で言及された以前の6試行比較の裏付け報告は、2026-10-13時点のリポジトリで見つかりませんでした。その結果や時間は、確認済みの証拠として引用しません。",
+        "既存の記事、実装、失敗の記録は公開されています。現在の週次集計が数えるのは取得で、解決の質ではありません。"
+      ],
+      "hypotheses": [
+        "独自の失敗情報が正しい診断や同じ失敗の回避を助けるかもしれません。一方で邪魔になったり、課題専用の正解を漏らしたりする可能性もあり、両方を評価します。",
+        "中心となる比較は、解説だけの場合と、解説に独自の証拠を加えた場合です。課題文だけの条件で、何らかの資料を渡す効果も分けます。小さな試行は次の編集の判断材料で、一般的な効果の証明ではありません。"
+      ],
+      "next_steps": [
+        "実行前に教材のハッシュ、出典、モデルと版、プロンプト、ローカルツール、時間・トークン上限、採点基準、条件の無作為な実行順を固定します。教材にはネット接続、秘密情報、ウォレット、自動署名、決済エンドポイントを使いません。",
+        "3条件を用意します。Aは課題文のみ、Bは課題文と公開資料に基づく一般解説、Cは同じ課題文と一般解説にAICQの実測・失敗情報を追加します。Bに同じ程度に関連する一般資料を加え、BとCの資料量と形式を揃えます。全文と残る長さの差を記録します。教材の正解や採点チェックはどの条件にも渡しません。",
+        "3課題×3条件×3回で計27試行を、独立した新規セッションで行う計画です。順番を入れ替え、条件が分からないIDで修正を採点します。各AIは自分の課題だけを見て、検索・記憶・セッション間履歴を使いません。公開情報による条件漏洩の可能性を限界として記録します。",
+        "主指標は、実行可能なチェックによる診断の正しさ、修正成功、正常例への不要な変更の有無です。根拠のない断言と新しい不具合も評価します。全条件で基準とツール上限を揃え、課題・条件ごとの成功件数、失敗、見逃しを全て公開します。",
+        "副指標は、正確に取れる場合の経過時間、ツール呼び出し、トークンです。開始・終了の境界と時間切れの規則を記録します。時間は正しさの証明や主指標にしません。",
+        "事前の判断基準は、CがBより多くの故障試行を解決し、新しい不具合や正常例への不要修正を増やさないことです。同数や悪化なら、この試行では改善を示せなかったと公開し、記事を見直します。Aとの比較は別に示します。良い結果だけで打ち切らず、時間切れも残します。",
+        "実行は今後の段階です。新規課金のない、利用可能で許可された実行方法を先に確かめ、なければ計画のままにします。ログの個人情報などを確認してから、公開可能な課題文・チェック・集計結果を出します。"
+      ],
+      "limitations": [
+        "合成されたオフライン課題と固定モデル1つの結果は、実課題や他モデルでの価値を証明しません。各課題3回は探索的な試行で、統計的有意差や広い成長を主張しません。",
+        "資料の長さを揃えても情報の中身は同等になりません。残る条件差、漏洩、計測失敗、採点の不一致を報告します。",
+        "訪問イベント、取得件数、内部試行、支払いテスト、収益は別の指標です。この計画の課題解決結果の代わりにはしません。"
+      ]
+    }
+  }
+}

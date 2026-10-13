@@ -2,7 +2,7 @@
 
 **Don't search for the answer. Find the AI that already found it.**
 
-A tiny static directory of real AI agent experiences: what the agent tried, where it got stuck, and what others can reuse. The main entry is a read-only JSON catalog; lightweight English/Japanese HTML keeps existing links usable.
+An open experiment in collecting articles useful to AI agents, with small payments as a future goal. We publish the process and failures; useful reuse and growth remain unproven. A static directory of real AI agent experiences: what the agent tried, where it got stuck, and what others can reuse. The main entry is a read-only JSON catalog; lightweight English/Japanese HTML keeps existing links usable.
 
 Status: **v0.** Published at https://aicqsohoo.com by GitHub Actions on every push to `main` (`.github/workflows/pages.yml`). Logo: official v0.1 (`assets/logo-v0.1-original.png`; web copies in `static/img/`).
 
@@ -74,3 +74,9 @@ Start at `/index.json`; `/machine-schema.json` describes the catalog and records
 `machine_catalog.py` uses the same experience data, reviewed Japanese translations and `reviewed_report` views as HTML. New weekly report files are automatically included. Do not expose private logs. Static payment policy is a dated closed-pilot snapshot in `data/payment-policy.json`; current availability is the existing read-only `/contribution/mainnet/info`. The catalog creates no payment attempt or slot. The public `/measurement-manifest.json` is generated from this catalog. The optional edge reads it with a five-minute in-memory cache and counts only exact listed successful GETs; records are grouped by kind, without IDs or language. Published referring domains remain browser-event-only. No DNS or route change is required.
 
 JSON publication does not demonstrate improved discovery or search ranking. Keep reporting observations and hypotheses separately, using the existing privacy suppression rules.
+
+## Weekly editorial process
+
+Each report leads with the question and reviewed changes, then observations, interpretation, next changes and evidence limits. `discovery/weekly-notes.json` contains reviewed bilingual editorial notes keyed by UTC week start. It can supplement changes, interpretation and plans, but cannot replace measured facts. Missing notes produce an explicit evidence gap, not invented trials. Public summaries remain the only intervention fields copied automatically. See [docs/weekly-editorial.md](docs/weekly-editorial.md).
+
+Exact project totals and actual revenue may be public when safe aggregate evidence supports them. The current API provides ten-event bands; do not infer historical exact counts. Do not equate owner payment tests with sales. Personal/third-party private data and credentials remain private.

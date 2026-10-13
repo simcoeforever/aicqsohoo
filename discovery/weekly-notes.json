@@ -1,0 +1,42 @@
+{
+  "2026-10-05": {
+    "en": {
+      "changes": [
+        "Question: can an AI retrieve the site’s evidence as individual reusable records, rather than extracting it from HTML?",
+        "We added a read-only JSON catalog and then aligned request counting with its records. A stable ID names each article; its evidence status, source and content hash let an AI inspect what it is using. The request list is generated from that same catalog so newly published records can be counted without a weekly Worker release. These were implementation changes, not a comparison of AI task performance.",
+        "Sources: discovery/interventions.jsonl entries dated 2026-10-05; data/reports/2026-10-06-x402-lessons.json separately records payment implementation failures and an offline MPP prototype. Those are not customer sales or new payment attempts in this report.",
+        "Editorial revision on 2026-10-13: reordered and clarified this published week using its original aggregate observations; no measurements were replaced and no new experiment is claimed."
+      ],
+      "hypotheses": [
+        "Observed: the weekly export recorded 20–29 browser page-view events and 1790–1799 successful resource GETs. It does not separate the new catalog from other counted resources, so the difference cannot be attributed to the catalog change.",
+        "We now have a machine-readable way to retrieve reviewed articles. Whether the independent measurements and failure details improve an AI’s solution remains unanswered. No controlled discovery tests were recorded for this week, and measurement coverage is unverified. Neither growth nor general usefulness follows from these totals."
+      ],
+      "next_steps": [
+        "Plan only: compare the same task input alone, with a general explanation, and with that explanation plus a reviewed AICQ failure/measurement record. Use separate fresh sessions and hidden scoring; preregister tasks and failure criteria before any runs.",
+        "The 2026-10-13 usefulness plan in the experiment notebook specifies the small trial. No paid API call, transfer, real payment or new billing is part of this change."
+      ],
+      "limitations": [
+        "The original ten-event ranges remain unchanged. Exact historical counts and customer revenue are unavailable from the summary. The owner-operated 0.01 USDC transfer in data/payment-policy.json is a payment test, not evidence of customer revenue."
+      ]
+    },
+    "ja": {
+      "changes": [
+        "問い：AIがHTMLから拾い出す代わりに、サイトの証拠を記事ごとの再利用できるデータとして取得できるか。",
+        "読み取り専用のJSONカタログを追加し、その記事の取得も数えられるようにしました。記事ごとに固定IDを付け、証拠の状態・出典・内容ハッシュで、AIが何を使っているか確認できます。同じカタログから計測対象を生成するため、新しい記事の追加ごとにWorkerを配信し直す必要がありません。これは実装の変更で、AIの課題解決を比較する実験ではありません。",
+        "出典はdiscovery/interventions.jsonlの2026-10-05の2件です。data/reports/2026-10-06-x402-lessons.jsonには、決済実装の失敗とオフラインMPP試作が別途記録されています。顧客売上や、この週報で新たに行った決済とは扱いません。",
+        "2026-10-13に本文を編集し、元の週次観測を使って構成と説明を改善しました。計測値を置き換えず、新しい実験を行ったとは主張しません。"
+      ],
+      "hypotheses": [
+        "観測されたのは、ブラウザのページ表示20–29イベントと成功したリソース取得1790–1799件です。週次出力では新カタログと他の対象を分けられないため、両者の差をカタログ変更の効果とは判断できません。",
+        "レビュー済み記事を機械可読で取得する入口はできました。独自の実測や失敗情報がAIの解決を改善するかは未確認です。この週に条件を決めた発見テストの記録はなく、計測範囲も未検証です。成長や一般的な有用性は、この件数からは言えません。"
+      ],
+      "next_steps": [
+        "計画：同じ課題を、課題文だけ、一般的な解説付き、その解説にレビュー済みのAICQ実測・失敗記録を加えた場合で比較します。独立した新規セッションを使い、条件を伏せて採点します。課題と失敗基準は実行前に固定します。",
+        "実験記録の2026-10-13有用性計画で小さな試行を定義します。今回は計画までで、有料API呼び出し、送金、実決済、新規課金は行いません。"
+      ],
+      "limitations": [
+        "元の10件幅の観測値は維持しています。週次出力から過去の実数や顧客収益は取得できません。data/payment-policy.jsonの本人操作0.01 USDC送金は支払いテストで、顧客収益の証拠ではありません。"
+      ]
+    }
+  }
+}

@@ -53,6 +53,32 @@ def validate_summary(data, start):
     return data
 
 
+def apply_editorial_notes(report, start):
+    """Only reviewed bilingual prose; measured facts cannot be overridden."""
+    source = ROOT / 'discovery' / 'weekly-notes.json'
+    if not source.exists():
+        return report
+    notes = json.loads(source.read_text(encoding='utf-8')).get(start)
+    if notes is None:
+        return report
+    allowed = {'changes', 'hypotheses', 'next_steps', 'limitations'}
+    if not isinstance(notes, dict) or set(notes) != {'en', 'ja'}:
+        raise ValueError('Bilingual reviewed notes required')
+    for language in ('en', 'ja'):
+        fields = notes[language]
+        if not isinstance(fields, dict) or set(fields) - allowed or not {'changes', 'hypotheses', 'next_steps'} <= set(fields):
+            raise ValueError('Editorial notes cannot override observations')
+        for values in fields.values():
+            if not isinstance(values, list) or not values or any(not isinstance(x, str) or not x.strip() for x in values):
+                raise ValueError('Reviewed prose lists required')
+    for language in ('en', 'ja'):
+        view = report if language == 'en' else report['translations']['ja']
+        for key, values in notes[language].items():
+            # Reviewed notes replace generic prose; evidence limits remain.
+            view[key] = values + view[key] if key == 'limitations' else values
+    return report
+
+
 def make_report(data):
     facts = [f"Period: {data['start']} inclusive to {data['end']} exclusive (UTC).",
              f"Measurement coverage: {data['coverage']}. This describes configuration, not proven delivery or uptime."]
@@ -91,7 +117,7 @@ def make_report(data):
     if not changes:
         changes = ['No reviewed public intervention summaries are recorded for this week. This does not establish that no changes occurred.']
     changes.append('This article was generated from the disclosure-filtered weekly summary and the existing discovery notebook. No intervention is inferred from traffic changes.')
-    return {
+    report = {
         'title': f"Weekly experiment: {data['start']}",
         'facts': facts,
         'hypotheses': ['Referring domains may suggest discovery routes, but repeat loads, unknown referrers and fabricated events prevent attribution or causal conclusions.'],
@@ -103,6 +129,14 @@ def make_report(data):
                         'Legacy counter observations (16 on 2026-09-30 and 42 on 2026-10-04, reported by the operator) predate this measurement and have no known breakdown.'],
         'translations': {'ja': make_japanese_report(data, tests, interventions)},
     }
+    report['changes'].insert(0, 'Question: what did we change toward articles useful to AI agents, and what evidence did this week actually produce? The changes below are recorded interventions, not a controlled usefulness experiment.')
+    report['hypotheses'].insert(0, 'These observations show recorded requests and changes only. They do not yet show that an AI solved a task better, that readership grew, or that the site earned revenue.')
+    report['facts'].append('Exact historical totals are unavailable from this ten-event-band export. No exact count is inferred. Revenue is not measured by this access summary; payment tests are separate.')
+    ja = report['translations']['ja']
+    ja['changes'].insert(0, '問い：AIに役立つ記事を集めるために何を変え、今週はどんな証拠が得られたか。以下は記録された変更であり、有用性を比較する実験ではありません。')
+    ja['hypotheses'].insert(0, '分かるのは、記録された取得と変更までです。AIの課題解決の改善、読者の増加、収益はまだ示していません。')
+    ja['facts'].append('この10件幅の出力から過去の実数は取得できません。実数の推定はしません。このアクセス集計では収益を計測せず、支払いテストは別に扱います。')
+    return apply_editorial_notes(report, data['start'])
 
 
 def save_report(destination, report):
