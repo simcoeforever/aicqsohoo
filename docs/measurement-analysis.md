@@ -62,3 +62,20 @@ GETはHTMLだけでなく対象JSONやllms.txtも含み、巡回・取得の繰�
 `?measurement=test` は明示テストを別集計にし、今回の実数APIは `test=0` だけを足します。
 印を付けていない運用者確認は、個人識別なしでは一般イベントと区別できません。
 旧ホームカウンターは別のPOST回数で、これらの系列にも人数にも足しません。
+
+## 公開済みAPIで取得できる粒度
+
+- 形式2（従来）：https://aicqsohoo-counter.waste-tkt.workers.dev/summary?start=2026-10-05&schema=2
+  — 閾値10・10件幅の週全体のブラウザ表示、投稿クリック、GET合計。
+  frequent_pages／参照元はブラウザのpage_viewだけで、件数なし。GET分類ではありません。
+- 形式3（実数）：https://aicqsohoo-counter.waste-tkt.workers.dev/summary?start=2026-10-05&schema=3
+  — 週全体の実数のみ。参照元・ページ・日別・GET分類の項目はありません。
+
+ユーザー提供画面を親の会話で確認した内容では、形式3の合計は27表示・1798 GET・0クリックでした。
+確認経路と応答項目は `data/measurement-confirmations/2026-10-05.json` に記録しています。
+これは分類別件数の取得ではありません。この環境では形式2の直接読取もプロキシ403でした。
+
+GET分類別の分析に不足しているのは、明示テストを除いた既存resource_get集計の、
+固定分類ごとの合計（時系列ならUTC日ごとの合計）です。既存の公開情報には含まれず、
+新APIや追跡を追加しない今回の範囲では取得・公開しません。
+公開manifestは分類と対象URLを示しますが、それぞれの取得件数は含みません。

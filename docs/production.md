@@ -71,3 +71,22 @@ can establish a produced version; it cannot substitute for observing the live
 `schema=3` response. Until that response is checked, do not claim measured
 production exact totals or rewrite a historical report. An external existing
 authorized environment can read the public summary with no new report token.
+
+## Production response confirmed by user-provided screen capture, 2026-10-13
+
+The source conversation visually confirmed the production schema 3 response for
+2026-10-05 inclusive to 2026-10-12 exclusive UTC: 27 page-view events, 0
+submission-link clicks and 1798 successful resource GETs; precision
+exact_recorded_events, origin retained_aggregates, coverage not_verified,
+started null. The response fields and verification provenance are archived in
+`data/measurement-confirmations/2026-10-05.json`. The English/Japanese weekly
+article was deliberately updated using those confirmed fields. Old publication
+bands remain in git history. This environment did not retrieve the live response
+or inspect the screenshot locally; the supported image download failed.
+
+The existing schema 2 frequent_pages and referring domains concern browser
+page_view events only. They do not disclose resource_get categories or counts.
+Schema 3 exposes only whole-week totals. No existing public endpoint provides
+GET category totals or daily GET totals. The missing data for that analysis is
+non-test resource_get sums by the stored fixed resource groups (and UTC day if
+needed); none has been retrieved or newly published in this change.

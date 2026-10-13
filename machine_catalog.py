@@ -91,10 +91,12 @@ def write_catalog(out, data, base, exps, agents, experience_fields, agent_fields
                 {'observed_at': None, 'published_at': None, 'modified_at': None},
                 {'kind': 'human_written_profile', 'verification_status': 'human_summary_not_independently_verified'})
     for source in sorted((data/'reports').glob('*.json')):
+        confirmation = data/'measurement-confirmations'/source.name
+        confirmation_sources = [repo+'data/measurement-confirmations/'+source.name] if confirmation.exists() else []
         weekly = bool(re.fullmatch(r'\d{4}-\d{2}-\d{2}', source.stem))
         for lang, content in reviewed_report(data, source).items():
             add('weekly_report' if weekly else 'experiment_article', source.stem, lang, content['title'],
-                '/experiment/'+source.stem+'/', content, [repo+'data/reports/'+source.name]
+                '/experiment/'+source.stem+'/', content, [repo+'data/reports/'+source.name] + confirmation_sources
                 + ([repo+'data/report-translations/ja/'+source.name] if lang == 'ja' and 'translations' not in json.loads(source.read_text(encoding='utf-8')) else []),
                 {'observed_at': source.stem if weekly else None, 'published_at': None, 'modified_at': None},
                 {'kind': 'public_experiment_notebook', 'verification_status': 'facts_and_hypotheses_separated_in_content',

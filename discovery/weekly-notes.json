@@ -5,10 +5,10 @@
         "Question: can an AI retrieve the site’s evidence as individual reusable records, rather than extracting it from HTML?",
         "We added a read-only JSON catalog and then aligned request counting with its records. A stable ID names each article; its evidence status, source and content hash let an AI inspect what it is using. The request list is generated from that same catalog so newly published records can be counted without a weekly Worker release. These were implementation changes, not a comparison of AI task performance.",
         "Sources: discovery/interventions.jsonl entries dated 2026-10-05; data/reports/2026-10-06-x402-lessons.json separately records payment implementation failures and an offline MPP prototype. Those are not customer sales or new payment attempts in this report.",
-        "Editorial revision on 2026-10-13: reordered and clarified this published week using its original aggregate observations; no measurements were replaced and no new experiment is claimed."
+        "Updated on 2026-10-13 after the production schema 3 response was confirmed on a user-provided screen capture: 27 browser page-view events, 1798 successful resource GETs and 0 submission-link clicks. Confirmation provenance and the response fields are recorded in data/measurement-confirmations/2026-10-05.json. The original 20–29 / 1790–1799 bands remain in git history at d85d6af0738417ef98aba0acc82836886d9ed789. No new experiment or inferred exact value is claimed."
       ],
       "hypotheses": [
-        "Observed: the weekly export recorded 20–29 browser page-view events and 1790–1799 successful resource GETs. It does not separate the new catalog from other counted resources, so the difference cannot be attributed to the catalog change.",
+        "The confirmed export records 27 browser page-view events, 1798 successful resource GETs and 0 submission-link clicks, excluding marked tests. GETs are about 67 times the browser events, but cover different resources and collection conditions. This does not show that humans are absent or that AIs made the requests. The export does not separate catalog GETs from other resources, so the difference cannot be attributed to the catalog change.",
         "We now have a machine-readable way to retrieve reviewed articles. Whether the independent measurements and failure details improve an AI’s solution remains unanswered. No controlled discovery tests were recorded for this week, and measurement coverage is unverified. Neither growth nor general usefulness follows from these totals."
       ],
       "next_steps": [
@@ -16,7 +16,7 @@
         "The 2026-10-13 usefulness plan in the experiment notebook specifies the small trial. No paid API call, transfer, real payment or new billing is part of this change."
       ],
       "limitations": [
-        "The original ten-event ranges remain unchanged. Exact historical counts and customer revenue are unavailable from the summary. The owner-operated 0.01 USDC transfer in data/payment-policy.json is a payment test, not evidence of customer revenue."
+        "Exact counts were confirmed from a user-provided production screen capture reviewed in the source conversation. This editing environment could not retrieve the live endpoint or inspect the image locally. Coverage remains not_verified and no referring-domain, page, daily or GET-category breakdown is available from this export. Recorded zero clicks do not establish zero visitors, zero submissions or zero revenue. The owner-operated 0.01 USDC transfer is a payment test, not customer revenue."
       ]
     },
     "ja": {
@@ -24,10 +24,10 @@
         "問い：AIがHTMLから拾い出す代わりに、サイトの証拠を記事ごとの再利用できるデータとして取得できるか。",
         "読み取り専用のJSONカタログを追加し、その記事の取得も数えられるようにしました。記事ごとに固定IDを付け、証拠の状態・出典・内容ハッシュで、AIが何を使っているか確認できます。同じカタログから計測対象を生成するため、新しい記事の追加ごとにWorkerを配信し直す必要がありません。これは実装の変更で、AIの課題解決を比較する実験ではありません。",
         "出典はdiscovery/interventions.jsonlの2026-10-05の2件です。data/reports/2026-10-06-x402-lessons.jsonには、決済実装の失敗とオフラインMPP試作が別途記録されています。顧客売上や、この週報で新たに行った決済とは扱いません。",
-        "2026-10-13に本文を編集し、元の週次観測を使って構成と説明を改善しました。計測値を置き換えず、新しい実験を行ったとは主張しません。"
+        "2026-10-13、ユーザー提供画面で本番schema 3応答を確認した内容に基づき、ページ表示27イベント・成功GET1798件・投稿リンククリック0件へ更新しました。確認経路と応答項目をdata/measurement-confirmations/2026-10-05.jsonに記録しています。元の20–29件／1790–1799件はgit履歴のd85d6af0738417ef98aba0acc82836886d9ed789に残しています。新しい実験や、範囲からの実数推定ではありません。"
       ],
       "hypotheses": [
-        "観測されたのは、ブラウザのページ表示20–29イベントと成功したリソース取得1790–1799件です。週次出力では新カタログと他の対象を分けられないため、両者の差をカタログ変更の効果とは判断できません。",
+        "確認された出力は、明示テストを除くページ表示27イベント、成功GET1798件、投稿リンククリック0件です。GETはブラウザイベントの約67倍ですが、対象と計測条件が異なります。人間が見ていないことや、AIによる取得の証明にはなりません。出力はカタログと他のリソースを分けないため、差をカタログ変更の効果とも判断できません。",
         "レビュー済み記事を機械可読で取得する入口はできました。独自の実測や失敗情報がAIの解決を改善するかは未確認です。この週に条件を決めた発見テストの記録はなく、計測範囲も未検証です。成長や一般的な有用性は、この件数からは言えません。"
       ],
       "next_steps": [
@@ -35,7 +35,7 @@
         "実験記録の2026-10-13有用性計画で小さな試行を定義します。今回は計画までで、有料API呼び出し、送金、実決済、新規課金は行いません。"
       ],
       "limitations": [
-        "元の10件幅の観測値は維持しています。週次出力から過去の実数や顧客収益は取得できません。data/payment-policy.jsonの本人操作0.01 USDC送金は支払いテストで、顧客収益の証拠ではありません。"
+        "実数は、ユーザー提供の本番画面を親の会話で確認した内容に基づきます。この編集環境では本番応答の取得と画像の直接確認ができていません。計測範囲はnot_verifiedのままで、この出力から参照元・ページ・日別・GET分類別の内訳は取得できません。記録されたクリック0件は、訪問者・投稿・収益がゼロという意味ではありません。本人操作の0.01 USDC送金は支払いテストで、顧客収益ではありません。"
       ]
     }
   }
