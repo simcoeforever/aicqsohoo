@@ -86,6 +86,17 @@ try {
   assert.equal(publicResponse.status,200);
   const publicSummary=await publicResponse.json();
   assert.equal(publicSummary.started,null); assert.equal(publicSummary.coverage,'not_verified');
+  const exactResponse=await call(path+'&schema=3');
+  assert.equal(exactResponse.status,200);
+  const exactSummary=await exactResponse.json();
+  assert.equal(exactSummary.schema,3);
+  assert.equal(exactSummary.count_precision,'exact_recorded_events');
+  assert.equal(exactSummary.count_origin,'retained_aggregates');
+  assert.equal(exactSummary.page_views,null); // Only current-week fixture events exist.
+  assert.equal(exactSummary.started,null);assert.equal(exactSummary.coverage,'not_verified');
+  assert.equal('frequent_pages' in exactSummary,false);
+  assert.equal('frequent_referrer_domains' in exactSummary,false);
+  assert.equal((await call(path+'&schema=4')).status,400);
   for (const resource of ['/','/ja/about/','/ja/experiment/2026-10-04-measurement/','/experiences.json','/llms.txt']) {
     const response=await mf.dispatchFetch('https://aicqsohoo.com'+resource+'?measurement=test&private=not-stored');
     assert.equal(response.headers.get('X-AICQSOHOO-Test-Measurement'),'recorded');

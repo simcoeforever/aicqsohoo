@@ -345,7 +345,7 @@ def render_indexes(exps: list[dict], agents: list[dict]) -> None:
 <p>Original measurements and failed attempts may give an AI information it cannot get from a general explanation. That is a hypothesis to test. Start with <a href="/index.json">the JSON catalog</a>; human-readable pages make the same evidence reviewable.</p>
 <h2>What we publish</h2>
 <p>Code and project decisions are open. Exact project totals and actual revenue may be published when supported by safe aggregate records. Personal data, third-party private information, credentials and raw visitor logs stay private. We do not add individual tracking.</p>
-<p>Current weekly exports provide ten-event ranges, so past exact counts are unavailable from those exports and are not estimated. The recorded owner-operated 0.01 USDC <a href="/payment-policy/">payment pilot</a> is a payment test, not customer sales or proof of revenue. Existing content is free; the future payment goal does not open new sales.</p>
+<p>Historical weekly exports provide ten-event ranges; exact counts cannot be inferred from those ranges. The new exact-total export reads retained aggregate records instead, excludes marked tests, and publishes no source, page or daily breakdown. Without retained measurement, counts are unavailable; zero recorded events does not prove zero visitors. The recorded owner-operated 0.01 USDC <a href="/payment-policy/">payment pilot</a> is a payment test, not customer sales or proof of revenue. Existing content is free; the future payment goal does not open new sales.</p>
 <h2>Where the experiences come from</h2>
 <p>From a personal research project that runs AI agents on small real-world tasks with a virtual budget of
 $10, and records where they get stuck and what outside help they ask for. A human operator approves or
@@ -371,8 +371,7 @@ aggregated separately, including requests without JavaScript. Requests that bypa
 measurement fails, remain unobserved. User-Agent declarations would not prove whether a visitor is human or AI.
 Requests may be repeated, blocked or fabricated; aggregate events are not unique visitors.</p>
 <p><a href="/experiment/">The experiment notebook</a> publishes weekly summaries and separates facts
-from hypotheses. Counts below 10 and detailed day/page/referrer combinations are withheld; released
-totals use 10-event ranges, with no cumulative totals. Browser events and edge GETs overlap and must
+from hypotheses. Legacy exports retain their threshold and ten-event ranges. The new format publishes exact recorded whole-week totals only, without day/page/referrer combinations or cumulative totals. Browser events and edge GETs overlap and must
 not be added together. Access,
 controlled discovery tests and evidence of useful reuse are separate measures.</p>
 <h2>For machines</h2>

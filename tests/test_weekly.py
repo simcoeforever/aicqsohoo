@@ -67,6 +67,39 @@ class WeeklyTest(unittest.TestCase):
                     with self.assertRaises(ValueError):
                         weekly_report.make_report(self.sample())
 
+    def test_exact_summary_validation_and_bilingual_recorded_counts(self):
+        exact = dict(schema=3, start='2026-09-28', end='2026-10-05', coverage='not_verified',
+                     started=None, page_views=23, submission_intents=3, resource_gets=1799,
+                     count_precision='exact_recorded_events', count_origin='retained_aggregates')
+        self.assertEqual(weekly_report.validate_summary(exact, exact['start']), exact)
+        for overrides in [{'page_views': True}, {'page_views': -1}, {'page_views': 1.5},
+                          {'page_views': 2**53}, {'page_views': None}, {'raw_logs': []},
+                          {'frequent_referrer_domains': ['private.example']}, {'frequent_pages': ['/']},
+                          {'count_precision': 'ten_event_bucket'}, {'count_origin': 'inferred'},
+                          {'end': '2026-10-06'}, {'coverage': 'not_started'}, {'schema': True}]:
+            with self.assertRaises(ValueError):
+                weekly_report.validate_summary({**exact, **overrides}, exact['start'])
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder); (root/'discovery').mkdir()
+            for name in ['tests.jsonl', 'interventions.jsonl']:
+                (root/'discovery'/name).write_text('', encoding='utf-8')
+            with patch.object(weekly_report, 'ROOT', root):
+                report = weekly_report.make_report(exact)
+                en = ' '.join(report['facts']); ja = ' '.join(report['translations']['ja']['facts'])
+                self.assertIn('23 (exact recorded events)', en)
+                self.assertIn('3 (exact recorded events)', en)
+                self.assertIn('1799 (exact recorded events)', en)
+                self.assertIn('23件（記録された正確な件数）', ja)
+                self.assertNotIn('23–32', en + ja)
+                self.assertNotIn('fewer than 10', en)
+                zero = {**exact, 'page_views': 0, 'submission_intents': 0, 'resource_gets': 0}
+                self.assertEqual(weekly_report.validate_summary(zero, zero['start']), zero)
+                self.assertIn('0 (exact recorded events)', str(weekly_report.make_report(zero)))
+                unavailable = {**zero, 'page_views': None, 'submission_intents': None, 'resource_gets': None}
+                self.assertEqual(weekly_report.validate_summary(unavailable, zero['start']), unavailable)
+                self.assertIn('unavailable', str(weekly_report.make_report(unavailable)))
+                self.assertNotIn('0 (exact recorded events)', str(weekly_report.make_report(unavailable)))
+
     def test_worker_page_allowlist_covers_site_without_arbitrary_paths(self):
         config = json.loads(re.sub(r'^\s*//.*$', '', (ROOT / 'worker' / 'wrangler.jsonc').read_text(encoding='utf-8'), flags=re.M))
         allowed = set(json.loads(config['vars']['PUBLIC_PAGES']))
@@ -171,7 +204,7 @@ class WeeklyTest(unittest.TestCase):
         class Opener:
             def open(inner, request, timeout):
                 self.assertEqual(request.get_header('Authorization'), 'Bearer test-only')
-                self.assertEqual(request.full_url, 'https://counter.example/summary?start=2026-09-28')
+                self.assertEqual(request.full_url, 'https://counter.example/summary?start=2026-09-28&schema=3')
                 return Response()
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)

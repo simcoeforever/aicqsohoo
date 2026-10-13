@@ -38,6 +38,7 @@ events. Keep request logging disabled. No raw analytics export is implemented.
 GET /summary (private by default; opt-in public mode) exports only closed
 nonoverlapping Monday UTC weeks from the last 84 days. Weekly non-test browser
 page views, edge resource GETs and submission-link clicks at least 10 are released
+in the default legacy schema 2
 as **10-event bands**: 22 stored events export lower bound 20 and render as 20–29.
 Null means suppressed, including possible zero. No cumulative totals are exported.
 Closed-week exports are sealed per schema version, so repeated reads do not
@@ -142,3 +143,34 @@ Official references checked:
 - https://developers.cloudflare.com/durable-objects/platform/pricing/
 - https://developers.cloudflare.com/durable-objects/api/sqlite-storage-api/
 - https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule
+
+## Exact whole-week totals, schema 3 (2026-10-13)
+
+The existing `metrics.n` is an exact integer counter, keyed by UTC day, public
+page/resource group, event, referring domain and explicit test flag. Rounding
+occurs in `disclose()` only, not in collection or storage. No individual
+identifiers or raw request logs are needed to sum the existing counters.
+
+`GET /summary?start=YYYY-MM-DD&schema=3` uses the same existing authorization and
+closed-Monday-week / last-84-days checks. It selects only `event,SUM(n)` with
+`test=0`; no page/source/day combinations leave the Counter. Schema 3 has
+`page_views`, `submission_intents`, `resource_gets`, precision
+`exact_recorded_events` and origin `retained_aggregates`, alongside schema, period
+and coverage fields. No referring-domain, frequent-page, daily or test-count
+fields are present. Public mode still returns `started:null` and
+`coverage:not_verified`. Request logging stays disabled and retention stays 90 days.
+
+Exact snapshots are sealed independently under `weekly_exports.version=3`.
+Default `/summary` and explicit `schema=2` keep the old sealed bands unchanged.
+An exact snapshot is obtained from retained counters, never by unrounding a v2
+export. When first-event metadata is absent or starts after the period, all exact
+counts are null. Otherwise zero means no recorded non-test events in that series;
+measurement might have been disabled, missed or bypassed. Partial recorded periods
+are not extrapolated. Neither metadata nor exact counts prove uptime, unique
+visitors, AI use, useful reuse or revenue. After the retention window, no exact
+historical total is reconstructed from the old bands.
+
+The weekly client requests schema 3 and validates both schemas, so an older
+Worker returning schema 2 still produces correctly labeled bands. Existing
+articles remain immutable on automatic reruns. Do not replace historical article
+counts until an actual exact snapshot has been retrieved and reviewed.

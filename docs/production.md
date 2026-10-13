@@ -50,3 +50,24 @@ fingerprint or visitor identifier is added to application storage or public repo
 Ledger rows retain UTC date, resource_get, fixed resource-group label, referring domain (or unknown/internal) and explicit test flag/count. Individual record IDs and languages are only public manifest metadata and are not access-ledger fields. Head/error/unknown requests are excluded. Existing source cardinality cap, 90-day retention, threshold10, ten-event bands and immutable closed-week exports are unchanged. The existing public resource_gets field includes these counts; public referring-domain and frequent-page fields still describe browser page views only. No new public referrer schema or per-resource source/count combinations are published. JSON GET does not identify an AI, person, successful discovery or useful reuse. Previously unobserved requests are not backfilled.
 
 Payment-policy HTML uses only the resource GET metric, avoiding an unsupported browser-event request. Payment endpoints, receipts, slots, existing proxy routes/fail-open settings, weekly schedule and billing remain unchanged.
+
+## Exact-total rollout preparation, 2026-10-13
+
+Schema 3 is implemented using existing retained integer aggregates; schema 2
+and historic article values remain unchanged. Only non-test whole-week totals
+are newly publishable. No change to collection, identifiers, request logging,
+retention, secrets, payment modes, routes, fail-open or the weekly schedule is needed.
+
+This environment has no Cloudflare credential variables or Wrangler session;
+`wrangler whoami` reports unauthenticated. No login, credential creation or temporary
+account was attempted. The existing GitHub Cloudflare Workers Builds integration
+reported a successful production build/version for fe79716. The normal push
+path can therefore be used and its check/version recorded without new credentials.
+Pages CI also runs the exact-total regression and local workerd checks.
+
+Public aicqsohoo.com and the existing workers.dev summary endpoint are blocked
+by this environment's CONNECT proxy (403). A successful Workers Builds check
+can establish a produced version; it cannot substitute for observing the live
+`schema=3` response. Until that response is checked, do not claim measured
+production exact totals or rewrite a historical report. An external existing
+authorized environment can read the public summary with no new report token.

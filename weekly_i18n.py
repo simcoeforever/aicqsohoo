@@ -4,20 +4,31 @@ def make_japanese_report(data, tests, interventions):
     coverage = {'not_started': '未開始', 'partial': '一部の期間', 'configured': '設定済み', 'not_verified': '未検証'}[data['coverage']]
     facts = [f"期間：{data['start']}以上、{data['end']}未満（UTC）。",
              f"計測範囲：{coverage}（{data['coverage']}）。これは設定についての表示であり、配信の成功や稼働時間の証明ではありません。"]
-    n = data['page_views']
-    facts.append(f"テストを除くブラウザのページ表示イベント：{n}–{n+9}件（10イベント幅で公開）。" if n is not None else
-                 'ブラウザのページ表示件数は非公開です（10件未満で、0件の可能性もあります）。訪問者がいないという証拠ではありません。')
-    n = data['submission_intents']
-    facts.append(f"テストを除く投稿リンクのクリック：{n}–{n+9}件。これは投稿の意図であり、投稿完了ではありません。" if n is not None else
-                 '投稿リンクのクリック件数は非公開です（10件未満で、0件の可能性もあります）。')
-    n = data['resource_gets']
-    facts.append(f"任意のEdge Routeで観測した、テストを除く成功したリソースGET：{n}–{n+9}件。" if n is not None else
-                 'EdgeリソースGET件数は非公開または未観測です。10件未満、0件、またはRoute無効の可能性があります。')
-    facts.append('ブラウザイベントとEdgeリソース取得は重なります。足し合わせたり、異なる訪問者の数とみなしたりしません。')
-    facts.append('公開条件を満たす申告された参照元ドメイン（信頼できるとは限らないデータラベル、件数は非公開）：' + str(data['frequent_referrer_domains']) + '。' if data['frequent_referrer_domains'] else
-                 '公開条件を満たす参照元ドメインはありません。不明な参照元や少数のグループは掲載しません。')
-    facts.append('公開条件を満たす公開ページ（件数は非公開）：' + ', '.join(data['frequent_pages']) + '。' if data['frequent_pages'] else
-                 '公開条件を満たす公開ページはありません。少数のページグループは掲載しません。')
+    if data.get('schema', 2) == 3:
+        for key, label in [('page_views', '記録されたテストを除くブラウザのページ表示イベント'),
+                           ('submission_intents', '記録されたテストを除く投稿リンクのクリック'),
+                           ('resource_gets', 'Edgeで記録されたテストを除く成功したリソースGET')]:
+            n = data[key]
+            facts.append(f'{label}：{n}件（記録された正確な件数）。' if n is not None else
+                         f'{label}：取得できません。この期間を含む保持済み計測が確認できません。')
+        facts.append('実数は保持された集計を閉週ごとに確定した値で、過去の範囲からの推定ではありません。0件はその系列に記録がないという意味で、計測の無効・失敗・迂回による取得漏れは残ります。クリックは投稿完了ではありません。')
+        facts.append('この実数出力は週全体の合計だけです。参照元・ページ・日別の内訳やテスト件数は含めません。')
+        facts.append('ブラウザイベントとEdgeリソース取得は重なります。足し合わせたり、異なる訪問者の数とみなしたりしません。')
+    else:
+        n = data['page_views']
+        facts.append(f"テストを除くブラウザのページ表示イベント：{n}–{n+9}件（10イベント幅で公開）。" if n is not None else
+                     'ブラウザのページ表示件数は非公開です（10件未満で、0件の可能性もあります）。訪問者がいないという証拠ではありません。')
+        n = data['submission_intents']
+        facts.append(f"テストを除く投稿リンクのクリック：{n}–{n+9}件。これは投稿の意図であり、投稿完了ではありません。" if n is not None else
+                     '投稿リンクのクリック件数は非公開です（10件未満で、0件の可能性もあります）。')
+        n = data['resource_gets']
+        facts.append(f"任意のEdge Routeで観測した、テストを除く成功したリソースGET：{n}–{n+9}件。" if n is not None else
+                     'EdgeリソースGET件数は非公開または未観測です。10件未満、0件、またはRoute無効の可能性があります。')
+        facts.append('ブラウザイベントとEdgeリソース取得は重なります。足し合わせたり、異なる訪問者の数とみなしたりしません。')
+        facts.append('公開条件を満たす申告された参照元ドメイン（信頼できるとは限らないデータラベル、件数は非公開）：' + str(data['frequent_referrer_domains']) + '。' if data['frequent_referrer_domains'] else
+                     '公開条件を満たす参照元ドメインはありません。不明な参照元や少数のグループは掲載しません。')
+        facts.append('公開条件を満たす公開ページ（件数は非公開）：' + ', '.join(data['frequent_pages']) + '。' if data['frequent_pages'] else
+                     '公開条件を満たす公開ページはありません。少数のページグループは掲載しません。')
     facts.append(f"条件を決めた発見テストの記録：{len(tests)}件、サイトへの引用・リンクを含むテスト：{sum(tests)}件。" if tests else
                  'この週には条件を決めた発見テストの記録がありません。ページ表示から発見されたかどうかは推測できません。')
     changes=[]
@@ -30,7 +41,8 @@ def make_japanese_report(data, tests, interventions):
     changes.append('公開基準を適用した週次集計と既存の発見実験ノートから、この記事を生成しました。アクセス変化から変更作業の実施を推測していません。')
     return {
         'title': f"週次実験記録：{data['start']}", 'facts': facts,
-        'hypotheses': ['参照元ドメインは発見経路の手がかりになるかもしれません。ただし、繰り返しの表示・不明な参照元・偽装イベントがあるため、流入の帰属や因果関係は結論できません。'],
+        'hypotheses': [('AIに役立つかは課題解決の証拠で確かめる必要があり、取得の実数だけでは判断できません。' if data.get('schema', 2) == 3 else
+                        '参照元ドメインは発見経路の手がかりになるかもしれません。ただし、繰り返しの表示・不明な参照元・偽装イベントがあるため、流入の帰属や因果関係は結論できません。')],
         'changes': changes,
         'next_steps': ['新しいセッションでdiscovery/queries.jsonの固定クエリを実行し、引用された場合だけでなく見つからなかった場合も記録します。意図した変更はdiscovery/interventions.jsonlに追記します。',
                        'この仕組みは有用な再利用を計測していません。別途確認できた公開の再利用証拠を記録します。投稿リンクのクリックは価値の証明ではありません。'],

@@ -132,3 +132,74 @@ test('routing authenticates exports, gates measurement and bounds bodies', async
   assert.equal((await worker.fetch(request('/summary?start='+start),{...env,REPORT_TOKEN:undefined})).status,401);
   db.close();
 });
+
+test('exact closed-week totals use retained integers, exclude tests and all breakdowns, seal independently of v2', () => {
+  const {counter, sql, db} = fixture();
+  sql.exec("INSERT INTO metrics_meta VALUES (1,'2026-09-21')");
+  for (const [day, page, event, source, test, n] of [
+    ['2026-09-21','/','page_view','large.example',0,20],
+    ['2026-09-22','/about/','page_view','small.example',0,3],
+    ['2026-09-22','/submit/','submission_intent','private.example',0,3],
+    ['2026-09-27','/llms.txt','resource_get','unknown',0,1799],
+    ['2026-09-21','/','page_view','tests.example',1,500],
+    ['2026-09-21','/','submission_intent','tests.example',1,500],
+    ['2026-09-21','/llms.txt','resource_get','tests.example',1,500],
+    ['2026-09-28','/','page_view','next-week.example',0,100],
+    ['2026-09-20','/','page_view','previous-week.example',0,100],
+  ]) sql.exec('INSERT INTO metrics VALUES (?,?,?,?,?,?)', day, page, event, source, test, n);
+  const range = {start:'2026-09-21',end:'2026-09-28'};
+  const legacy = counter.summary(range);
+  assert.equal(legacy.page_views,20); assert.equal(legacy.submission_intents,null);
+  const exact = counter.exactSummary(range);
+  assert.deepEqual(exact,{schema:3,...range,coverage:'configured',started:'2026-09-21',
+    page_views:23,submission_intents:3,resource_gets:1799,
+    count_precision:'exact_recorded_events',count_origin:'retained_aggregates'});
+  assert.equal(JSON.stringify(exact).includes('.example'),false);
+  for (const key of ['daily','source','frequent_referrer_domains','frequent_pages','rows','threshold','page_views_status'])
+    assert.equal(key in exact,false);
+  sql.exec('UPDATE metrics SET n=n+20');
+  assert.deepEqual(counter.exactSummary(range),exact);
+  assert.deepEqual(counter.summary(range),legacy);
+  assert.equal(counter.current(),42);
+  db.close();
+});
+
+test('exact unavailable periods are null, recorded zero is distinct, partial periods remain partial', () => {
+  for (const started of [null,'2026-09-28','2026-09-24','2026-09-20']) {
+    const {counter,sql,db}=fixture();
+    if(started)sql.exec('INSERT INTO metrics_meta VALUES (1,?)',started);
+    const result=counter.exactSummary({start:'2026-09-21',end:'2026-09-28'});
+    const unavailable=!started||started==='2026-09-28';
+    for(const key of ['page_views','resource_gets','submission_intents'])assert.equal(result[key],unavailable?null:0);
+    assert.equal(result.coverage,unavailable?'not_started':started==='2026-09-24'?'partial':'configured');
+    db.close();
+  }
+});
+
+test('exact API keeps existing authorization, closed-week policy, public metadata suppression and legacy default', async () => {
+  const {env,sql,db}=fixture();
+  const today=new Date();today.setUTCDate(today.getUTCDate()-((today.getUTCDay()+6)%7)-7);
+  const start=today.toISOString().slice(0,10);
+  sql.exec('INSERT INTO metrics_meta VALUES (1,?)',start);
+  sql.exec('INSERT INTO metrics VALUES (?,?,?,?,?,?)',start,'/','page_view','single.example',0,1);
+  const req=(query,method='GET',authorized=false)=>new Request('https://counter.example/summary?'+query,{method,headers:authorized?{Authorization:'Bearer test-only'}:{}});
+  assert.equal((await worker.fetch(req('start='+start+'&schema=3'),env)).status,401);
+  const publicEnv={...env,PUBLIC_SUMMARY:'true',REPORT_TOKEN:undefined};
+  const response=await worker.fetch(req('start='+start+'&schema=3'),publicEnv);
+  assert.equal(response.status,200);assert.equal(response.headers.get('Cache-Control'),'no-store');
+  const data=await response.json();assert.equal(data.page_views,1);assert.equal(data.schema,3);
+  assert.equal(data.started,null);assert.equal(data.coverage,'not_verified');
+  assert.equal(JSON.stringify(data).includes('single.example'),false);
+  assert.equal((await (await worker.fetch(req('start='+start),publicEnv)).json()).schema,2);
+  for(const query of ['start='+start+'&schema=4','start=junk&schema=3','start=2020-01-06&schema=3',
+    'start='+new Date().toISOString().slice(0,10)+'&schema=3'])
+    assert.equal((await worker.fetch(req(query),publicEnv)).status,400);
+  assert.equal((await worker.fetch(req('start='+start+'&schema=3','POST'),publicEnv)).status,405);
+  assert.equal((await worker.fetch(req('start='+start+'&schema=3','GET',true),env)).status,200);
+  // Retention removes both export formats without changing the legacy integer.
+  sql.exec("INSERT INTO weekly_exports VALUES (3,'2020-01-06','{}')");
+  await env.COUNTER.get().alarm();
+  assert.equal(sql.exec("SELECT 1 FROM weekly_exports WHERE start='2020-01-06'").toArray().length,0);
+  assert.equal(env.COUNTER.get().current(),42);
+  db.close();
+});

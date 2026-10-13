@@ -23,12 +23,12 @@ def record_path_for_page(path, language, data):
 LIMITS = {
     'en': ['Human-curated summaries, not independently verified run logs. Evidence type, sample size and confidence limit each claim.',
            'Discovery, access requests and useful reuse are separate measures. JSON does not guarantee search ranking or AI discovery.',
-           'Only disclosure-filtered aggregates are published: threshold 10, ten-event bands, no small referring groups or raw visitor logs.',
+           'Legacy reports retain ten-event bands. New exact exports contain recorded whole-week totals only, with no source/page/daily breakdown or raw visitor logs.',
            'The legacy counter is a separate series, not unique people or verified AIs. Browser and edge events overlap.',
            'The edge counts only allowlisted resources from the public manifest when enabled. Published referring domains describe browser events only, not resource GETs. Unknown/bypassed requests remain unobserved.'],
     'ja': ['人が編集した要約であり、独立検証済みの実行ログではありません。各記録の証拠種類・標本数・確信度を確認してください。',
            '発見・アクセス要求・有用な再利用は別の指標です。JSONで検索順位やAIによる発見が保証されるわけではありません。',
-           '公開は抑制済みの集計だけです。閾値10・10件幅とし、少数の参照元や訪問者の生ログを公開しません。',
+           '過去の週報は10件幅を維持します。新しい実数出力は記録された週全体の合計だけで、参照元・ページ・日別内訳や訪問者の生ログは公開しません。',
            '旧カウンターは別系列で、人数や確認済みAI数ではありません。ブラウザとEdgeのイベントは重複します。',
            'Edgeが有効で公開manifestを取得できる場合、許可済みリソースのGETだけを集計します。公開する参照元ドメインはブラウザイベント専用で、リソースGETの参照元は含みません。不明・計測を迂回した要求は観測できません。'],
 }

@@ -16,6 +16,7 @@
   ],
   "next_steps": [
     "Before execution, freeze fixture hashes, source records, model/version, prompt, local tools, time/token limits, scoring rubric and randomized condition order. No networking, secrets, wallets, automatic signing or payment endpoints in the fixtures.",
+    "Avoid a ceiling test: each fault fixture must require distinguishing multiple plausible causes and checking a repair, with settings changed from the source article so copying its conclusion cannot pass. The healthy control should include similar-looking but harmless evidence. If all task-only or explanation-only trials already succeed, report that the task was too easy to compare; if all conditions fail, report a floor effect. Publish that round and preregister revised tasks for a separate round rather than claiming a time difference proves usefulness.",
     "Use three conditions: A task input only; B task input plus a general explanation drawn from public documentation; C the same input and general explanation plus AICQ measurements and failures. Match B and C context budgets and formatting using equally relevant generic material in B; record the exact packets and remaining length differences. Do not give any condition the scoring checks or a solution to that fixture.",
     "For each of the three fixtures, use three repetitions per condition: 27 independent fresh sessions total. Rotate condition order and code session IDs so a scorer can evaluate patches without knowing A/B/C. Each solver sees only its own task; disable search, memory and cross-session history. Record possible contamination from public sources as a limitation.",
     "Primary outcome: executable checks for correct diagnosis, successful repair and no unnecessary edits to the healthy control. Also score unsupported claims and new regressions. Use the same rubric and tool limits in every condition. Report counts per fixture and condition, including misses and all failures.",
@@ -47,6 +48,7 @@
       ],
       "next_steps": [
         "実行前に教材のハッシュ、出典、モデルと版、プロンプト、ローカルツール、時間・トークン上限、採点基準、条件の無作為な実行順を固定します。教材にはネット接続、秘密情報、ウォレット、自動署名、決済エンドポイントを使いません。",
+        "簡単すぎる比較を避けるため、故障課題には複数のもっともらしい原因候補を用意し、原因の切り分けと修正後の確認を必要にします。出典記事から設定を変え、結論の丸写しでは通らない課題にします。正常例にも似た見かけの兆候を含めます。課題文だけ、または一般解説だけで全て解けた場合は「簡単すぎて比較できない」、全条件が失敗した場合は「難しすぎて差を判断できない」と、その回を公開します。次の課題は別の回として事前に固定し、速さの差だけで有用性を主張しません。",
         "3条件を用意します。Aは課題文のみ、Bは課題文と公開資料に基づく一般解説、Cは同じ課題文と一般解説にAICQの実測・失敗情報を追加します。Bに同じ程度に関連する一般資料を加え、BとCの資料量と形式を揃えます。全文と残る長さの差を記録します。教材の正解や採点チェックはどの条件にも渡しません。",
         "3課題×3条件×3回で計27試行を、独立した新規セッションで行う計画です。順番を入れ替え、条件が分からないIDで修正を採点します。各AIは自分の課題だけを見て、検索・記憶・セッション間履歴を使いません。公開情報による条件漏洩の可能性を限界として記録します。",
         "主指標は、実行可能なチェックによる診断の正しさ、修正成功、正常例への不要な変更の有無です。根拠のない断言と新しい不具合も評価します。全条件で基準とツール上限を揃え、課題・条件ごとの成功件数、失敗、見逃しを全て公開します。",

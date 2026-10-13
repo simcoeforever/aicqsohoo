@@ -23,14 +23,34 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
 
 def validate_summary(data, start):
     end = (dt.date.fromisoformat(start) + dt.timedelta(days=7)).isoformat()
-    expected = {'schema', 'start', 'end', 'coverage', 'started', 'page_views',
-                'page_views_status', 'submission_intents', 'resource_gets', 'count_precision', 'frequent_referrer_domains', 'frequent_pages', 'threshold'}
-    if set(data) != expected or data['schema'] != 2 or data['start'] != start or data['end'] != end:
+    if not isinstance(data, dict) or type(data.get('schema')) is not int or data['schema'] not in {2, 3}:
+        raise ValueError('Unexpected summary schema')
+    common = {'schema', 'start', 'end', 'coverage', 'started', 'page_views',
+              'submission_intents', 'resource_gets', 'count_precision'}
+    exact = data['schema'] == 3
+    expected = common | ({'count_origin'} if exact else
+                         {'page_views_status', 'frequent_referrer_domains', 'frequent_pages', 'threshold'})
+    if set(data) != expected or data['start'] != start or data['end'] != end:
         raise ValueError('Unexpected summary schema or period')
-    if data['threshold'] != 10 or data['count_precision'] != 'ten_event_bucket' or data['coverage'] not in {'not_started', 'partial', 'configured', 'not_verified'}:
-        raise ValueError('Unexpected disclosure policy')
+    if data['coverage'] not in {'not_started', 'partial', 'configured', 'not_verified'}:
+        raise ValueError('Unexpected coverage')
     if data['started'] is not None:
         dt.date.fromisoformat(data['started'])
+    if exact:
+        if data['count_precision'] != 'exact_recorded_events' or data['count_origin'] != 'retained_aggregates':
+            raise ValueError('Unexpected exact count provenance')
+        counts = [data[key] for key in ('page_views', 'submission_intents', 'resource_gets')]
+        if any(n is not None and (type(n) is not int or n < 0 or n > 2**53 - 1) for n in counts):
+            raise ValueError('Unsafe exact count')
+        if any(n is None for n in counts) != all(n is None for n in counts):
+            raise ValueError('Inconsistent unavailable totals')
+        if data['coverage'] == 'not_started' and any(n is not None for n in counts):
+            raise ValueError('Unstarted measurement cannot have known counts')
+        if data['coverage'] in {'partial', 'configured'} and any(n is None for n in counts):
+            raise ValueError('Recorded coverage requires recorded counts')
+        return data
+    if data['threshold'] != 10 or data['count_precision'] != 'ten_event_bucket':
+        raise ValueError('Unexpected disclosure policy')
     for key in ('page_views', 'submission_intents', 'resource_gets'):
         n = data[key]
         if n is not None and (type(n) is not int or n < 10 or n % 10):
@@ -82,22 +102,34 @@ def apply_editorial_notes(report, start):
 def make_report(data):
     facts = [f"Period: {data['start']} inclusive to {data['end']} exclusive (UTC).",
              f"Measurement coverage: {data['coverage']}. This describes configuration, not proven delivery or uptime."]
-    n = data['page_views']
-    facts.append(f"Non-test browser page-view events: {n}–{n + 9} (10-event publication band)." if n is not None else
-                 "Browser page-view count withheld (fewer than 10, possibly zero); this is not evidence of no visitors.")
-    n = data['submission_intents']
-    facts.append(f"Non-test submission-link clicks: {n}–{n + 9}; these are intentions, not completed submissions." if n is not None else
-                 "Submission-link click count withheld (fewer than 10, possibly zero).")
-    n = data['resource_gets']
-    facts.append(f"Successful non-test resource GETs observed at the optional edge route: {n}–{n + 9}." if n is not None else
-                 "Edge resource GET count withheld or unobserved; fewer than 10, possibly zero, or route disabled.")
-    facts.append('Browser events and edge resource requests overlap and must not be added together or treated as distinct visitors.')
-    if data['frequent_referrer_domains']:
-        facts.append("Frequent declared referring domains (untrusted data labels; counts withheld): " + json.dumps(data['frequent_referrer_domains']) + '.')
+    exact = data.get('schema', 2) == 3
+    if exact:
+        for key, label in [('page_views', 'Recorded non-test browser page-view events'),
+                           ('submission_intents', 'Recorded non-test submission-link clicks'),
+                           ('resource_gets', 'Recorded successful non-test resource GETs at the edge')]:
+            n = data[key]
+            facts.append(f'{label}: {n} (exact recorded events).' if n is not None else
+                         f'{label}: unavailable; no retained measurement covering this period is established.')
+        facts.append('Exact totals come from a sealed snapshot of retained aggregate counts, not estimates from earlier bands. Zero means no recorded events in that series; disabled, missed or bypassed measurement may still hide requests. Clicks are not completed submissions.')
+        facts.append('Only whole-week totals are published in this exact export; no referring-domain, page, daily or test-count breakdown is included.')
+        facts.append('Browser events and edge resource requests overlap and must not be added together or treated as distinct visitors.')
     else:
-        facts.append("No referring domains meet the publication rules; unknown sources and small groups are not listed.")
-    facts.append('Frequent public pages (counts withheld): ' + ', '.join(data['frequent_pages']) + '.' if data['frequent_pages'] else
-                 'No public pages meet the publication rules; small page groups are not listed.')
+        n = data['page_views']
+        facts.append(f"Non-test browser page-view events: {n}–{n + 9} (10-event publication band)." if n is not None else
+                     "Browser page-view count withheld (fewer than 10, possibly zero); this is not evidence of no visitors.")
+        n = data['submission_intents']
+        facts.append(f"Non-test submission-link clicks: {n}–{n + 9}; these are intentions, not completed submissions." if n is not None else
+                     "Submission-link click count withheld (fewer than 10, possibly zero).")
+        n = data['resource_gets']
+        facts.append(f"Successful non-test resource GETs observed at the optional edge route: {n}–{n + 9}." if n is not None else
+                     "Edge resource GET count withheld or unobserved; fewer than 10, possibly zero, or route disabled.")
+        facts.append('Browser events and edge resource requests overlap and must not be added together or treated as distinct visitors.')
+        if data['frequent_referrer_domains']:
+            facts.append("Frequent declared referring domains (untrusted data labels; counts withheld): " + json.dumps(data['frequent_referrer_domains']) + '.')
+        else:
+            facts.append("No referring domains meet the publication rules; unknown sources and small groups are not listed.")
+        facts.append('Frequent public pages (counts withheld): ' + ', '.join(data['frequent_pages']) + '.' if data['frequent_pages'] else
+                     'No public pages meet the publication rules; small page groups are not listed.')
     tests = []
     for line in (ROOT / 'discovery' / 'tests.jsonl').read_text(encoding='utf-8').splitlines():
         row = json.loads(line)
@@ -120,7 +152,8 @@ def make_report(data):
     report = {
         'title': f"Weekly experiment: {data['start']}",
         'facts': facts,
-        'hypotheses': ['Referring domains may suggest discovery routes, but repeat loads, unknown referrers and fabricated events prevent attribution or causal conclusions.'],
+        'hypotheses': [('Useful AI reuse needs task-level evidence; exact request totals alone cannot establish it.' if exact else
+                        'Referring domains may suggest discovery routes, but repeat loads, unknown referrers and fabricated events prevent attribution or causal conclusions.')],
         'changes': changes,
         'next_steps': ['Run the fixed queries in discovery/queries.json in fresh sessions, record misses as well as citations, and append intentional changes to discovery/interventions.jsonl.',
                        'Useful reuse has not been measured by this pipeline. Record separately verified public reuse evidence; submission clicks are not proof of value.'],
@@ -131,11 +164,13 @@ def make_report(data):
     }
     report['changes'].insert(0, 'Question: what did we change toward articles useful to AI agents, and what evidence did this week actually produce? The changes below are recorded interventions, not a controlled usefulness experiment.')
     report['hypotheses'].insert(0, 'These observations show recorded requests and changes only. They do not yet show that an AI solved a task better, that readership grew, or that the site earned revenue.')
-    report['facts'].append('Exact historical totals are unavailable from this ten-event-band export. No exact count is inferred. Revenue is not measured by this access summary; payment tests are separate.')
+    report['facts'].append(('Revenue is not measured by this access summary; payment tests are separate.' if exact else
+                            'Exact historical totals are unavailable from this ten-event-band export. No exact count is inferred. Revenue is not measured by this access summary; payment tests are separate.'))
     ja = report['translations']['ja']
     ja['changes'].insert(0, '問い：AIに役立つ記事を集めるために何を変え、今週はどんな証拠が得られたか。以下は記録された変更であり、有用性を比較する実験ではありません。')
     ja['hypotheses'].insert(0, '分かるのは、記録された取得と変更までです。AIの課題解決の改善、読者の増加、収益はまだ示していません。')
-    ja['facts'].append('この10件幅の出力から過去の実数は取得できません。実数の推定はしません。このアクセス集計では収益を計測せず、支払いテストは別に扱います。')
+    ja['facts'].append(('このアクセス集計では収益を計測せず、支払いテストは別に扱います。' if exact else
+                        'この10件幅の出力から過去の実数は取得できません。実数の推定はしません。このアクセス集計では収益を計測せず、支払いテストは別に扱います。'))
     return apply_editorial_notes(report, data['start'])
 
 
@@ -174,7 +209,7 @@ def run():
     headers = {'Accept': 'application/json', 'User-Agent': 'AICQSOHOO-Weekly-Report/1.0'}
     if mode == 'private':
         headers['Authorization'] = 'Bearer ' + os.environ['REPORT_TOKEN']
-    request = urllib.request.Request(endpoint + '?start=' + start.isoformat(), headers=headers)
+    request = urllib.request.Request(endpoint + '?start=' + start.isoformat() + '&schema=3', headers=headers)
     # Do not follow redirects carrying the credential to another endpoint.
     with urllib.request.build_opener(NoRedirect).open(request, timeout=30) as response:
         payload = response.read(65537)

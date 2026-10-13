@@ -72,6 +72,26 @@ export class Counter extends DurableObject {
     }
   }
 
+  exactSummary(range) {
+    // Whole-week totals only. Never read page/source/day combinations for export.
+    // Keep v2's historical sealed bands independent from this retained-data snapshot.
+    this.ctx.storage.sql.exec('DELETE FROM weekly_exports WHERE start < ?', new Date(Date.now() - 90 * 86400000).toISOString().slice(0, 10));
+    const sealed = this.ctx.storage.sql.exec('SELECT payload FROM weekly_exports WHERE version=3 AND start=?', range.start).toArray()[0];
+    if (sealed) return JSON.parse(sealed.payload);
+    const meta = this.ctx.storage.sql.exec('SELECT started FROM metrics_meta WHERE id=1').toArray()[0];
+    const available = Boolean(meta && meta.started < range.end);
+    const rows = this.ctx.storage.sql.exec('SELECT event,SUM(n) AS n FROM metrics WHERE day>=? AND day<? AND test=0 GROUP BY event', range.start, range.end).toArray();
+    const counts = new Map(rows.map(row => [row.event, row.n]));
+    const total = event => available ? counts.get(event) || 0 : null;
+    const report = {schema: 3, ...range,
+      coverage: !available ? 'not_started' : meta.started > range.start ? 'partial' : 'configured',
+      started: meta?.started || null,
+      page_views: total('page_view'), submission_intents: total('submission_intent'), resource_gets: total('resource_get'),
+      count_precision: 'exact_recorded_events', count_origin: 'retained_aggregates'};
+    this.ctx.storage.sql.exec('INSERT INTO weekly_exports VALUES (3,?,?)', range.start, JSON.stringify(report));
+    return report;
+  }
+
   summary(range) {
     this.ctx.storage.sql.exec('DELETE FROM weekly_exports WHERE start < ?', new Date(Date.now() - 90 * 86400000).toISOString().slice(0, 10));
     const sealed = this.ctx.storage.sql.exec('SELECT payload FROM weekly_exports WHERE version=2 AND start=?', range.start).toArray()[0];
@@ -114,10 +134,12 @@ export default {
     if (url.pathname === '/summary') {
       if (request.method !== 'GET') return json({error: 'method not allowed'}, 405, {});
       if (env.PUBLIC_SUMMARY !== 'true' && (!env.REPORT_TOKEN || request.headers.get('Authorization') !== `Bearer ${env.REPORT_TOKEN}`)) return json({error: 'unauthorized'}, 401, {});
+      const schema = url.searchParams.get('schema') || '2';
+      if (!['2', '3'].includes(schema)) return json({error: 'unsupported summary schema'}, 400, {});
       const range = weekRange(url.searchParams.get('start'));
       if (!range) return json({error: 'closed Monday UTC week required (last 84 days)'}, 400, {});
       const counter = env.COUNTER.get(env.COUNTER.idFromName('site'));
-      const summary = await counter.summary(range);
+      const summary = schema === '3' ? await counter.exactSummary(range) : await counter.summary(range);
       if (env.PUBLIC_SUMMARY === 'true') { summary.started = null; summary.coverage = 'not_verified'; }
       return json(summary, 200, {});
     }
