@@ -3,7 +3,13 @@
   const form=document.getElementById('usage-report-form'),status=document.getElementById('usage-report-status');
   if(!form||!status)return;
   const ja=form.dataset.language==='ja',button=form.querySelector('button');
+  const testMode=new URLSearchParams(location.search).get('measurement')==='test';
+  const mode=document.getElementById('usage-report-mode');
   const text=(en,jp)=>ja?jp:en;
+  if(testMode){
+    if(mode){mode.hidden=false;mode.textContent=text('TEST MODE: sends isolated test data, not a real usage report.','テストモード：分離されたテスト送信です。本番の利用報告には含めません。');mode.style.fontWeight='bold';}
+    button.textContent=text('Send isolated test','分離したテストを送る');
+  }
   if(!['aicqsohoo.com','www.aicqsohoo.com'].includes(location.hostname)){
     button.disabled=true;status.textContent=text('Local preview: sending is disabled.','ローカル表示では送信しません。');return;
   }
@@ -12,7 +18,7 @@
     event.preventDefault();if(busy||!form.reportValidity())return;
     const fields=new FormData(form),[kind,id]=String(fields.get('article')).split(':');
     const body={article_kind:kind,article_id:id,purpose:fields.get('purpose'),outcome:fields.get('outcome'),
-      task:fields.get('task')||'',helpful:fields.get('helpful')||'',missing:fields.get('missing')||'',consent:fields.get('consent')==='on',test:new URLSearchParams(location.search).get('measurement')==='test'};
+      task:fields.get('task')||'',helpful:fields.get('helpful')||'',missing:fields.get('missing')||'',consent:fields.get('consent')==='on',test:testMode};
     busy=true;button.disabled=true;status.textContent=text('Sending…','送信中…');
     try{
       const response=await fetch(form.dataset.endpoint,{method:'POST',credentials:'omit',referrerPolicy:'no-referrer',cache:'no-store',

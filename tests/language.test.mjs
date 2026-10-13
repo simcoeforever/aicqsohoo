@@ -3,13 +3,13 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import fs from 'node:fs';
 const code=fs.readFileSync(new URL('../static/language.js',import.meta.url),'utf8');
-function visit({path='/experiences/example/',lang='en',stored=null,languages=['ja-JP'],blocked=false}={}) {
+function visit({path='/experiences/example/',lang='en',stored=null,languages=['ja-JP'],blocked=false,extraLinks=[]}={}) {
   const destination=path.replace(/^\/ja/, '');
   const links=['en','ja'].map(locale=>({dataset:{language:locale},href:(locale==='ja'?'/ja':'')+destination.split('?')[0]+'?lang='+locale,addEventListener(type,fn){this.click=fn;}}));
   const saves=[],redirects=[];
-  const context={URL,location:{href:'https://aicqsohoo.com'+path,replace:url=>redirects.push(url)},navigator:{languages},localStorage:{getItem(){if(blocked)throw Error();return stored;},setItem(key,value){if(blocked)throw Error();saves.push([key,value]);}},document:{documentElement:{lang,dataset:{}},querySelectorAll:()=>links}};
+  const context={URL,location:{href:'https://aicqsohoo.com'+path,replace:url=>redirects.push(url)},navigator:{languages},localStorage:{getItem(){if(blocked)throw Error();return stored;},setItem(key,value){if(blocked)throw Error();saves.push([key,value]);}},document:{documentElement:{lang,dataset:{}},querySelectorAll:selector=>selector==='a[href]'?[...links,...extraLinks]:links}};
   vm.runInNewContext(code,context);
-  return {links,saves,redirects,document:context.document};
+  return {links,extraLinks,saves,redirects,document:context.document};
 }
 test('initial browser choice preserves the deep link, query and anchor and uses replace',()=>{
   const r=visit({path:'/experiences/example/?measurement=test#outcome'});
@@ -33,4 +33,14 @@ test('manual switch persists only locale, works with blocked storage and unsuppo
   assert.equal(visit({blocked:true,path:'/experiences/example/?lang=en'}).redirects.length,0);
   assert.equal(visit({blocked:true,path:'/ja/experiences/example/?lang=ja',lang:'ja'}).redirects.length,0);
   assert.equal(visit({stored:'untrusted',languages:['fr','en-GB','ja']}).redirects.length,0);
+});
+
+test('explicit test mode survives language changes and same-origin navigation, without storage or external propagation',()=>{
+ const extras=[{href:'/about/?lang=ja'},{href:'/ja/report-use/?lang=ja'},{href:'https://github.com/example/repo'}];
+ const r=visit({path:'/ja/report-use/?measurement=test&lang=ja',lang:'ja',extraLinks:extras});
+ for(const link of [...r.links,...extras.slice(0,2)])assert.equal(new URL(link.href,'https://aicqsohoo.com').searchParams.get('measurement'),'test');
+ assert.equal(extras[2].href,'https://github.com/example/repo');
+ assert.deepEqual(r.saves,[['aicqsohoo-language','ja']]);
+ const ordinary=[{href:'/ja/report-use/?lang=ja'}];visit({path:'/about/?lang=en',extraLinks:ordinary});
+ assert.equal(new URL(ordinary[0].href,'https://aicqsohoo.com').searchParams.has('measurement'),false);
 });

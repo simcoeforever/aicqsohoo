@@ -57,16 +57,24 @@ requires no new binding, namespace migration, service, credential or subscriptio
 Each accepted row has an internal random report ID, digest of normalized report
 content (not an actor fingerprint), article kind/id, bounded JSON payload,
 explicit test flag, UTC receipt day, expiry and `pending_review` state.
-Identical normalized retries do not create another row or increment the intake
-budget. Different actors reporting identical content may be merged: counts are
+Identical normalized retries do not create another body row, but every
+admitted attempt consumes the same intake budget and capacity reservation. Different actors reporting identical content may be merged: counts are
 not unique use or people. Caller-supplied verification states/names are rejected.
 There is no automatic confirmation method; no report is promoted to a verified
 example by receipt, positive outcome or an AI label. A genuinely confirmed case
 requires a separately reviewed public evidence record, with private information
 removed. No confirmed case is created by this implementation.
 
-Persistent caps: production 3 unique reports/hour, 10/day, 3/article/day and 50
-pending rows; marked tests 3/hour, 5/day and 10 pending rows, separately budgeted.
+Persistent caps count admitted attempts, whether new or duplicate: production
+3/hour, 10/day, 3/article/day and 50 active capacity reservations; marked tests
+3/hour, 5/day and 10 reservations, separately budgeted. Body rows are consequently
+bounded by those capacities. Reservations expire at the same 30-day/one-day
+boundaries independently from deduplicated bodies; retries never extend body
+retention. Caps are checked and all budgets/reservations increment atomically
+before INSERT OR IGNORE body persistence. No duplicate acknowledgement or
+follow-up quota status reveals content membership. Existing bodies seed one
+reservation each on the one-time migration; old global budgets are preserved
+and unknown historical hours use -1 rather than invented timestamps.
 A cheap per-isolate 60-attempt/minute guard cuts off repeated POST processing
 before registry/storage reads. These are global admission/storage protections,
 not per-person rate limits. Anonymous requests can still exhaust capacity or
@@ -79,7 +87,9 @@ marked tests within one day. Reads and valid submissions delete expired rows.
 Daily Durable Object alarms remove expired content even without further traffic;
 platform alarm delay may extend physical deletion. No expired text is returned
 by private review. Budget rows retain only coarse global day/hour/test counts
-for the short quota window. Existing 90-day access metrics and sealed summaries
+for the short quota window. Per-article reservations retain only aggregate
+day/hour/test/article counters until their capacity expiry; no request identifier
+is added. Alarms continue while reservations remain, even if all bodies expired. Existing 90-day access metrics and sealed summaries
 are independent and unchanged.
 
 ## Safe owner review and present limitation
@@ -140,3 +150,25 @@ POST is unconfirmed here until an explicit marked test is checked in an allowed
 environment. The expected acknowledgement is HTTP 202 with accepted:true,
 state:pending_review, verification_status:unverified_self_report and test:true.
 No production report or usefulness result is invented.
+
+## Test-mode display and navigation
+
+`/report-use/?measurement=test` and `/ja/report-use/?measurement=test` show a
+prominent test notice and an isolated-test button before submission. The form
+captures test mode on load, so later URL editing cannot silently change that
+page's submission to production. Language switches and same-origin navigation
+carry the explicit marker through links; it is never persisted as an identifier.
+The native POST endpoint rejects measurement=test together with body.test=false.
+Normal forms keep the optional-report explanation. No test-mode network POST is
+automatic, and this fix makes no production test submission.
+
+## Membership-oracle regression, 2026-10-13
+
+The original duplicate fast path did not consume quota. A local sequence of two
+new bodies, a guessed earlier body, and a fourth new body could therefore vary
+between 202 and 429. Regression fixtures now compare databases with identical
+quota/capacity but different earlier private outcomes: all response bodies,
+status codes and Retry-After headers match across hour, day, article/day and
+retained-capacity boundaries, including marked tests. Content still stores once;
+admission slots always advance. No real private body or production probe is used.
+Production private management review remains unverified in this environment.

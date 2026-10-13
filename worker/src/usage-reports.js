@@ -57,11 +57,25 @@ export class UsageInbox {
     this.sql.exec("CREATE TABLE IF NOT EXISTS usage_reports (digest TEXT PRIMARY KEY, report_id TEXT UNIQUE NOT NULL, article_kind TEXT NOT NULL, article_id TEXT NOT NULL, payload TEXT NOT NULL, test INTEGER NOT NULL CHECK(test IN (0,1)), received_day TEXT NOT NULL, expires INTEGER NOT NULL, state TEXT NOT NULL CHECK(state='pending_review'))");
     this.sql.exec('CREATE INDEX IF NOT EXISTS usage_reports_expiry ON usage_reports(expires)');
     this.sql.exec('CREATE TABLE IF NOT EXISTS usage_budget (day TEXT, hour INTEGER, test INTEGER, n INTEGER NOT NULL, PRIMARY KEY(day,hour,test))');
+    // Quotas depend on admitted attempts, never on whether private text is a duplicate.
+    this.sql.exec('CREATE TABLE IF NOT EXISTS usage_admissions (day TEXT, hour INTEGER, test INTEGER, article_kind TEXT, article_id TEXT, n INTEGER NOT NULL, expires INTEGER NOT NULL, PRIMARY KEY(day,hour,test,article_kind,article_id))');
+    this.sql.exec('CREATE INDEX IF NOT EXISTS usage_admissions_expiry ON usage_admissions(expires)');
+    this.sql.exec('CREATE TABLE IF NOT EXISTS usage_meta (key TEXT PRIMARY KEY)');
+    this.storage.transactionSync(()=>{
+      if(!this.sql.exec("SELECT 1 FROM usage_meta WHERE key='attempt_quota_v1'").toArray().length){
+        // Existing records retain their capacity/article reservations; hour -1 is
+        // an unknown historical hour, not a reconstructed receipt timestamp.
+        this.sql.exec('INSERT INTO usage_admissions SELECT received_day,-1,test,article_kind,article_id,COUNT(*),MAX(expires) FROM usage_reports GROUP BY received_day,test,article_kind,article_id');
+        this.sql.exec("INSERT INTO usage_meta VALUES ('attempt_quota_v1')");
+      }
+    });
   }
   expire(now=Date.now()){
     this.sql.exec('DELETE FROM usage_reports WHERE expires<=?',now);
+    this.sql.exec('DELETE FROM usage_admissions WHERE expires<=?',now);
     this.sql.exec('DELETE FROM usage_budget WHERE day<?',dayOf(now-86400000));
-    return this.sql.exec('SELECT 1 FROM usage_reports LIMIT 1').toArray().length>0;
+    return this.sql.exec('SELECT 1 FROM usage_reports LIMIT 1').toArray().length>0 ||
+      this.sql.exec('SELECT 1 FROM usage_admissions LIMIT 1').toArray().length>0;
   }
   async accept(input,now=Date.now()){
     const body=normalizeUsageReport(input);if(!body)return {code:400,error:'invalid_or_sensitive_input'};
@@ -74,17 +88,18 @@ export class UsageInbox {
       const flag=Number(body.test),day=dayOf(now),hour=Math.floor(now/3600000);
       const daily=this.sql.exec('SELECT COALESCE(SUM(n),0) AS n FROM usage_budget WHERE day=? AND test=?',day,flag).one().n;
       const hourly=this.sql.exec('SELECT COALESCE(SUM(n),0) AS n FROM usage_budget WHERE day=? AND hour=? AND test=?',day,hour,flag).one().n;
-      const article=this.sql.exec('SELECT COUNT(*) AS n FROM usage_reports WHERE received_day=? AND test=? AND article_kind=? AND article_id=?',day,flag,body.article_kind,body.article_id).one().n;
-      const pending=this.sql.exec('SELECT COUNT(*) AS n FROM usage_reports WHERE test=?',flag).one().n;
+      const article=this.sql.exec('SELECT COALESCE(SUM(n),0) AS n FROM usage_admissions WHERE day=? AND test=? AND article_kind=? AND article_id=?',day,flag,body.article_kind,body.article_id).one().n;
+      const pending=this.sql.exec('SELECT COALESCE(SUM(n),0) AS n FROM usage_admissions WHERE test=?',flag).one().n;
       if(daily>=(body.test?USAGE_LIMITS.test_daily:USAGE_LIMITS.production_daily)||hourly>=(body.test?USAGE_LIMITS.test_hourly:USAGE_LIMITS.production_hourly)||
          article>=USAGE_LIMITS.per_article_daily||pending>=(body.test?USAGE_LIMITS.pending_test:USAGE_LIMITS.pending_production)){
         result={code:429,error:'usage_report_capacity_reached'};return;
       }
-      // Capacity replies must not reveal whether a guessed private body already exists.
-      if(this.sql.exec('SELECT 1 FROM usage_reports WHERE digest=?',digest).toArray().length){result={code:202};return;}
-      this.sql.exec('INSERT INTO usage_reports VALUES (?,?,?,?,?,?,?,?,?)',digest,crypto.randomUUID(),body.article_kind,body.article_id,JSON.stringify(body),flag,day,
-        Date.parse(day+'T00:00:00Z')+(body.test?USAGE_LIMITS.test_retention_days:USAGE_LIMITS.production_retention_days)*86400000,'pending_review');
+      const expires=Date.parse(day+'T00:00:00Z')+(body.test?USAGE_LIMITS.test_retention_days:USAGE_LIMITS.production_retention_days)*86400000;
+      this.sql.exec('INSERT INTO usage_admissions VALUES (?,?,?,?,?,1,?) ON CONFLICT(day,hour,test,article_kind,article_id) DO UPDATE SET n=n+1',day,hour,flag,body.article_kind,body.article_id,expires);
       this.sql.exec('INSERT INTO usage_budget VALUES (?,?,?,1) ON CONFLICT(day,hour,test) DO UPDATE SET n=n+1',day,hour,flag);
+      // Same statements and acknowledgement for new and duplicate content. Only
+      // body persistence is deduplicated; no existing row's expiry is extended.
+      this.sql.exec('INSERT OR IGNORE INTO usage_reports VALUES (?,?,?,?,?,?,?,?,?)',digest,crypto.randomUUID(),body.article_kind,body.article_id,JSON.stringify(body),flag,day,expires,'pending_review');
       result={code:202};
     });
     return result;
@@ -125,7 +140,7 @@ export function createUsageRoute({resolve=createUsageRegistryResolver(),now=Date
       const bytes=new Uint8Array(size);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length;}
       let parsed;try{parsed=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));}catch(_){return reply({error:'invalid_or_sensitive_input'},400);}
       const body=normalizeUsageReport(parsed);
-      if(!body)return reply({error:'invalid_or_sensitive_input'},400);
+      if(!body||(url.searchParams.get('measurement')==='test'&&!body.test))return reply({error:'invalid_or_sensitive_input'},400);
       const refs=await resolve();if(!refs)return reply({error:'article_registry_unavailable'},503);
       if(!refs.has(body.article_kind+':'+body.article_id))return reply({error:'unknown_article'},400);
       if(!env.COUNTER)return reply({error:'inbox_unavailable'},503);

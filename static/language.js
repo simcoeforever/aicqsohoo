@@ -6,6 +6,13 @@
   const save = value => { try { localStorage.setItem(key, value); } catch (_) {} };
   const url = new URL(location.href);
   const explicit = url.searchParams.get('lang');
+  // Explicit operator test mode travels through same-site links without storage.
+  if(url.searchParams.get('measurement')==='test'){
+    for(const link of document.querySelectorAll('a[href]')){
+      const target=new URL(link.href,location.href);
+      if(target.origin===url.origin){target.searchParams.set('measurement','test');link.href=target.href;}
+    }
+  }
   const current = document.documentElement.lang;
   const valid = value => value === 'ja' || value === 'en';
   for (const link of links) {

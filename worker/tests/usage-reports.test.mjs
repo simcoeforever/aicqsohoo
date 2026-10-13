@@ -41,11 +41,14 @@ test('public registry fetch is fixed, strips visitor data, bounds bytes, caches 
  for(const response of [new Response('x',{status:302}),new Response('x'.repeat(65537),{headers:{'Content-Type':'application/json'}}),Response.json({schema_version:1,articles:[{kind:'agent',id:'x'}]})])
   assert.equal(await createUsageRegistryResolver()(async()=>response),null);
 });
-test('private pending reports never become verified; identical retries and concurrent submissions are not counted twice',async()=>{
+test('private pending reports never become verified; duplicates consume equal quota but store one body',async()=>{
  const {db,inbox,sql}=fixture();
- await Promise.all(Array.from({length:12},()=>inbox.accept(sample,time)));
+ const results=await Promise.all(Array.from({length:12},()=>inbox.accept(sample,time)));
+ assert.equal(results.filter(r=>r.code===202).length,3);
+ assert.equal(results.filter(r=>r.code===429).length,9);
  assert.equal(sql.exec('SELECT COUNT(*) AS n FROM usage_reports').one().n,1);
- assert.equal(sql.exec('SELECT SUM(n) AS n FROM usage_budget').one().n,1);
+ assert.equal(sql.exec('SELECT SUM(n) AS n FROM usage_budget').one().n,3);
+ assert.equal(sql.exec('SELECT SUM(n) AS n FROM usage_admissions').one().n,3);
  const review=inbox.review({},time);assert.equal(review.length,1);assert.equal(review[0].state,'pending_review');
  assert.equal(review[0].claim_type,'unverified_self_report');assert.equal(review[0].report.helpful,sample.helpful);
  assert.equal((await inbox.accept({...sample,test:true},time)).code,202);
@@ -113,4 +116,83 @@ test('full capacity does not disclose whether a guessed private body already exi
  const duplicate=await inbox.accept({...sample,missing:'Detail 0'},time);
  const newBody=await inbox.accept({...sample,missing:'Different detail'},time);
  assert.deepEqual(duplicate,newBody);assert.equal(duplicate.code,429);db.close();
+});
+
+async function oracleTrace(previousOutcome,mode,testFlag=false){
+ const f=fixture();let clock=time;
+ const candidate={...sample,outcome:'helpful',task:'',helpful:'',missing:'',test:testFlag};
+ const old={...candidate,outcome:previousOutcome};
+ if(mode==='capacity'){
+  // 47 admitted retries over earlier days reserve capacity, but store one body.
+  for(let i=0;i<47;i++)assert.equal((await f.inbox.accept(old,time-16*86400000+Math.floor(i/3)*86400000+(i%3)*3600000)).code,202);
+ }else assert.equal((await f.inbox.accept(old,testFlag?time-2*3600000:time-86400000)).code,202);
+ const refs=new Set([sample.article_kind+':'+sample.article_id,...Array.from({length:12},(_,i)=>sample.article_kind+':public-'+i)]);
+ const route=createUsageRoute({resolve:async()=>refs,now:()=>clock});
+ const env={COUNTER:{idFromName:n=>n,get:()=>({acceptUsageReport:body=>f.inbox.accept(body,clock)})}};
+ let inputs=[{...candidate,task:'New one'},{...candidate,task:'New two'},candidate,{...candidate,task:'New three'}];
+ if(mode==='daily')inputs=[{...candidate,article_id:'public-0'}, {...candidate,article_id:'public-1'},candidate,
+  ...Array.from({length:8},(_,i)=>({...candidate,article_id:'public-'+(i+2)}))];
+ if(mode==='capacity')inputs[3]={...candidate,article_id:'public-0',task:'Different article'};
+ // Test mode uses other articles for the first two tries to isolate the hour cap.
+ if(testFlag){inputs[0].article_id='public-0';inputs[1].article_id='public-1';}
+ const replies=[];
+ for(let i=0;i<inputs.length;i++){
+  clock=time+((mode==='article'||mode==='daily')?i*3600000:mode==='capacity'&&i===3?3600000:0);
+  const response=await route(new Request('https://counter.example/usage-reports',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(inputs[i])}),env);
+  replies.push({status:response.status,body:await response.json(),retry:response.headers.get('Retry-After')});
+ }
+ const quota=f.sql.exec('SELECT SUM(n) AS n FROM usage_admissions WHERE test=?',Number(testFlag)).one().n;
+ const bodies=f.sql.exec('SELECT COUNT(*) AS n FROM usage_reports WHERE test=?',Number(testFlag)).one().n;
+ f.db.close();return {replies,quota,bodies};
+}
+
+test('reported hour-window attack has identical public status/body/headers whether guessed content existed yesterday or not',async()=>{
+ const duplicate=await oracleTrace('helpful','hour'),fresh=await oracleTrace('not_helpful','hour');
+ assert.deepEqual(duplicate.replies,fresh.replies);
+ assert.deepEqual(duplicate.replies.map(r=>r.status),[202,202,202,429]);
+ assert.equal(duplicate.quota,fresh.quota);assert.notEqual(duplicate.bodies,fresh.bodies);
+});
+test('article/day, global/day and retained-capacity attacks remain body-independent, including isolated test quota',async()=>{
+ for(const mode of ['article','daily','capacity']){
+  const duplicate=await oracleTrace('helpful',mode),fresh=await oracleTrace('not_helpful',mode);
+  assert.deepEqual(duplicate.replies,fresh.replies,mode);
+  assert.equal(duplicate.replies.at(-1).status,429,mode);
+  assert.equal(duplicate.quota,fresh.quota,mode);
+  assert.notEqual(duplicate.bodies,fresh.bodies,mode);
+ }
+ const duplicate=await oracleTrace('helpful','hour',true),fresh=await oracleTrace('not_helpful','hour',true);
+ assert.deepEqual(duplicate.replies,fresh.replies);assert.deepEqual(duplicate.replies.map(r=>r.status),[202,202,202,429]);
+});
+test('legacy reservation migration is atomic/idempotent and retains existing bodies, budgets and expiry without guessing old hours',async()=>{
+ const f=fixture();await f.inbox.accept(sample,time);
+ f.sql.exec('DELETE FROM usage_admissions');f.sql.exec('DELETE FROM usage_meta');
+ const before=f.sql.exec('SELECT * FROM usage_reports').toArray();
+ const budget=f.sql.exec('SELECT * FROM usage_budget').toArray();
+ for(let i=0;i<3;i++)new UsageInbox(f.storage);
+ assert.deepEqual(f.sql.exec('SELECT * FROM usage_reports').toArray(),before);
+ assert.deepEqual(f.sql.exec('SELECT * FROM usage_budget').toArray(),budget);
+ const slots=f.sql.exec('SELECT * FROM usage_admissions').toArray();assert.equal(slots.length,1);assert.equal(slots[0].n,1);assert.equal(slots[0].hour,-1);
+ assert.equal(slots[0].expires,before[0].expires);f.db.close();
+});
+test('retry reservations expire separately without extending private-body retention; alarms stay active for remaining slots',async()=>{
+ const f=fixture();await f.inbox.accept(sample,time);await f.inbox.accept(sample,time+86400000);
+ assert.equal(f.sql.exec('SELECT COUNT(*) AS n FROM usage_reports').one().n,1);
+ assert.equal(f.inbox.expire(time+30*86400000),true);
+ assert.equal(f.inbox.review({},time+30*86400000).length,0);
+ assert.equal(f.sql.exec('SELECT SUM(n) AS n FROM usage_admissions').one().n,1);
+ assert.equal(f.inbox.expire(time+31*86400000),false);f.db.close();
+});
+
+test('explicit test URL cannot submit a production body, and failed persistence rolls every quota reservation back',async()=>{
+ const f=fixture();const route=createUsageRoute({resolve:async()=>new Set([sample.article_kind+':'+sample.article_id]),now:()=>time});
+ const env={COUNTER:{idFromName:n=>n,get:()=>({acceptUsageReport:body=>f.inbox.accept(body,time)})}};
+ const request=body=>new Request('https://counter.example/usage-reports?measurement=test',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+ assert.equal((await route(request(sample),env)).status,400);
+ assert.equal((await route(request({...sample,test:true}),env)).status,202);
+ const exec=f.sql.exec;f.sql.exec=(query,...args)=>{if(query.startsWith('INSERT OR IGNORE INTO usage_reports'))throw new Error('synthetic persistence failure');return exec(query,...args);};
+ await assert.rejects(f.inbox.accept({...sample,task:'New valid body'},time));
+ assert.equal(exec('SELECT COUNT(*) AS n FROM usage_reports').one().n,1);
+ assert.equal(exec('SELECT SUM(n) AS n FROM usage_budget WHERE test=0').one().n,null);
+ assert.equal(exec('SELECT SUM(n) AS n FROM usage_admissions WHERE test=0').one().n,null);
+ f.db.close();
 });
