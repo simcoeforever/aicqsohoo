@@ -5,10 +5,11 @@
         "Question: can an AI retrieve the site’s evidence as individual reusable records, rather than extracting it from HTML?",
         "We added a read-only JSON catalog and then aligned request counting with its records. A stable ID names each article; its evidence status, source and content hash let an AI inspect what it is using. The request list is generated from that same catalog so newly published records can be counted without a weekly Worker release. These were implementation changes, not a comparison of AI task performance.",
         "Sources: discovery/interventions.jsonl entries dated 2026-10-05; data/reports/2026-10-06-x402-lessons.json separately records payment implementation failures and an offline MPP prototype. Those are not customer sales or new payment attempts in this report.",
-        "Updated on 2026-10-13 after the production schema 3 response was confirmed on a user-provided screen capture: 27 browser page-view events, 1798 successful resource GETs and 0 submission-link clicks. Confirmation provenance and the response fields are recorded in data/measurement-confirmations/2026-10-05.json. The original 20–29 / 1790–1799 bands remain in git history at d85d6af0738417ef98aba0acc82836886d9ed789. No new experiment or inferred exact value is claimed."
+        "Updated on 2026-10-13 after the production schema 3 response was confirmed on a user-provided screen capture: 27 browser page-view events, 1798 successful resource GETs and 0 submission-link clicks. Confirmation provenance and the response fields are recorded in data/measurement-confirmations/2026-10-05.json. The original 20–29 / 1790–1799 bands remain in git history at d85d6af0738417ef98aba0acc82836886d9ed789. No new experiment or inferred exact value is claimed.",
+        "Later on 2026-10-13, confirmed schema 4 categories were added as a reference: data/measurement-confirmations/2026-10-13-get-categories.json. Detailed results and interpretation: /experiment/2026-10-13-get-categories/. The original bands remain in git history; this is a reviewed result update, not a newly executed experiment."
       ],
       "hypotheses": [
-        "The confirmed export records 27 browser page-view events, 1798 successful resource GETs and 0 submission-link clicks, excluding marked tests. GETs are about 67 times the browser events, but cover different resources and collection conditions. This does not show that humans are absent or that AIs made the requests. The export does not separate catalog GETs from other resources, so the difference cannot be attributed to the catalog change.",
+        "The confirmed exports record 27 browser page-view events, 1798 successful resource GETs and 0 submission-link clicks, excluding marked tests. Of the GETs, 1519 were HTML, 193 individual record JSON, 69 catalog/collection JSON, 17 llms.txt and 0 other_unknown. GETs are about 67 times the browser events, but collection conditions differ; this does not establish human absence or AI use. Category counts are not evidence of the causal effect of adding the catalog or of useful AI reuse.",
         "We now have a machine-readable way to retrieve reviewed articles. Whether the independent measurements and failure details improve an AI’s solution remains unanswered. No controlled discovery tests were recorded for this week, and measurement coverage is unverified. Neither growth nor general usefulness follows from these totals."
       ],
       "next_steps": [
@@ -16,7 +17,7 @@
         "The 2026-10-13 usefulness plan in the experiment notebook specifies the small trial. No paid API call, transfer, real payment or new billing is part of this change."
       ],
       "limitations": [
-        "Exact counts were confirmed from a user-provided production screen capture reviewed in the source conversation. This editing environment could not retrieve the live endpoint or inspect the image locally. Coverage remains not_verified and no referring-domain, page, daily or GET-category breakdown is available from this export. Recorded zero clicks do not establish zero visitors, zero submissions or zero revenue. The owner-operated 0.01 USDC transfer is a payment test, not customer revenue."
+        "Exact totals and coarse categories were confirmed from user-provided production screen captures directly reviewed in the source conversation. This editing environment did not retrieve the live response or inspect the images. Coverage remains not_verified; no referring-domain, individual-page or daily breakdown is available. Counts identify recorded requests only. Zero clicks do not establish zero visitors, submissions or revenue. The owner-operated 0.01 USDC transfer is a payment test, not customer revenue."
       ]
     },
     "ja": {
@@ -24,10 +25,11 @@
         "問い：AIがHTMLから拾い出す代わりに、サイトの証拠を記事ごとの再利用できるデータとして取得できるか。",
         "読み取り専用のJSONカタログを追加し、その記事の取得も数えられるようにしました。記事ごとに固定IDを付け、証拠の状態・出典・内容ハッシュで、AIが何を使っているか確認できます。同じカタログから計測対象を生成するため、新しい記事の追加ごとにWorkerを配信し直す必要がありません。これは実装の変更で、AIの課題解決を比較する実験ではありません。",
         "出典はdiscovery/interventions.jsonlの2026-10-05の2件です。data/reports/2026-10-06-x402-lessons.jsonには、決済実装の失敗とオフラインMPP試作が別途記録されています。顧客売上や、この週報で新たに行った決済とは扱いません。",
-        "2026-10-13、ユーザー提供画面で本番schema 3応答を確認した内容に基づき、ページ表示27イベント・成功GET1798件・投稿リンククリック0件へ更新しました。確認経路と応答項目をdata/measurement-confirmations/2026-10-05.jsonに記録しています。元の20–29件／1790–1799件はgit履歴のd85d6af0738417ef98aba0acc82836886d9ed789に残しています。新しい実験や、範囲からの実数推定ではありません。"
+        "2026-10-13、ユーザー提供画面で本番schema 3応答を確認した内容に基づき、ページ表示27イベント・成功GET1798件・投稿リンククリック0件へ更新しました。確認経路と応答項目をdata/measurement-confirmations/2026-10-05.jsonに記録しています。元の20–29件／1790–1799件はgit履歴のd85d6af0738417ef98aba0acc82836886d9ed789に残しています。新しい実験や、範囲からの実数推定ではありません。",
+        "同じ2026-10-13に、確認済みschema 4の分類を参照として追加しました。確認記録：data/measurement-confirmations/2026-10-13-get-categories.json。詳しい結果と解釈：/ja/experiment/2026-10-13-get-categories/。元の範囲値はgit履歴に残し、新しい実験の実施とは扱いません。"
       ],
       "hypotheses": [
-        "確認された出力は、明示テストを除くページ表示27イベント、成功GET1798件、投稿リンククリック0件です。GETはブラウザイベントの約67倍ですが、対象と計測条件が異なります。人間が見ていないことや、AIによる取得の証明にはなりません。出力はカタログと他のリソースを分けないため、差をカタログ変更の効果とも判断できません。",
+        "確認された出力は、明示テストを除くページ表示27イベント、成功GET1798件、投稿リンククリック0件です。GETの内訳はHTML 1519件、個別レコードJSON 193件、カタログ・一覧等JSON 69件、llms.txt 17件、other_unknown 0件でした。GETはブラウザ表示の約67倍ですが、計測条件が違い、人間不在やAI利用の証明にはなりません。分類別件数も、カタログ追加の効果やAIの有用な再利用の証拠ではありません。",
         "レビュー済み記事を機械可読で取得する入口はできました。独自の実測や失敗情報がAIの解決を改善するかは未確認です。この週に条件を決めた発見テストの記録はなく、計測範囲も未検証です。成長や一般的な有用性は、この件数からは言えません。"
       ],
       "next_steps": [
@@ -35,7 +37,7 @@
         "実験記録の2026-10-13有用性計画で小さな試行を定義します。今回は計画までで、有料API呼び出し、送金、実決済、新規課金は行いません。"
       ],
       "limitations": [
-        "実数は、ユーザー提供の本番画面を親の会話で確認した内容に基づきます。この編集環境では本番応答の取得と画像の直接確認ができていません。計測範囲はnot_verifiedのままで、この出力から参照元・ページ・日別・GET分類別の内訳は取得できません。記録されたクリック0件は、訪問者・投稿・収益がゼロという意味ではありません。本人操作の0.01 USDC送金は支払いテストで、顧客収益ではありません。"
+        "実数と粗い分類は、親の会話で直接確認したユーザー提供の本番画面に基づきます。この編集環境では本番応答や画像を直接確認していません。計測範囲はnot_verifiedで、参照元・個別ページ・日別内訳は取得できません。分かるのは記録された取得までです。クリック0件は訪問者・投稿・収益ゼロを意味しません。本人操作の0.01 USDC送金は支払いテストで、顧客収益ではありません。"
       ]
     }
   }

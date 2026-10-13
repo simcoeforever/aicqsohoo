@@ -112,3 +112,19 @@ sum to 1798. Actual category values remain unobserved here. Null categories and
 unavailable/snapshot_mismatch indicate a missing or inconsistent retained
 partition; never fill them with estimates. No category counts are added to the
 October 5 article before a real response is confirmed.
+
+## Production coarse categories confirmed, 2026-10-13
+
+The source conversation directly checked the user's production screen capture:
+html 1519, article_json 193, catalog_json 69, llms_txt 17, other_unknown 0.
+Their sum is 1798, category_status is available, matches_schema3_total is true,
+coverage remains not_verified and started is null. Complete confirmed fields
+and provenance: `data/measurement-confirmations/2026-10-13-get-categories.json`.
+This environment did not directly inspect the image or retrieve the endpoint.
+
+The bilingual category article and October 5 weekly reference now contain those
+results and their limits. No new feature, tracking, trial or charge was added.
+Previous publication bands and unconfirmed-state articles remain in git history.
+HTML accounts for approximately 84% of recorded GETs, individual record JSON
+11%, catalog/collection JSON 4%, llms.txt 1%; these are request shares, not
+human/bot/AI shares or evidence of useful reuse.

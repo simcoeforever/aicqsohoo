@@ -16,5 +16,6 @@
     "resource_gets": 1798,
     "count_precision": "exact_recorded_events",
     "count_origin": "retained_aggregates"
-  }
+  },
+  "related_category_confirmation": "data/measurement-confirmations/2026-10-13-get-categories.json"
 }

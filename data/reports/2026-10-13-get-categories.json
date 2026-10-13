@@ -1,25 +1,28 @@
 {
-  "title": "Opening the GET totals: five coarse kinds, without visitor tracking",
+  "title": "What the 1798 GETs contained: 1519 HTML, 193 record JSON, 69 catalog JSON and 17 llms.txt",
   "changes": [
     "Question: what kinds of resources make up the 1798 recorded GETs in the October 5 week?",
     "Added schema 4 to the existing public summary. It uses stored non-test resource_get counters only and returns five fixed kinds: html, article_json, catalog_json, llms_txt and other_unknown. No new measurement, identifiers, referrers, individual article IDs or daily breakdown is published.",
-    "The original band export (schema 2) and exact-total export (schema 3) remain unchanged. The weekly generator continues to use schema 3; it does not invent category counts before they have been retrieved."
+    "The original band export (schema 2) and exact-total export (schema 3) remain unchanged. The weekly generator continues to use schema 3; it does not invent category counts before they have been retrieved.",
+    "Updated this article and the October 5 weekly reference on 2026-10-13 using the confirmed production category response. Earlier publication bands and the pre-confirmation article remain in git history; no tracking, new feature or task-performance trial was added."
   ],
   "facts": [
     "The October 5–12 UTC week has a confirmed schema 3 total of 1798 successful non-test GETs, with 27 browser page-view events and 0 submission-link clicks. Those totals were confirmed from a user-provided production screen capture; see data/measurement-confirmations/2026-10-05.json.",
-    "This change implements and tests the classification; production category counts have not been read by this editing environment. No per-category count is claimed in this article.",
+    "On 2026-10-13, the source conversation directly checked a user-provided screen capture of the production schema 4 response: html 1519, article_json 193, catalog_json 69, llms_txt 17, other_unknown 0. The counts sum to 1798. category_status is available and matches_schema3_total is true; coverage remains not_verified. Confirmation fields and provenance: data/measurement-confirmations/2026-10-13-get-categories.json. This editing environment did not directly inspect the image or retrieve the live response.",
+    "Rounded shares of the recorded GETs are approximately 84% HTML, 11% individual record JSON, 4% catalog/collection JSON and 1% llms.txt. These are request shares, not shares of people, bots or AIs.",
     "html covers known public HTML paths, including existing experience/profile pages, experiment/weekly HTML and payment-policy HTML. English/Japanese paths and legacy index.html forms are combined.",
     "article_json combines all five stored record kinds (experience, agent, weekly_report, experiment_article and payment_policy), rather than disclosing article IDs or separate counts for each record kind.",
     "catalog_json includes index.json, machine-schema.json and the legacy experiences.json, agents.json and submission-schema.json collections. llms_txt covers llms.txt. other_unknown retains counts with an unrecognized stored resource label without publishing that label."
   ],
   "hypotheses": [
-    "A larger HTML or JSON count may help decide which articles and formats to improve. Neither kind identifies a person, a bot or an AI, and repeated requests remain repeated counts.",
-    "GET and browser-event counts cover different resources and collection conditions; the approximately 67-fold difference is not an AI proportion or evidence that humans are absent."
+    "Most recorded GETs were HTML: 1519, compared with 27 browser page-view events. That difference can reflect automated crawling, repeated retrieval, operator checks without a test flag, language redirects or missing browser telemetry. The available data cannot assign their shares or establish that humans were absent or AIs were present.",
+    "The 193 individual record JSON GETs show that this format was retrieved. They are not 193 distinct articles or users, and do not establish useful reuse or better AI task outcomes. The 69 catalog JSON and 17 llms.txt requests likewise show recorded retrieval only.",
+    "The breakdown answers which broad kinds were recorded. It does not show a growth trend or the causal effect of adding JSON. Useful AI reuse remains a separate question for the published, unrun small-trial plan."
   ],
   "next_steps": [
-    "Open the existing public summary with schema=4: https://aicqsohoo-counter.waste-tkt.workers.dev/summary?start=2026-10-05&schema=4",
-    "When category_status is available and matches_schema3_total is true, the five categories must sum to resource_gets. For the confirmed October 5 snapshot, that whole-week reference total is 1798. Check the actual returned counts before adding them to the weekly article.",
-    "If category_status is unavailable or snapshot_mismatch, category values are null. Do not estimate a partition of the 1798 total. Report the missing or changed retained data instead."
+    "The production response is available at: https://aicqsohoo-counter.waste-tkt.workers.dev/summary?start=2026-10-05&schema=4",
+    "Use this as the confirmed baseline for recorded resource kinds. When later closed weeks have confirmed data, compare them separately with the same policy and report missing measurements. No new feature or trial is executed as part of this update.",
+    "The previously published usefulness plan remains unrun. Retrieval counts alone cannot replace task outcomes. For unavailable or snapshot_mismatch responses, keep category values unknown rather than filling them with estimates."
   ],
   "limitations": [
     "Policy coarse_resource_kinds_v1 classifies existing stored labels; it neither adds counted URLs nor backfills older unobserved requests. JSON requests before catalog measurement was enabled, disabled/bypassed routes, failed measurement, errors, HEADs and excluded resources remain unobserved.",
@@ -29,27 +32,30 @@
   ],
   "translations": {
     "ja": {
-      "title": "GETの中身を5種類に分ける：新しい追跡を加えずに内訳を開く",
+      "title": "1798件のGETの中身：HTML 1519・個別JSON 193・カタログ等JSON 69・llms.txt 17",
       "changes": [
         "問い：10月5日の週に記録された1798件のGETは、どんな種類の取得で構成されているか。",
         "既存の公開集計にschema 4を追加しました。保存済みのテストを除くresource_get集計だけを使い、html、article_json、catalog_json、llms_txt、other_unknownの5種類を返します。新しい計測・識別子・参照元・個別記事ID・日別内訳は公開しません。",
-        "従来の10件幅（schema 2）と全体実数（schema 3）は維持します。定期週報の生成は引き続きschema 3を使い、取得前の分類別件数を作りません。"
+        "従来の10件幅（schema 2）と全体実数（schema 3）は維持します。定期週報の生成は引き続きschema 3を使い、取得前の分類別件数を作りません。",
+        "2026-10-13、確認済みの本番分類応答を使ってこの記事と10月5日週報の参照を更新しました。以前の範囲値や確認前の記事はgit履歴に残しています。追跡、新機能、課題解決の試行は追加していません。"
       ],
       "facts": [
         "10月5日以上12日未満UTCの週には、明示テストを除く成功GET1798件、ブラウザ表示27イベント、投稿リンククリック0件がschema 3で確認されています。根拠はユーザー提供の本番画面で、data/measurement-confirmations/2026-10-05.jsonに確認経路を記録しています。",
-        "今回実装・検証したのは分類の仕組みです。この編集環境では本番の分類別件数をまだ取得できておらず、この記事にも分類別の結果は書いていません。",
+        "2026-10-13、親の会話でユーザー提供の本番schema 4画面を直接確認した内容は、html 1519件、article_json 193件、catalog_json 69件、llms_txt 17件、other_unknown 0件でした。合計は1798件で、category_statusはavailable、matches_schema3_totalはtrueです。coverageはnot_verifiedのままです。確認項目と経路はdata/measurement-confirmations/2026-10-13-get-categories.jsonに保存しています。この編集環境で画像を直接見たり、本番応答を取得したりしたものではありません。",
+        "記録されたGETの構成比を丸めると、HTML約84%、個別レコードJSON約11%、カタログ・一覧等JSON約4%、llms.txt約1%です。取得回数の割合であり、人・bot・AIの割合ではありません。",
         "htmlは既知の公開HTMLです。経験・プロフィール・実験／週報・支払い方針のHTMLを含み、日英や古いindex.html表記も合わせます。",
         "article_jsonは個別レコードJSONです。経験・プロフィール・週報・実験記事・支払い方針という保存上の5種類を一つにまとめます。記事IDや、その5種類ごとの件数は出しません。",
         "catalog_jsonはindex.json、machine-schema.json、従来のexperiences.json、agents.json、submission-schema.jsonです。llms_txtはllms.txtです。other_unknownは分類できない保存済みラベルの件数を残しますが、そのラベル自体は公開しません。"
       ],
       "hypotheses": [
-        "HTMLとJSONのどちらが多いかは、記事や形式の改善を考える材料になるかもしれません。どちらも人・bot・AIを識別する指標ではなく、繰り返し取得はそのまま回数に入ります。",
-        "GETとブラウザ表示は対象・計測条件が違います。約67倍という差は、AIの割合や、人間が見ていないことの証明ではありません。"
+        "記録されたGETの多数はHTMLの1519件で、ブラウザ表示27イベントとは大きな差があります。自動巡回、繰り返し取得、テスト印のない運用者確認、言語切替、ブラウザ計測の欠落などが考えられますが、その割合は分かりません。人間が見ていないことや、AIが取得したことは断定できません。",
+        "個別レコードJSONの193件は、その形式が取得されたという記録です。193記事や193人を意味せず、有用な再利用やAIの課題解決の改善の証拠でもありません。カタログ等JSONの69件、llms.txtの17件も、記録された取得までを示します。",
+        "今回分かったのは、記録された取得の粗い種類です。成長の傾向やJSON追加の因果的な効果は分かりません。AIに役立つかは、公開済みで未実施の小さな比較計画で別に確かめる問いです。"
       ],
       "next_steps": [
-        "既存の公開集計をschema=4で開きます：https://aicqsohoo-counter.waste-tkt.workers.dev/summary?start=2026-10-05&schema=4",
-        "category_statusがavailable、matches_schema3_totalがtrueなら、categoriesの5項目の合計がresource_getsと一致する必要があります。確認済みの10月5日週の全体値は1798です。実際の応答を確認してから、内訳を週報に追記します。",
-        "category_statusがunavailableまたはsnapshot_mismatchなら、分類の値はnullです。1798件の内訳を推測して埋めず、保持データの不足や不一致を報告します。"
+        "本番の応答を開く：https://aicqsohoo-counter.waste-tkt.workers.dev/summary?start=2026-10-05&schema=4",
+        "今回の確認値を、記録された取得種類の基準として残します。後の閉週で確認できた値があれば、同じ分類基準で別々に比較し、欠測も示します。この更新で新機能や試行は実施しません。",
+        "以前に公開した有用性の検証計画は未実施です。取得件数を課題解決の結果の代わりにはしません。取得不可やsnapshot_mismatchの場合も、未知の内訳を推定で埋めません。"
       ],
       "limitations": [
         "分類基準coarse_resource_kinds_v1は既存の保存ラベルを分類するだけです。計測対象URLを増やさず、過去の未観測取得も補いません。カタログ計測開始前のJSON、無効・迂回したRoute、計測失敗、エラー、HEAD、対象外の取得は未観測のままです。",

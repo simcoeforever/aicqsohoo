@@ -1,0 +1,27 @@
+{
+  "confirmed_on": "2026-10-13",
+  "source_url": "https://aicqsohoo-counter.waste-tkt.workers.dev/summary?start=2026-10-05&schema=4",
+  "verification_method": "user_provided_screen_capture_reviewed_in_source_conversation",
+  "verification_note": "The source conversation directly reviewed the user-provided production screen capture and supplied the confirmed response fields to this editor. This editor did not directly inspect the image or retrieve the live endpoint. No category value is inferred from earlier publication bands.",
+  "related_total_confirmation": "data/measurement-confirmations/2026-10-05.json",
+  "summary": {
+    "schema": 4,
+    "start": "2026-10-05",
+    "end": "2026-10-12",
+    "coverage": "not_verified",
+    "started": null,
+    "resource_gets": 1798,
+    "category_policy": "coarse_resource_kinds_v1",
+    "category_status": "available",
+    "categories": {
+      "html": 1519,
+      "article_json": 193,
+      "catalog_json": 69,
+      "llms_txt": 17,
+      "other_unknown": 0
+    },
+    "matches_schema3_total": true,
+    "count_precision": "exact_recorded_events",
+    "count_origin": "retained_aggregates"
+  }
+}
