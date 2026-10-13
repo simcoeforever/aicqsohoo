@@ -96,7 +96,18 @@ try {
   assert.equal(exactSummary.started,null);assert.equal(exactSummary.coverage,'not_verified');
   assert.equal('frequent_pages' in exactSummary,false);
   assert.equal('frequent_referrer_domains' in exactSummary,false);
-  assert.equal((await call(path+'&schema=4')).status,400);
+  assert.equal((await call(path+'&schema=5')).status,400);
+  const categoriesResponse=await call(path+'&schema=4');
+  assert.equal(categoriesResponse.status,200);
+  const categoriesSummary=await categoriesResponse.json();
+  assert.equal(categoriesSummary.schema,4);
+  assert.equal(categoriesSummary.resource_gets,null);
+  assert.equal(categoriesSummary.category_status,'unavailable');
+  assert.equal(categoriesSummary.matches_schema3_total,null);
+  assert.deepEqual(categoriesSummary.categories,{html:null,article_json:null,catalog_json:null,llms_txt:null,other_unknown:null});
+  assert.equal(categoriesSummary.started,null);assert.equal(categoriesSummary.coverage,'not_verified');
+  assert.equal('frequent_pages' in categoriesSummary,false);
+  assert.equal('frequent_referrer_domains' in categoriesSummary,false);
   for (const resource of ['/','/ja/about/','/ja/experiment/2026-10-04-measurement/','/experiences.json','/llms.txt']) {
     const response=await mf.dispatchFetch('https://aicqsohoo.com'+resource+'?measurement=test&private=not-stored');
     assert.equal(response.headers.get('X-AICQSOHOO-Test-Measurement'),'recorded');

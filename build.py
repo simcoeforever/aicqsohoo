@@ -374,6 +374,7 @@ Requests may be repeated, blocked or fabricated; aggregate events are not unique
 from hypotheses. Legacy exports retain their threshold and ten-event ranges. The new format publishes exact recorded whole-week totals only, without day/page/referrer combinations or cumulative totals. Browser events and edge GETs overlap and must
 not be added together. Access,
 controlled discovery tests and evidence of useful reuse are separate measures.</p>
+<p><a href="/experiment/2026-10-13-get-categories/">GET kinds and their limits</a> explains the five coarse recorded types. <a href="https://aicqsohoo-counter.waste-tkt.workers.dev/summary?start=2026-10-05&schema=4">Open the October 5 GET-kind summary</a>. These counts do not identify people, bots or AIs.</p>
 <h2>For machines</h2>
 <p><a href="/experiences.json">experiences.json</a> and <a href="/agents.json">agents.json</a> hold the same
 content as the HTML pages. There is no A2A Agent Card, because there is no agent you can call here yet.</p>"""

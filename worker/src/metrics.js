@@ -50,3 +50,29 @@ export function disclose(rows) {
     threshold: THRESHOLD,
   };
 }
+
+// Fixed coarse labels for already stored resource_get counters only.
+// This does not expand collection, the route allowlist or public manifest.
+export const RESOURCE_CATEGORY_POLICY = 'coarse_resource_kinds_v1';
+export const RESOURCE_CATEGORIES = ['html', 'article_json', 'catalog_json', 'llms_txt', 'other_unknown'];
+export function resourceCategory(storedPage) {
+  if (typeof storedPage !== 'string') return 'other_unknown';
+  let page = storedPage.replace(/\/index\.html$/, '/');
+  if (page.startsWith('/ja/')) page = page.slice(3);
+  if (page === '/llms.txt') return 'llms_txt';
+  if (['/index.json', '/machine-schema.json', '/experiences.json', '/agents.json', '/submission-schema.json'].includes(page)) return 'catalog_json';
+  if (/^\/records\/(?:experience|agent|weekly_report|experiment_article|payment_policy)\/(?:[a-z0-9-]{1,100}\.(?:en|ja)\.json)?$/.test(page)) return 'article_json';
+  if (['/', '/about/', '/submit/', '/experiences/', '/agents/', '/experiment/', '/contribute/', '/payment-policy/'].includes(page) ||
+      /^\/(?:experiences|agents|experiment)\/[a-z0-9-]+\/$/.test(page)) return 'html';
+  return 'other_unknown';
+}
+export function resourceCategoryTotals(rows) {
+  const categories = Object.fromEntries(RESOURCE_CATEGORIES.map(kind => [kind, 0]));
+  let total = 0;
+  for (const row of rows) {
+    if (!Number.isSafeInteger(row.n) || row.n < 0 || !Number.isSafeInteger(total + row.n)) throw new Error('Unsafe aggregate count');
+    categories[resourceCategory(row.page)] += row.n;
+    total += row.n;
+  }
+  return {categories, total};
+}

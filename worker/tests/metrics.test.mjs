@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
 import { readFileSync } from 'node:fs';
-import { normalizeEvent, weekRange, disclose } from '../src/metrics.js';
+import { normalizeEvent, weekRange, disclose, resourceCategory, resourceCategoryTotals } from '../src/metrics.js';
 
 const original = readFileSync(new URL('../src/index.js', import.meta.url), 'utf8');
 const source = original.replace('import { DurableObject } from "cloudflare:workers";',
@@ -191,7 +191,7 @@ test('exact API keeps existing authorization, closed-week policy, public metadat
   assert.equal(data.started,null);assert.equal(data.coverage,'not_verified');
   assert.equal(JSON.stringify(data).includes('single.example'),false);
   assert.equal((await (await worker.fetch(req('start='+start),publicEnv)).json()).schema,2);
-  for(const query of ['start='+start+'&schema=4','start=junk&schema=3','start=2020-01-06&schema=3',
+  for(const query of ['start='+start+'&schema=5','start=junk&schema=3','start=2020-01-06&schema=3',
     'start='+new Date().toISOString().slice(0,10)+'&schema=3'])
     assert.equal((await worker.fetch(req(query),publicEnv)).status,400);
   assert.equal((await worker.fetch(req('start='+start+'&schema=3','POST'),publicEnv)).status,405);
@@ -202,4 +202,122 @@ test('exact API keeps existing authorization, closed-week policy, public metadat
   assert.equal(sql.exec("SELECT 1 FROM weekly_exports WHERE start='2020-01-06'").toArray().length,0);
   assert.equal(env.COUNTER.get().current(),42);
   db.close();
+});
+
+test('coarse resource policy handles current groups, legacy collection JSON/HTML and unknown labels without expanding collection', () => {
+  for (const page of ['/', '/about/', '/ja/about/', '/experiment/', '/experiment/old-report/', '/experiences/old-id/', '/agents/old-agent/', '/payment-policy/', '/ja/payment-policy/', '/index.html'])
+    assert.equal(resourceCategory(page),'html');
+  for (const kind of ['experience','agent','weekly_report','experiment_article','payment_policy']) {
+    assert.equal(resourceCategory('/records/'+kind+'/'),'article_json');
+    assert.equal(resourceCategory('/records/'+kind+'/old-record.en.json'),'article_json');
+  }
+  for(const page of ['/index.json','/machine-schema.json','/experiences.json','/agents.json','/submission-schema.json'])
+    assert.equal(resourceCategory(page),'catalog_json');
+  assert.equal(resourceCategory('/llms.txt'),'llms_txt');
+  for(const page of ['/records/unknown_kind/','/legacy-unknown/','/robots.txt','/products.json','/?private=x','https://private.example/x',null])
+    assert.equal(resourceCategory(page),'other_unknown');
+  assert.deepEqual(resourceCategoryTotals([{page:'/legacy-unknown/',n:1}]),{
+    categories:{html:0,article_json:0,catalog_json:0,llms_txt:0,other_unknown:1},total:1});
+  for(const n of [-1,1.5,NaN,'1'])assert.throws(()=>resourceCategoryTotals([{page:'/',n}]),/Unsafe aggregate/);
+  assert.throws(()=>resourceCategoryTotals([{page:'/',n:Number.MAX_SAFE_INTEGER},{page:'/',n:1}]),/Unsafe aggregate/);
+});
+
+test('coarse GET snapshot sums all retained non-test groups, reconciles v3, seals independently and exports no detailed labels', () => {
+  const {counter,sql,db}=fixture();
+  const range={start:'2026-09-21',end:'2026-09-28'};
+  sql.exec("INSERT INTO metrics_meta VALUES (1,'2026-09-20')");
+  for(const [day,page,event,source,flag,n] of [
+    ['2026-09-21','/','resource_get','private.example',0,7],
+    ['2026-09-22','/ja/about/','resource_get','unknown',0,5],
+    ['2026-09-23','/experiment/','resource_get','unknown',0,3],
+    ['2026-09-23','/payment-policy/','resource_get','unknown',0,1],
+    ['2026-09-24','/records/experience/','resource_get','unknown',0,4],
+    ['2026-09-24','/records/weekly_report/','resource_get','unknown',0,2],
+    ['2026-09-25','/index.json','resource_get','unknown',0,6],
+    ['2026-09-25','/experiences.json','resource_get','unknown',0,3],
+    ['2026-09-26','/llms.txt','resource_get','unknown',0,2],
+    ['2026-09-27','/private-legacy-label/','resource_get','secret.example',0,1],
+    ['2026-09-27','/','page_view','unknown',0,200],
+    ['2026-09-27','/','resource_get','test.example',1,1000],
+    ['2026-09-20','/','resource_get','unknown',0,1000],
+    ['2026-09-28','/','resource_get','unknown',0,1000],
+  ])sql.exec('INSERT INTO metrics VALUES (?,?,?,?,?,?)',day,page,event,source,flag,n);
+  const legacy=counter.summary(range),exact=counter.exactSummary(range);
+  const report=counter.resourceCategorySummary(range);
+  assert.equal(report.schema,4);assert.equal(report.category_policy,'coarse_resource_kinds_v1');
+  assert.equal(report.resource_gets,34);assert.equal(report.resource_gets,exact.resource_gets);
+  assert.deepEqual(report.categories,{html:16,article_json:6,catalog_json:9,llms_txt:2,other_unknown:1});
+  assert.equal(Object.values(report.categories).reduce((a,b)=>a+b,0),report.resource_gets);
+  assert.equal(report.category_status,'available');assert.equal(report.matches_schema3_total,true);
+  assert.equal(report.started,null);assert.equal(counter.current(),42);
+  for(const value of ['private.example','secret.example','private-legacy-label','/records/','2026-09-24','test.example'])
+    assert.equal(JSON.stringify(report).includes(value),false);
+  sql.exec('UPDATE metrics SET n=n+1');
+  assert.deepEqual(counter.resourceCategorySummary(range),report);
+  assert.deepEqual(counter.exactSummary(range),exact);
+  assert.deepEqual(counter.summary(range),legacy);
+  db.close();
+});
+
+test('coarse unavailable periods are null; observed zero is zero; partial collection is not extrapolated',()=>{
+  for(const started of [null,'2026-09-28','2026-09-24','2026-09-20']){
+    const {counter,sql,db}=fixture();
+    if(started)sql.exec('INSERT INTO metrics_meta VALUES (1,?)',started);
+    const report=counter.resourceCategorySummary({start:'2026-09-21',end:'2026-09-28'});
+    const unavailable=!started||started==='2026-09-28';
+    assert.equal(report.resource_gets,unavailable?null:0);
+    assert.equal(report.category_status,unavailable?'unavailable':'available');
+    assert.equal(report.matches_schema3_total,unavailable?null:true);
+    assert.deepEqual(Object.values(report.categories),Array(5).fill(unavailable?null:0));
+    assert.equal(report.coverage,unavailable?'not_started':started==='2026-09-24'?'partial':'configured');
+    db.close();
+  }
+});
+
+test('coarse mismatches or lost retained data never fabricate a partition of sealed v3 totals',()=>{
+  for(const change of ['UPDATE metrics SET n=7','DELETE FROM metrics','DELETE FROM metrics_meta']){
+    const {counter,sql,db}=fixture();
+    sql.exec("INSERT INTO metrics_meta VALUES (1,'2026-09-20')");
+    sql.exec("INSERT INTO metrics VALUES ('2026-09-21','/','resource_get','unknown',0,5)");
+    const range={start:'2026-09-21',end:'2026-09-28'};
+    const exact=counter.exactSummary(range);
+    sql.exec(change);
+    const report=counter.resourceCategorySummary(range);
+    assert.equal(report.resource_gets,5);
+    assert.equal(report.category_status,change.includes('metrics_meta')?'unavailable':'snapshot_mismatch');
+    assert.equal(report.matches_schema3_total,change.includes('metrics_meta')?null:false);
+    assert.deepEqual(Object.values(report.categories),Array(5).fill(null));
+    assert.deepEqual(counter.exactSummary(range),exact);
+    db.close();
+  }
+});
+
+test('coarse API retains auth, fixed closed weeks, no-store and privacy; v2/v3 remain unchanged and all snapshots expire', async()=>{
+  const {env,counter,sql,db}=fixture();
+  const today=new Date();today.setUTCDate(today.getUTCDate()-((today.getUTCDay()+6)%7)-7);
+  const start=today.toISOString().slice(0,10);
+  sql.exec('INSERT INTO metrics_meta VALUES (1,?)',start);
+  sql.exec('INSERT INTO metrics VALUES (?,?,?,?,?,?)',start,'/llms.txt','resource_get','private.example',0,1);
+  const req=(query,method='GET',auth=false)=>new Request('https://counter.example/summary?'+query,{method,headers:auth?{Authorization:'Bearer test-only'}:{}});
+  const query='start='+start+'&schema=4';
+  assert.equal((await worker.fetch(req(query),env)).status,401);
+  assert.equal((await worker.fetch(req(query,'GET',true),env)).status,200);
+  const publicEnv={...env,PUBLIC_SUMMARY:'true',REPORT_TOKEN:undefined};
+  const old2=await(await worker.fetch(req('start='+start),publicEnv)).json();
+  const old3=await(await worker.fetch(req('start='+start+'&schema=3'),publicEnv)).json();
+  const response=await worker.fetch(req(query),publicEnv);
+  assert.equal(response.status,200);assert.equal(response.headers.get('Cache-Control'),'no-store');
+  const report=await response.json();
+  assert.equal(report.categories.llms_txt,1);assert.equal(report.matches_schema3_total,true);
+  assert.equal(report.started,null);assert.equal(report.coverage,'not_verified');
+  for(const field of ['source','page','daily','rows','frequent_pages','frequent_referrer_domains','tests'])assert.equal(field in report,false);
+  assert.equal(JSON.stringify(report).includes('private.example'),false);
+  assert.deepEqual(await(await worker.fetch(req('start='+start),publicEnv)).json(),old2);
+  assert.deepEqual(await(await worker.fetch(req('start='+start+'&schema=3'),publicEnv)).json(),old3);
+  assert.equal((await worker.fetch(req(query,'POST'),publicEnv)).status,405);
+  for(const value of ['start=junk&schema=4','start=2020-01-06&schema=4','start=2099-01-05&schema=4'])
+    assert.equal((await worker.fetch(req(value),publicEnv)).status,400);
+  sql.exec("INSERT INTO weekly_exports VALUES (4,'2020-01-06','{}')");await counter.alarm();
+  assert.equal(sql.exec("SELECT 1 FROM weekly_exports WHERE start='2020-01-06'").toArray().length,0);
+  assert.equal(counter.current(),42);db.close();
 });

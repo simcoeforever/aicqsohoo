@@ -90,3 +90,25 @@ Schema 3 exposes only whole-week totals. No existing public endpoint provides
 GET category totals or daily GET totals. The missing data for that analysis is
 non-test resource_get sums by the stored fixed resource groups (and UTC day if
 needed); none has been retrieved or newly published in this change.
+
+## Coarse GET export rollout, 2026-10-13
+
+The separately sealed schema 4 provides approved five-kind whole-week GET
+counts from existing aggregates. It changes no credentials, Worker bindings,
+routes/fail-open, observability, collection, payment modes, retention or weekly
+schedule. Use the existing main push / Cloudflare Workers Builds integration,
+then read its check and version metadata. Do not create a new login/token.
+
+This environment's public endpoint proxy denial is already established; do not
+repeat denied requests. Production verification URL:
+https://aicqsohoo-counter.waste-tkt.workers.dev/summary?start=2026-10-05&schema=4
+
+Expected: schema 4, start 2026-10-05, end 2026-10-12, coverage not_verified,
+started null, category_policy coarse_resource_kinds_v1, resource_gets 1798
+(the already confirmed schema 3 snapshot), categories containing html,
+article_json, catalog_json, llms_txt and other_unknown. When category_status is
+available, matches_schema3_total must be true and the five returned counts must
+sum to 1798. Actual category values remain unobserved here. Null categories and
+unavailable/snapshot_mismatch indicate a missing or inconsistent retained
+partition; never fill them with estimates. No category counts are added to the
+October 5 article before a real response is confirmed.

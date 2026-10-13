@@ -174,3 +174,42 @@ The weekly client requests schema 3 and validates both schemas, so an older
 Worker returning schema 2 still produces correctly labeled bands. Existing
 articles remain immutable on automatic reruns. Do not replace historical article
 counts until an actual exact snapshot has been retrieved and reviewed.
+
+## Coarse GET categories, schema 4 (2026-10-13)
+
+Following approval to continue analyzing existing anonymous aggregates,
+`GET /summary?start=YYYY-MM-DD&schema=4` publishes five fixed whole-week
+resource_get kinds under `coarse_resource_kinds_v1`: html, article_json,
+catalog_json, llms_txt, other_unknown. `resourceCategory()` classifies stored
+labels, including legacy collection JSON and HTML forms; unrecognized labels
+are summed into other_unknown without exposing their strings. The current
+collector, gateway allowlist and manifest resolver are unchanged.
+
+The Counter queries only page/SUM(n) for closed-week resource_get rows with
+test=0, grouping across all sources and days. Those labels stay internal.
+The new export has schema, start/end, coverage, started:null, resource_gets,
+category_policy, category_status, categories, matches_schema3_total, precision
+and origin. It has no referrer, article ID, language, date breakdown or test total.
+Its total is the independently sealed schema 3 total. The computed categories
+are released only if retained metadata is present and their sum matches it.
+
+- available / true: all five counts are integers (including recorded zeros),
+  and their sum equals resource_gets.
+- unavailable / null: no retained measurement is established; all category
+  counts are null. A previously sealed schema 3 total may still remain known.
+- snapshot_mismatch / false: retained sums differ from the sealed total,
+  including lost rows; resource_gets stays at the original schema 3 total and
+  every category count is null. No invented residual or subtraction estimate.
+
+Schema 4 snapshots are sealed separately at weekly_exports.version=4 and expire
+under existing rules. The router preserves the same authentication, GET-only
+policy, 84-day closed-week restriction and public coverage suppression.
+Schema 2/3 and the weekly client's schema 3 request remain unchanged.
+Counts classify only what was recorded. No per-category collection-start
+history exists; a zero for JSON before its measurement was enabled cannot
+prove that no JSON was fetched. General telemetry loss and route bypass remain
+unverified. No new collection, billing, logs or security settings are added.
+
+Reviewed English/Japanese explanations are in
+`data/reports/2026-10-13-get-categories.json`. This environment does not observe
+the production response; use the returned public URL to verify actual counts.
