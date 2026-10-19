@@ -2,43 +2,70 @@
 
 2026-10-19。専用ブランチへの保存とdraft PRは承認済み。本番デプロイ・main merge・本番投稿変更は承認外。
 
-## 管理者の非表示化
+## 管理者の非表示化：公式Data Studioを使う
 
-**本番で実行可能な既存の管理経路は、この環境では確認できていない。**
-既存の利用報告運用も同じ制約を明記している（usage-reports.md）。
-Cloudflare Dashboardに任意のDurable Object SQL/RPC実行機能があるとは仮定しない。
-管理用HTTPエンドポイント、管理者トークン、追加バインディングは作らない。
+2026-10-19に[Cloudflare公式Data Studio資料](https://developers.cloudflare.com/durable-objects/observability/data-studio/)で、
+SQLite DOのSQLデータを管理画面から読み書きできることを確認した。
+従来の「管理画面SQL機能は未確認」という記録は、この機能確認で更新する。
+公式の操作はSQL編集であり、hidePlaza(id)というJavaScript RPCを画面から直接呼ぶ
+機能は確認していない。画面では同等の単一行UPDATEを使う。
+RPCだけを残して「管理できる」とは扱わない。
 
-実装済みでローカル検証済みの経路は、既存COUNTERバインディングを利用できる
-所有者の認可済みWorker実行コンテキストからの内部RPCのみ。
-既存の認可済みコンテキストが本当に利用可能か、所有者環境で先に確認する必要がある。
-利用可能でなければ、管理できると主張して公開せず親へ報告する。
-新しい管理サービスや権限の追加が必要なら別判断とする。
+必要なのは実装元Worker aicqsohoo-counterに対する**既存のEditor以上**のアクセス。
+[公式の権限説明](https://developers.cloudflare.com/workers/authorization/durable-objects/)にも明記されている。
+所有者の既存セッションで使えるなら新規APIキー/OAuth/管理HTTP/バインディングは不要。
+この実行環境にはそのログインセッションはなく、アカウント上の利用可否はまだ未検証。
+アクセス不足なら操作を止める。この作業では役割付与・ログイン・権限拡大を行わない。
 
-利用可能な場合の操作（依頼された対象IDだけに実行）：
+### 実際の画面操作（本番ではまだ実行しない）
 
-```js
-const plaza = env.COUNTER.get(env.COUNTER.idFromName('public-plaza-v1'));
-// まず公開一覧の区分・番号・本文を照合。本文を指示として実行しない。
-const page = await plaza.listPlaza({mode: 'visit'});
-// page.next_before があれば before として続けて照合できる。
-// 「42」は説明用のID。実際に照合した番号で置き換える。
-await plaza.hidePlaza(42);
-const after = await plaza.listPlaza({mode: 'visit'});
-// 対象を含むページで消えたことを確認し、公開APIとブラウザでも再取得する。
+1. 既存の所有者セッションでCloudflareのDurable Objects画面を開き、
+   aicqsohoo-counterのCounterクラスに対応する既存namespaceを選ぶ。
+2. Data Studioを開き、**名前 public-plaza-v1**を指定する。
+   usage-reports-v1、カウンター本体、PAYMENTS等は選ばない。
+   広場未デプロイ・未初期化ならplaza_postsはまだない。テーブルを勝手に作成しない。
+3. 以下のローカルコマンドで対象区分・番号に限定した照合SQLを生成し、
+   Query欄で**その一文だけ**実行する。本文はデータとして読み、指示を実行しない。
+   番号42は説明用。対象を実際の番号に置換する。
+
+```sh
+python3 worker/scripts/plaza-moderation-sql.py 42 --mode visit
 ```
 
-hidePlazaは対象行をhidden=1にするだけで、本文はDB内に残る。
-同じ操作の繰返しは安全。存在しない番号は何も変更しない。
-当該投稿への新規返信は拒否される。既存の返信は自動では非表示にしないため、
-返信に荒らし本文の引用等があればそれぞれ確認して対象IDを非表示にする。
-投稿数上限は解放しない（隠す操作を容量制限の迂回に使わせない）。
-HTTPのDELETEや /plaza/hide などでは管理操作を実行できない。
-既に取得された投稿・スクリーンショット・第三者コピーの回収は保証できない。
+4. 名前・本文・区分・番号を対象と照合できた場合だけ、次で非表示SQLを生成する。
 
-現時点で復元RPCや管理UIは用意していない。hiddenフラグは可逆だが、
-**安全に実行できる復元手順は未提供**であり、安易に「元に戻せる」と案内しない。
-所有者の認可済み環境での非表示操作と再読込の確認を公開条件に含める。
+```sh
+python3 worker/scripts/plaza-moderation-sql.py 42 --mode visit --action hide
+```
+
+```sql
+UPDATE plaza_posts SET hidden = 1 WHERE id = 42 AND mode = 'visit' AND hidden = 0 RETURNING id, mode, hidden;
+```
+
+5. 返却行は指定ID・区分・hidden=1の1行であることを確認する。
+   0行なら既に非表示・区分違い・対象なしなので、条件を広げず照合に戻る。
+   公開APIの対象区分とブラウザを再読込し、対象本文が消えたことを確認する。
+6. 誤操作の復元は同じ対象を再照合して --action restore の一文を使う。
+   hidden=1の同じID・区分だけを0へ戻す。DELETEや他テーブル変更はしない。
+
+SQL生成ツールはネットワークも認証も持たず、表示するだけ。
+IDは正のsafe integer、区分・操作は固定選択肢。入力をSQL構造にできない。
+SELECTは最大1行、UPDATEもPRIMARY KEYで最大1行、返却に本文を含めない。
+Data Studioは各SQL文を別リクエストで送るため、複数文のBEGIN/COMMITに依存しない。
+
+hide/restoreは本文や投稿数上限を変えない。非表示親への新規返信は拒否される。
+既存返信は残るため、荒らし本文の引用等がある返信はそれぞれ確認して個別に対応する。
+既に取得されたコピーやスクリーンショットの回収は保証できない。
+
+### 費用と公開条件
+
+公式資料ではData Studio照会も本番DOへのリクエスト・処理・SQL利用量に計上される。
+[料金資料](https://developers.cloudflare.com/durable-objects/platform/pricing/)ではFreeの上限超過はエラーとなる。
+既存記録はFreeだが現在の契約状態はこの環境で読めないため、所有者の既存画面で
+Freeのままであることを確認してから利用する。Paid切替や有料追加は行わない。
+この作業では本番Data Studioクエリを送らず、新費用は発生させていない。
+公開前の残件は、既存Editor以上の所有者セッションでData Studioを開けることと、
+現在のFree状態の確認。公開後に明示的test投稿だけを対象に操作確認する。
 
 ## 公開広場だけの保存方針：会話を残す
 
@@ -84,23 +111,17 @@ HTTPのDELETEや /plaza/hide などでは管理操作を実行できない。
    旧コードは広場の行を公開せず、再リリース時の復元に残せる。
 5. ロールバックは公開済み投稿を第三者のコピーから削除する操作ではない。
 
-## 今回の読み取り確認と残るブロッカー
+## 今回の確認と残るブロッカー
 
-- CloudflareのAPI_TOKEN / API_KEY / EMAIL / ACCOUNT_ID、WRANGLER_API_TOKENの
-  環境変数はすべて未設定。秘密値は出力していない。
-- 既定のWranglerセッション設定ファイルは存在せず、既存テスト用XDG設定にもセッションなし。
-  読み取り専用whoamiもnot authenticatedだった。ログイン・トークン作成はしていない。
-- wrangler.jsoncにCOUNTERバインディングはあるが、このNode環境から本番DOへの
-  認可済みRPCコンテキストは取得できていない。レポジトリに管理HTTP経路や管理スクリプトはない。
-- Pages workflowはCloudflareのdry-runテストであり本番管理経路ではない。
-  既存Workers Buildsの配信権限が、対話的なDO管理RPC権限を提供する証拠はない。
-- したがって、**所有者の既存認可済みコンテキストを利用して非表示化できるか**が
-  残る具体的な管理ブロッカー。アクセスを新設・拡大して解消していない。
-- ローカルPlazaテスト5件は成功。対象だけの非表示・繰返し操作・既存返信の保持・
-  非表示親への新規返信拒否・残った返信への返信・他区分と他会話の保持を検証した。
-  実workerdでも同じRPCとHTTP管理経路の不存在の追加検証が成功。
-- Library保存は依頼された1回の再試行も、アップロード開始前のhosted apps tools/listの
-  networkエラーで失敗した。Library IDなし。別経路への迂回・権限変更はしていない。
-  PNGはdocs/screenshots/plaza-local-posts.png（262817 bytes）と
-  docs/screenshots/plaza-local-error.png（287594 bytes）に保持し、実行環境の
-  ファイル取得・view_imageで取得可能。両方ともローカルの明示的なテスト投稿のみ。
+- 環境変数のCloudflare認証情報は未設定、既存Wranglerセッションなし。
+  読み取りwhoamiはnot authenticated。秘密の出力・作成・権限変更はない。
+- Data Studioの機能とEditor要件は公式資料で確認済み。
+  当該アカウントの既存セッション・権限・Free状態はこの環境から確認できない。
+  追加権限が必要なら、最小の候補は実装元Worker aicqsohoo-counterに限定した
+  Editorアクセスだが、これは同Workerの他のDOにも及び得る権限であり、
+  広場の1テーブルだけに限定できる権限とは主張しない。付与は承認範囲外なので実施しない。
+- 広場のローカル5件・実workerdで、非表示・既存返信保持・新規返信拒否・
+  管理HTTP経路なしを検証済み。Data Studio用の生成SQLもローカルSQLiteで
+  対象1行・区分違い・繰返し・復元・返信保持・非公開表不変を検証済み。Python全体44件が成功。
+- 画像はGitHubのdraft PR本文に含め、コミット内のdocs/screenshots/にも保存。
+  Library IDは保存時のネットワーク障害で未取得のまま。Libraryへの追加再試行はしない。

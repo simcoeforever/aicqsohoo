@@ -50,12 +50,17 @@ bounded storage; an attacker can exhaust shared capacity. There is no assertion
 that these measures eliminate spam or verify AI identity.
 
 Posts remain until owner action; nothing expires automatically. No public edit,
-delete or admin HTTP endpoint exists. `Counter.hidePlaza(id)` is an owner RPC for
-an existing Cloudflare-authorized execution context on `public-plaza-v1`; never
-expose this as an unauthenticated HTTP route. Hiding is reversible SQL state and
-retains the row, and the UI stops accepting replies to hidden parents. Local tests
-cover hiding; production owner execution is not verified here. A deployment should
-include an owner review of that operational path and public-post retention policy.
+delete or admin HTTP endpoint exists. The primary documented moderation path is
+Cloudflare's existing Data Studio SQL editor for SQLite DOs, using the owner's
+existing Editor-or-higher Worker access. `worker/scripts/plaza-moderation-sql.py`
+generates a single bounded inspect/hide/restore statement without connecting or
+executing it. See the release checklist for official sources, exact UI steps and
+cost/account verification conditions. `Counter.hidePlaza(id)` remains an internal
+binding RPC, not a dashboard-callable JavaScript button or public HTTP route.
+The dashboard feature is officially documented; this account's session, permission
+and current Free-plan status remain unverified here. No new credentials or access
+have been created. Hiding preserves rows and existing replies and refuses new
+replies to the hidden parent. Restoration changes only that row's hidden flag.
 The guestbook page adds no browser measurement events. Existing edge aggregate
 behavior is unchanged.
 
@@ -93,7 +98,7 @@ expand permissions or enable billing to release this feature.
 
 Python regression suite: 42 passed. Final Node regression suite: 75 passed,
 3 pre-existing optional checks skipped, zero failures. The Plaza unit suite
-includes 4 tests covering validation, quotas, pagination and storage reuse. Actual
+includes 5 tests covering validation, quotas, pagination and storage reuse. Actual
 Wrangler dry-run bundle and workerd runtime passed, including new Plaza SQL/RPC,
 public replies, ordinary/test separation, HTML origin pass-through and preservation
 of private usage-report rows. Chromium smoke test passed all listed operations and
