@@ -130,5 +130,29 @@ try {
     assert.equal(response.status,200); assert.equal(await response.text(),'mocked GitHub Pages origin');
   }
   assert.equal((await (await call('/hit')).json()).count,42);
+  assert.equal(await (await mf.dispatchFetch('https://aicqsohoo.com/plaza/')).text(),'mocked GitHub Pages origin','Guestbook HTML must pass through to Pages');
+  const plazaBody={name:'Runtime test AI',message:'Explicit local test',source:'workerd test',kind:'ai',mode:'test',parent:null,consent:true,website:''};
+  assert.equal((await (await call('/plaza/posts?mode=test')).json()).posts.length,0);
+  const plazaPost=await call('/plaza/posts',{method:'POST',headers,body:JSON.stringify(plazaBody)});
+  assert.equal(plazaPost.status,201);const plazaId=(await plazaPost.json()).id;
+  assert.equal((await call('/plaza/posts',{method:'POST',headers,body:JSON.stringify({...plazaBody,parent:plazaId,message:'Reply'})})).status,201);
+  const plazaList=await (await call('/plaza/posts?mode=test')).json();
+  assert.equal(plazaList.posts.length,2);assert.equal(plazaList.posts[0].parent,plazaId);
+  assert.equal((await (await call('/plaza/posts?mode=visit')).json()).posts.length,0);
+  const freshBindings=await mf.getBindings();
+  const freshUsageStub=freshBindings.COUNTER.get(freshBindings.COUNTER.idFromName('usage-reports-v1'));
+  assert.equal((await freshUsageStub.reviewUsageReports({test:true,limit:20})).length,privateTests.length,'Plaza never mutates private reports');
+  assert.equal((await call('/plaza/posts',{method:'POST',headers,body:JSON.stringify({...plazaBody,message:'<script>bad</script>'})})).status,400);
+  const moderationBindings=await mf.getBindings();
+  const moderation=moderationBindings.COUNTER.get(moderationBindings.COUNTER.idFromName('public-plaza-v1'));
+  await moderation.hidePlaza(plazaId);
+  const visibleAfterHide=await (await call('/plaza/posts?mode=test')).json();
+  assert.equal(visibleAfterHide.posts.length,1);
+  assert.equal(visibleAfterHide.posts[0].parent,plazaId,'Existing reply remains after hiding its parent');
+  assert.equal((await call('/plaza/posts',{method:'POST',headers,body:JSON.stringify({...plazaBody,parent:plazaId})})).status,400);
+  assert.equal((await call('/plaza/posts',{method:'DELETE'})).status,405);
+  assert.equal((await call('/plaza/hide',{method:'POST',headers,body:JSON.stringify({id:plazaId})})).status,404);
+  console.log('workerd moderation: authorized binding RPC hides locally, retains replies, rejects new replies, no HTTP admin route');
+  console.log('workerd plaza: SQL/RPC public post/reply/read, mode separation, validation and private inbox isolation passed');
   console.log('workerd runtime: disabled isolated mainnet, existing testnet, concurrency, SQL/RPC/alarm setup, auth, limits, summary and mocked-origin JS-free GETs passed');
 } finally { await mf.dispose(); }

@@ -7,6 +7,7 @@
 import { DurableObject } from "cloudflare:workers";
 import { normalizeEvent, weekRange, disclose, RESOURCE_CATEGORIES, RESOURCE_CATEGORY_POLICY, resourceCategoryTotals } from './metrics.js';
 import { proxySite } from './gateway.js';
+import { Plaza, plazaRoute } from './plaza.js';
 import { UsageInbox, usageRoute } from './usage-reports.js';
 import {PaymentService,paymentRoute} from './payments.js';
 import {MainnetPreparationService} from './mainnet-preparation.js';
@@ -34,6 +35,10 @@ export class Counter extends DurableObject {
     ctx.storage.sql.exec("CREATE TABLE IF NOT EXISTS metrics (day TEXT, page TEXT, event TEXT, source TEXT, test INTEGER, n INTEGER NOT NULL, PRIMARY KEY(day,page,event,source,test))");
     ctx.storage.sql.exec("CREATE TABLE IF NOT EXISTS weekly_exports (version INTEGER, start TEXT, payload TEXT NOT NULL, PRIMARY KEY(version,start))");
   }
+
+  listPlaza(options) { return new Plaza(this.ctx.storage).list(options); }
+  acceptPlaza(body) { return new Plaza(this.ctx.storage).accept(body); }
+  hidePlaza(id) { return new Plaza(this.ctx.storage).hide(id); }
 
   usageInbox() { return new UsageInbox(this.ctx.storage); }
   acceptUsageReport(body) { return this.usageInbox().accept(body); }
@@ -156,6 +161,7 @@ function json(body, status, headers) {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    if(['/plaza/posts','/plaza/info'].includes(url.pathname)) return plazaRoute(request, env);
     if(url.pathname === '/usage-reports' || url.pathname.startsWith('/usage-reports/')) return usageRoute(request, env);
     if(url.pathname.startsWith('/contribution/'))return paymentRoute(request,env);
     if (ALLOWED_ORIGINS.has(url.origin)) return proxySite(request, env, ctx);
