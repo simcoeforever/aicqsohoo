@@ -84,8 +84,9 @@ Durable Object SQL/RPC wiring.
 
 ## Release state
 
-Dedicated branch and draft PR saving is authorized; main merge, public posts and
-production deployment remain unapproved. Main pushes trigger
+Production release, one explicit test post and its hiding check are now authorized,
+but merge/deployment/posting must wait for current Workers Free-plan confirmation.
+The owner will execute the hiding SQL in Data Studio. Main pushes trigger
 Pages and can trigger Worker Builds: keep these changes local for review until
 this new public-write feature is approved. Historical measurement rollout approval
 is not treated as blanket approval for publishing this guestbook. Deploy Worker
