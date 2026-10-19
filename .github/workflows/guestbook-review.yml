@@ -1,0 +1,34 @@
+name: Review guestbook (no deployment)
+on:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: guestbook-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --prefix worker --ignore-scripts --no-audit --no-fund
+      - run: node worker/build-payment-client.mjs
+      - run: python3 -m unittest discover tests
+      - run: node --test worker/tests/*.test.mjs tests/*.test.mjs
+      - name: Local workerd only
+        working-directory: worker
+        env:
+          WRANGLER_SEND_METRICS: 'false'
+          XDG_CONFIG_HOME: ${{ runner.temp }}/aicqsohoo-wrangler
+          WRANGLER_LOG_PATH: ${{ runner.temp }}/aicqsohoo-wrangler.log
+        run: |
+          node node_modules/wrangler/bin/wrangler.js deploy --dry-run --outdir .wrangler/dryrun
+          node runtime-test.mjs
+      - run: python3 build.py

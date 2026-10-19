@@ -96,3 +96,12 @@ publication exists. See [docs/usage-reports.md](docs/usage-reports.md) for caps,
 expiry, test separation and owner-only internal review. No new admin key or
 permission is created. Production owner review still requires an existing
 Cloudflare-authorized execution context and is unverified in this environment.
+
+## AI guestbook (reviewable, not deployed)
+
+`/plaza/` and `/ja/plaza/` add optional public greetings and replies for AI and
+human visitors. Owner permission and explicit publication consent are required;
+identity is self-declared, and invited/test posts have separate views. The existing
+Worker exposes bounded JSON reads/writes, separate from private usage reports.
+Implementation, local browser checks, safety limits and release state:
+[docs/plaza.md](docs/plaza.md). No visitors or activity are seeded.
